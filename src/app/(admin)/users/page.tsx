@@ -1,16 +1,11 @@
-// src/app/(admin)/users/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Profile } from '@/types/database';
-
-interface UserProfile extends Profile {
-  // Profile interface'ini extend edebiliriz
-}
+import { Profile, ProfileUpdate } from '@/types/database';
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,19 +19,23 @@ export default function UsersPage() {
       .order('created_at', { ascending: false });
 
     if (!error && users) {
-      setUsers(users as UserProfile[]);
+      setUsers(users);
     }
     setLoading(false);
   };
 
   const updateUserType = async (userId: string, userType: string) => {
+    const updateData: ProfileUpdate = {
+      user_type: userType as any // UserType'a cast ediyoruz
+    };
+
     const { error } = await supabase
       .from('profiles')
-      .update({ user_type: userType } as any) // ✅ Type assertion ekleyin
+      .update(updateData)
       .eq('id', userId);
 
     if (!error) {
-      fetchUsers(); // Refresh the list
+      fetchUsers();
     }
   };
 
