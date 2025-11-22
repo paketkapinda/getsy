@@ -30,16 +30,17 @@ export default function AdminLayout({
     setUser(user);
 
     // Check if user is admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('user_type')
-      .eq('id', user.id)
-      .single();
+  const { data: profile } = await supabase
+  .from('profiles')
+  .select('*')
+  .eq('id', user.id)
+  .single();
 
-    if (!profile || profile.user_type !== 'admin') {
-      router.push('/');
-      return;
-    }
+// Type assertion kullan
+if (!profile || (profile as Profile).user_type !== 'admin') {
+  router.push('/');
+  return;
+}
 
     setIsAdmin(true);
   };
