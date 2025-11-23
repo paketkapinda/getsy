@@ -5,8 +5,10 @@ export interface Database {
       profiles: {
         Row: Profile;
         Insert: Omit<Profile, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Profile, 'id' | 'created_at'>>;
+        Update: Partial<Omit<Profile, 'id' | 'created_at'>> & {
+          updated_at?: string; // updated_at ekleyin
       };
+        };
       businesses: {
         Row: Business;
         Insert: Omit<Business, 'id' | 'created_at' | 'updated_at'>;
@@ -133,4 +135,5 @@ export interface PaymentMethod {
   created_at: string;
   updated_at: string;
 }
+
 
