@@ -3,12 +3,12 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { HotelBooking, Business } from '@/types/database'; // Business türünü import edin
+import { HotelBooking, Business } from '@/types/database';
 
 export default function BusinessBookings() {
   const [bookings, setBookings] = useState<HotelBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [business, setBusiness] = useState<Business | null>(null); // Türü açıkça belirtin
+  const [business, setBusiness] = useState<Business | null>(null);
 
   useEffect(() => {
     fetchBusinessAndBookings();
@@ -18,33 +18,43 @@ export default function BusinessBookings() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Get business - türü açıkça belirtin
-    const { data: businessData } = await supabase
+    // Get business - type assertion kullan
+    const { data: businessData, error: businessError } = await supabase
       .from('businesses')
       .select('*')
       .eq('owner_id', user.id)
-      .single() as { data: Business | null };
+      .single();
 
-    if (!businessData) return;
+    if (businessError || !businessData) {
+      console.error('Business fetch error:', businessError);
+      return;
+    }
 
-    setBusiness(businessData);
+    setBusiness(businessData as Business);
 
     // Get hotel IDs for this business
-    const { data: hotels } = await supabase
+    const { data: hotels, error: hotelsError } = await supabase
       .from('hotels')
       .select('id')
-      .eq('business_id', businessData.id);
+      .eq('business_id', (businessData as Business).id);
 
-    if (!hotels) return;
+    if (hotelsError || !hotels) {
+      console.error('Hotels fetch error:', hotelsError);
+      return;
+    }
 
     const hotelIds = hotels.map(h => h.id);
 
     // Get bookings for these hotels
-    const { data: bookingsData } = await supabase
+    const { data: bookingsData, error: bookingsError } = await supabase
       .from('hotel_bookings')
       .select('*')
       .in('hotel_id', hotelIds)
       .order('created_at', { ascending: false });
+
+    if (bookingsError) {
+      console.error('Bookings fetch error:', bookingsError);
+    }
 
     if (bookingsData) {
       setBookings(bookingsData as HotelBooking[]);
@@ -53,17 +63,21 @@ export default function BusinessBookings() {
   };
 
   const updateBookingStatus = async (bookingId: string, status: string, response?: string) => {
+    const updateData = {
+      status,
+      hotel_response: response,
+      confirmed_at: status === 'confirmed' ? new Date().toISOString() : null
+    };
+
     const { error } = await supabase
       .from('hotel_bookings')
-      .update({
-        status,
-        hotel_response: response,
-        confirmed_at: status === 'confirmed' ? new Date().toISOString() : null
-      } as any) // Tür kontrolünü geçici olarak atlayın
+      .update(updateData)
       .eq('id', bookingId);
 
     if (!error) {
       fetchBusinessAndBookings(); // Refresh
+    } else {
+      console.error('Update error:', error);
     }
   };
 
