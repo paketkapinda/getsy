@@ -1,21 +1,11 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
-// Basit tür tanımı kullan
-type UserType = 'customer' | 'business_owner' | 'admin';
-
-interface SimpleProfile {
-  id: string;
-  full_name: string | null;
-  email: string;
-  user_type: UserType;
-  created_at: string;
-}
-
 export default function UsersPage() {
-  const [users, setUsers] = useState<SimpleProfile[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,18 +19,17 @@ export default function UsersPage() {
       .order('created_at', { ascending: false });
 
     if (!error && users) {
-      setUsers(users as SimpleProfile[]);
+      setUsers(users);
     }
     setLoading(false);
   };
 
   const updateUserType = async (userId: string, userType: string) => {
-    // Tür problemi olmayan basit çözüm
+    // ANY kullanarak tür kontrolünü atla
     const { error } = await supabase
       .from('profiles')
       .update({ user_type: userType } as any)
       .eq('id', userId);
-
 
     if (!error) {
       fetchUsers();
@@ -48,7 +37,6 @@ export default function UsersPage() {
       console.error('Update error:', error);
     }
   };
-
   if (loading) {
     return (
       <div className="p-6">
