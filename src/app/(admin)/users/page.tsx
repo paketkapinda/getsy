@@ -2,10 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Profile, ProfileUpdate } from '@/types/database';
+
+// Basit tür tanımı kullan
+type UserType = 'customer' | 'business_owner' | 'admin';
+
+interface SimpleProfile {
+  id: string;
+  full_name: string | null;
+  email: string;
+  user_type: UserType;
+  created_at: string;
+}
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<Profile[]>([]);
+  const [users, setUsers] = useState<SimpleProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,24 +29,20 @@ export default function UsersPage() {
       .order('created_at', { ascending: false });
 
     if (!error && users) {
-      setUsers(users);
+      setUsers(users as SimpleProfile[]);
     }
     setLoading(false);
   };
 
   const updateUserType = async (userId: string, userType: string) => {
-    // Türü doğru şekilde belirtin
-    const updateData: ProfileUpdate = {
-      user_type: userType as 'customer' | 'business_owner' | 'admin'
-    };
-
+    // Tür problemi olmayan basit çözüm
     const { error } = await supabase
       .from('profiles')
-      .update(updateData)
+      .update({ user_type: userType })
       .eq('id', userId);
 
     if (!error) {
-      fetchUsers(); // Kullanıcı listesini yenile
+      fetchUsers();
     } else {
       console.error('Update error:', error);
     }
