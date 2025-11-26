@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Dashboard – Etsy AI POD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/frontend/assets/css/styles.css" />
+  </head>
+  <body class="min-h-screen bg-gray-50 text-gray-900">
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside class="hidden w-64 border-r border-gray-200 bg-white px-6 py-6 md:block">
+        <div class="flex items-center gap-2 mb-8">
+          <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <span class="text-white font-bold text-lg">E</span>
+          </div>
+          <span class="text-lg font-bold text-gray-900">Etsy AI POD</span>
+        </div>
+        <nav class="space-y-1">
+          <a href="/frontend/dashboard.html" class="nav-link nav-link-active">Dashboard</a>
+          <a href="/frontend/products.html" class="nav-link">Products</a>
+          <a href="/frontend/orders.html" class="nav-link">Orders</a>
+          <a href="/frontend/ai-assistant.html" class="nav-link">AI Assistant</a>
+          <a href="/frontend/settings.html" class="nav-link">Settings</a>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 px-4 py-6 md:px-8 md:py-8">
+        <header class="flex items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p class="text-gray-600 mt-1">Overview of your Etsy POD business</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <select
+              id="active-shop-select"
+              class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ></select>
+            <button
+              id="logout-btn"
+              class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        </header>
+
+        <!-- KPI Cards -->
+        <section class="grid gap-6 sm:grid-cols-3 mb-8">
+          <div class="kpi-card">
+            <p class="kpi-label">Total Products</p>
+            <p id="kpi-products" class="kpi-value">–</p>
+          </div>
+          <div class="kpi-card">
+            <p class="kpi-label">Total Orders</p>
+            <p id="kpi-orders" class="kpi-value">–</p>
+          </div>
+          <div class="kpi-card">
+            <p class="kpi-label">Monthly Revenue</p>
+            <p id="kpi-revenue" class="kpi-value">–</p>
+          </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <section class="grid gap-6 md:grid-cols-[2fr_1fr]">
+          <!-- Top Seller Analysis -->
+          <div class="card">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="text-xl font-bold text-gray-900">Top-Seller Analysis</h2>
+                <p class="text-sm text-gray-600 mt-1">
+                  AI-powered time-series trends and 3-month forecast per listing
+                </p>
+              </div>
+              <button
+                id="analyze-top-seller-btn"
+                class="btn-primary text-sm"
+              >
+                Analyze Now
+              </button>
+            </div>
+            <div id="top-seller-results" class="space-y-3 text-sm"></div>
+          </div>
+
+          <!-- Sidebar Widgets -->
+          <div class="space-y-6">
+            <!-- Job Queue -->
+            <div class="card">
+              <h2 class="text-lg font-bold text-gray-900 mb-2">Job Queue</h2>
+              <p class="text-sm text-gray-600 mb-4">
+                Pending jobs for mockup renders, Etsy sync and order sends
+              </p>
+              <ul id="job-queue" class="space-y-2 text-sm"></ul>
+            </div>
+
+            <!-- Recent AI Activity -->
+            <div class="card">
+              <h2 class="text-lg font-bold text-gray-900 mb-2">Recent AI Activity</h2>
+              <ul id="ai-logs" class="space-y-2 text-sm"></ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module">
+      import { requireLogin, signOut, loadShopsIntoSelect } from './assets/js/auth.js';
+      import { callFunction } from './assets/js/api.js';
+      import { supabase } from './assets/js/supabaseClient.js';
+
+      await requireLogin();
+
+      const logoutBtn = document.querySelector('#logout-btn');
+      logoutBtn.addEventListener('click', async () => {
+        await signOut();
+      });
+
+      await loadShopsIntoSelect(document.querySelector('#active-shop-select'));
+
+      // Load KPIs
+      const { count: productsCount } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true });
+      document.querySelector('#kpi-products').textContent = productsCount || 0;
+
+      const { count: ordersCount } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true });
+      document.querySelector('#kpi-orders').textContent = ordersCount || 0;
+
+      const { data: payments } = await supabase
+        .from('payments')
+        .select('net_payout')
+        .eq('status', 'completed');
+      const revenue = payments?.reduce((sum, p) => sum + parseFloat(p.net_payout || '0'), 0) || 0;
+      document.querySelector('#kpi-revenue').textContent = `$${revenue.toFixed(2)}`;
+
+      // Top Seller Analysis
+      const topSellerBtn = document.querySelector('#analyze-top-seller-btn');
+      const resultsEl = document.querySelector('#top-seller-results');
+
+      topSellerBtn.addEventListener('click', async () => {
+        topSellerBtn.disabled = true;
+        topSellerBtn.textContent = 'Analyzing...';
+        resultsEl.innerHTML = '<div class="text-center py-4"><div class="loading-spinner mx-auto"></div></div>';
+        try {
+          const data = await callFunction('ai-top-seller', { months: 12 });
+          if (data.trend_scores && data.trend_scores.length > 0) {
+            resultsEl.innerHTML = data.trend_scores
+              .slice(0, 5)
+              .map(
+                (row) => `
+                  <div class="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                    <span class="text-gray-700">${row.listing_title || 'Product'}</span>
+                    <span class="font-semibold text-blue-600">${row.trend_score?.toFixed(1) || 0}</span>
+                  </div>
+                `,
+              )
+              .join('');
+          } else {
+            resultsEl.innerHTML = '<p class="text-gray-500 text-center py-4">No analysis data available</p>';
+          }
+        } catch (e) {
+          resultsEl.innerHTML = `<p class="text-red-600 text-center py-4">${e.message || 'Failed to load analysis'}</p>`;
+        } finally {
+          topSellerBtn.disabled = false;
+          topSellerBtn.textContent = 'Analyze Now';
+        }
+      });
+    </script>
+  </body>
+</html>
