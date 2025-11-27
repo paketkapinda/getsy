@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN (development için) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Custom CSS -->
@@ -514,10 +514,12 @@
       </div>
     </div>
 
-    <script type="module">
-      // Import from correct path
-      import { supabase } from '/assets/js/supabaseClient.js';
+    <!-- ÖNCE env.js YÜKLENMELİ -->
+    <script src="/assets/js/env.js"></script>
+    <!-- SONRA supabaseClient.js -->
+    <script type="module" src="/assets/js/supabaseClient.js"></script>
 
+    <script type="module">
       // Tab Management
       const tabButtons = document.querySelectorAll('.tab-button');
       const tabContents = document.querySelectorAll('.tab-content');
@@ -598,121 +600,129 @@
         }
       }
 
-      // Login Form
-      const loginForm = document.querySelector('#login-form');
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const email = document.querySelector('#login-email').value.trim();
-        const password = document.querySelector('#login-password').value;
-        
-        const submitBtn = loginForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<div class="loading-spinner"></div>';
-        
-        try {
-          const { data, error } = await supabase.auth.signInWithPassword({ 
-            email, 
-            password 
-          });
-          
-          if (error) {
-            showMessage(error.message, 'error');
-          } else {
-            showMessage('Success! Redirecting to dashboard...', 'success');
-            setTimeout(() => {
-              window.location.href = '/dashboard.html';
-            }, 1000);
-          }
-        } catch (error) {
-          showMessage('An error occurred. Please try again.', 'error');
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.textContent = originalText;
-        }
-      });
-
-      // Sign Up Form
-      const signupForm = document.querySelector('#signup-form');
-      signupForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const fullName = document.querySelector('#signup-fullname').value.trim();
-        const email = document.querySelector('#signup-email').value.trim();
-        const password = document.querySelector('#signup-password').value;
-        const confirmPassword = document.querySelector('#signup-confirm-password').value;
-        
-        if (password !== confirmPassword) {
-          showMessage('Passwords do not match', 'error');
-          return;
-        }
-        
-        const submitBtn = signupForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<div class="loading-spinner"></div>';
-        
-        try {
-          const { data, error } = await supabase.auth.signUp({ 
-            email, 
-            password,
-            options: {
-              data: {
-                full_name: fullName
+      // Import supabase after env.js is loaded
+      import('/assets/js/supabaseClient.js')
+        .then(({ supabase }) => {
+          // Login Form
+          const loginForm = document.querySelector('#login-form');
+          loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.querySelector('#login-email').value.trim();
+            const password = document.querySelector('#login-password').value;
+            
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div>';
+            
+            try {
+              const { data, error } = await supabase.auth.signInWithPassword({ 
+                email, 
+                password 
+              });
+              
+              if (error) {
+                showMessage(error.message, 'error');
+              } else {
+                showMessage('Success! Redirecting to dashboard...', 'success');
+                setTimeout(() => {
+                  window.location.href = '/dashboard.html';
+                }, 1000);
               }
+            } catch (error) {
+              showMessage('An error occurred. Please try again.', 'error');
+            } finally {
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalText;
             }
           });
-          
-          if (error) {
-            showMessage(error.message, 'error');
-          } else {
-            showMessage('Account created successfully! Please check your email for verification.', 'success');
-            signupForm.reset();
-            // Switch to login tab after successful signup
-            setTimeout(() => {
-              switchTab('login');
-            }, 3000);
-          }
-        } catch (error) {
-          showMessage('An error occurred. Please try again.', 'error');
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.textContent = originalText;
-        }
-      });
 
-      // Forgot Password Form
-      const forgotPasswordForm = document.querySelector('#forgot-password-form');
-      forgotPasswordForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const email = document.querySelector('#forgot-email').value.trim();
-        
-        const submitBtn = forgotPasswordForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<div class="loading-spinner"></div>';
-        
-        try {
-          const { error } = await supabase.auth.resetPasswordForEmail(email);
-          
-          if (error) {
-            showForgotMessage(error.message, 'error');
-          } else {
-            showForgotMessage('Password reset link sent! Please check your email.', 'success');
-            forgotPasswordForm.reset();
-          }
-        } catch (error) {
-          showForgotMessage('An error occurred. Please try again.', 'error');
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.textContent = originalText;
-        }
-      });
+          // Sign Up Form
+          const signupForm = document.querySelector('#signup-form');
+          signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fullName = document.querySelector('#signup-fullname').value.trim();
+            const email = document.querySelector('#signup-email').value.trim();
+            const password = document.querySelector('#signup-password').value;
+            const confirmPassword = document.querySelector('#signup-confirm-password').value;
+            
+            if (password !== confirmPassword) {
+              showMessage('Passwords do not match', 'error');
+              return;
+            }
+            
+            const submitBtn = signupForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div>';
+            
+            try {
+              const { data, error } = await supabase.auth.signUp({ 
+                email, 
+                password,
+                options: {
+                  data: {
+                    full_name: fullName
+                  }
+                }
+              });
+              
+              if (error) {
+                showMessage(error.message, 'error');
+              } else {
+                showMessage('Account created successfully! Please check your email for verification.', 'success');
+                signupForm.reset();
+                // Switch to login tab after successful signup
+                setTimeout(() => {
+                  switchTab('login');
+                }, 3000);
+              }
+            } catch (error) {
+              showMessage('An error occurred. Please try again.', 'error');
+            } finally {
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalText;
+            }
+          });
+
+          // Forgot Password Form
+          const forgotPasswordForm = document.querySelector('#forgot-password-form');
+          forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.querySelector('#forgot-email').value.trim();
+            
+            const submitBtn = forgotPasswordForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div>';
+            
+            try {
+              const { error } = await supabase.auth.resetPasswordForEmail(email);
+              
+              if (error) {
+                showForgotMessage(error.message, 'error');
+              } else {
+                showForgotMessage('Password reset link sent! Please check your email.', 'success');
+                forgotPasswordForm.reset();
+              }
+            } catch (error) {
+              showForgotMessage('An error occurred. Please try again.', 'error');
+            } finally {
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalText;
+            }
+          });
+        })
+        .catch(error => {
+          console.error('Failed to load supabase client:', error);
+          showMessage('Authentication service unavailable. Please try again later.', 'error');
+        });
 
       // Initialize with login tab active
       switchTab('login');
