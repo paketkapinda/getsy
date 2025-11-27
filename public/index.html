@@ -3,32 +3,39 @@
   <head>
     <meta charset="utf-8" />
     <title>Etsy AI POD Platform – Automated Print-on-Demand Business</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
-  <!-- Cache kontrolü -->
-  <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <!-- Cache Control -->
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
 
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/css/styles.css" />
-</head>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+  </head>
   <body class="min-h-screen bg-white text-gray-900">
     <!-- Header -->
     <header class="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-        <div class="flex items-center gap-2">
-          <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <span class="text-white font-bold text-lg">E</span>
+        <div class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
           </div>
           <span class="text-xl font-bold text-gray-900">Etsy AI POD</span>
         </div>
         <nav class="hidden items-center gap-8 text-sm font-medium text-gray-700 md:flex">
-          <a href="#features" class="hover:text-blue-600 transition-colors">Features</a>
-          <a href="#how-it-works" class="hover:text-blue-600 transition-colors">How It Works</a>
-          <a href="#pricing" class="hover:text-blue-600 transition-colors">Pricing</a>
+          <a href="#features" class="hover:text-orange-600 transition-colors">Features</a>
+          <a href="#how-it-works" class="hover:text-orange-600 transition-colors">How It Works</a>
+          <a href="#pricing" class="hover:text-orange-600 transition-colors">Pricing</a>
         </nav>
         <a
           href="/login.html"
-          class="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105"
+          class="rounded-lg bg-gradient-to-r from-orange-500 to-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105"
         >
           Start Now
         </a>
@@ -36,29 +43,29 @@
     </header>
 
     <!-- Hero Section -->
-    <section class="pt-32 pb-20 px-4 bg-gradient-to-b from-white via-blue-50/30 to-white">
+    <section class="pt-32 pb-20 px-4 bg-gradient-to-b from-white via-orange-50/30 to-white">
       <div class="mx-auto max-w-7xl">
-        <div class="text-center mb-12">
+        <div class="text-center mb-16">
           <h1 class="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            The Fastest Way to Start<br />
-            <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Print On Demand Business
+            Start Your Etsy POD Business<br />
+            <span class="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+              In Minutes, Not Months
             </span>
           </h1>
           <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            Create AI-generated designs, mockups, and listings in minutes — no design skills needed.
-            <strong class="text-gray-900">Only 2% commission per sale.</strong>
+            AI-powered designs, automated mockups, and Etsy integration. 
+            <strong class="text-gray-900">Only 2% commission. No monthly fees.</strong>
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a
               href="/login.html"
-              class="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-4 text-lg font-semibold text-white shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+              class="rounded-lg bg-gradient-to-r from-orange-600 to-red-600 px-8 py-4 text-lg font-semibold text-white shadow-xl hover:shadow-2xl transition-all hover:scale-105"
             >
-              Start Now
+              Start Free Trial
             </a>
             <a
               href="#how-it-works"
-              class="rounded-lg border-2 border-gray-300 px-8 py-4 text-lg font-semibold text-gray-700 hover:border-blue-600 hover:text-blue-600 transition-all"
+              class="rounded-lg border-2 border-gray-300 px-8 py-4 text-lg font-semibold text-gray-700 hover:border-orange-600 hover:text-orange-600 transition-all"
             >
               See How It Works
             </a>
@@ -66,25 +73,32 @@
         </div>
 
         <!-- Social Proof -->
-        <div class="text-center mb-12">
-          <p class="text-sm text-gray-500 mb-4">Using by 1000+ ETSY Store Owners</p>
-          <div class="flex justify-center gap-2">
-            <div class="flex -space-x-2">
-              <div class="h-10 w-10 rounded-full bg-gradient-to-br from-pink-400 to-red-500 border-2 border-white"></div>
-              <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white"></div>
-              <div class="h-10 w-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 border-2 border-white"></div>
-              <div class="h-10 w-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 border-2 border-white"></div>
-              <div class="h-10 w-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-                +996
-              </div>
-            </div>
+        <div class="text-center mb-16">
+          <p class="text-sm text-gray-500 mb-6 uppercase tracking-wider font-medium">Trusted by 1,000+ Etsy Sellers</p>
+          <div class="flex justify-center items-center gap-8 opacity-60">
+            <div class="text-2xl font-bold text-gray-400">$2M+</div>
+            <div class="h-6 w-px bg-gray-300"></div>
+            <div class="text-2xl font-bold text-gray-400">50K+</div>
+            <div class="h-6 w-px bg-gray-300"></div>
+            <div class="text-2xl font-bold text-gray-400">4.9★</div>
           </div>
         </div>
 
-        <!-- Hero Image Placeholder -->
-        <div class="rounded-2xl bg-gradient-to-br from-blue-100 to-purple-100 p-8 shadow-2xl">
-          <div class="aspect-video bg-white rounded-xl flex items-center justify-center">
-            <p class="text-gray-400 text-lg">Dashboard Preview</p>
+        <!-- Hero Dashboard Preview -->
+        <div class="relative">
+          <div class="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-3xl blur-3xl"></div>
+          <div class="relative bg-white rounded-2xl border border-gray-200 shadow-2xl overflow-hidden">
+            <div class="aspect-video bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-8">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">AI-Powered Dashboard</h3>
+                <p class="text-gray-600">Real-time analytics and automated product management</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -94,71 +108,91 @@
     <section id="features" class="py-20 px-4 bg-white">
       <div class="mx-auto max-w-7xl">
         <div class="text-center mb-16">
-          <h2 class="text-4xl font-bold text-gray-900 mb-4">Built for Etsy POD Sellers</h2>
+          <h2 class="text-4xl font-bold text-gray-900 mb-4">Everything You Need to Succeed on Etsy</h2>
           <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-            Most POD sellers rely on guesses — our users rely on data. Product research, design, mock-ups, and SEO are completed not in days, but in minutes!
+            From product research to automated fulfillment - we handle the hard work so you can focus on growing your business.
           </p>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-6 mb-12">
-          <div class="p-6 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all">
-            <div class="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <div class="grid md:grid-cols-3 gap-8 mb-16">
+          <div class="group p-8 rounded-2xl border border-gray-200 hover:border-orange-300 hover:shadow-2xl transition-all duration-300">
+            <div class="h-14 w-14 rounded-xl bg-orange-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
               </svg>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Find Top-Selling Products</h3>
-            <p class="text-gray-600">Analyze competitor shops, spot bestsellers, and extract what buyers love most.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Smart Product Research</h3>
+            <p class="text-gray-600">AI analyzes top-performing Etsy listings to identify profitable niches and trending designs.</p>
           </div>
 
-          <div class="p-6 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all">
-            <div class="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Generate Similar Bestsellers</h3>
-            <p class="text-gray-600">AI creates new design concepts inspired by top-performing listings instantly.</p>
-          </div>
-
-          <div class="p-6 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all">
-            <div class="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Automated Product Mockups</h3>
-            <p class="text-gray-600">Studio-quality mockups for t-shirts, mugs, frames & more. Upload your own PSDs or use built-ins.</p>
-          </div>
-
-          <div class="p-6 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all">
-            <div class="h-12 w-12 rounded-lg bg-yellow-100 flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Generate Hundreds of Listings</h3>
-            <p class="text-gray-600">Create 100+ product listings in one click with SEO-optimized content.</p>
-          </div>
-
-          <div class="p-6 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all">
-            <div class="h-12 w-12 rounded-lg bg-red-100 flex items-center justify-center mb-4">
+          <div class="group p-8 rounded-2xl border border-gray-200 hover:border-orange-300 hover:shadow-2xl transition-all duration-300">
+            <div class="h-14 w-14 rounded-xl bg-red-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
               </svg>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">No Design Skills Needed</h3>
-            <p class="text-gray-600">AI handles everything from design generation to mockup creation.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">AI Design Generation</h3>
+            <p class="text-gray-600">Create unique, on-trend designs in seconds with our advanced AI technology.</p>
           </div>
 
-          <div class="p-6 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all">
-            <div class="h-12 w-12 rounded-lg bg-indigo-100 flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+          <div class="group p-8 rounded-2xl border border-gray-200 hover:border-orange-300 hover:shadow-2xl transition-all duration-300">
+            <div class="h-14 w-14 rounded-xl bg-amber-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
               </svg>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">SEO-Optimized Content</h3>
-            <p class="text-gray-600">We generate SEO optimized titles, descriptions, and tags — ready to upload to your Etsy store.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Professional Mockups</h3>
+            <p class="text-gray-600">Studio-quality mockups for 50+ products. No design skills required.</p>
+          </div>
+
+          <div class="group p-8 rounded-2xl border border-gray-200 hover:border-orange-300 hover:shadow-2xl transition-all duration-300">
+            <div class="h-14 w-14 rounded-xl bg-emerald-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Automated Listings</h3>
+            <p class="text-gray-600">Generate 100+ SEO-optimized listings with one click. Titles, descriptions, and tags included.</p>
+          </div>
+
+          <div class="group p-8 rounded-2xl border border-gray-200 hover:border-orange-300 hover:shadow-2xl transition-all duration-300">
+            <div class="h-14 w-14 rounded-xl bg-purple-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">No Design Skills Needed</h3>
+            <p class="text-gray-600">Our AI handles everything from design creation to mockup generation automatically.</p>
+          </div>
+
+          <div class="group p-8 rounded-2xl border border-gray-200 hover:border-orange-300 hover:shadow-2xl transition-all duration-300">
+            <div class="h-14 w-14 rounded-xl bg-blue-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">SEO-Optimized Content</h3>
+            <p class="text-gray-600">AI-generated titles, descriptions, and tags that rank higher on Etsy search.</p>
+          </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div>
+            <div class="text-3xl font-bold text-gray-900 mb-2">10x</div>
+            <div class="text-gray-600 text-sm">Faster Listing Creation</div>
+          </div>
+          <div>
+            <div class="text-3xl font-bold text-gray-900 mb-2">50+</div>
+            <div class="text-gray-600 text-sm">Product Categories</div>
+          </div>
+          <div>
+            <div class="text-3xl font-bold text-gray-900 mb-2">2%</div>
+            <div class="text-gray-600 text-sm">Commission Only</div>
+          </div>
+          <div>
+            <div class="text-3xl font-bold text-gray-900 mb-2">24/7</div>
+            <div class="text-gray-600 text-sm">AI Assistant</div>
           </div>
         </div>
       </div>
@@ -168,43 +202,43 @@
     <section id="how-it-works" class="py-20 px-4 bg-gray-50">
       <div class="mx-auto max-w-7xl">
         <div class="text-center mb-16">
-          <h2 class="text-4xl font-bold text-gray-900 mb-4">How It Works?</h2>
+          <h2 class="text-4xl font-bold text-gray-900 mb-4">How It Works in 4 Simple Steps</h2>
           <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-            A simple, powerful workflow to turn Etsy insights into high-converting product listings — in minutes.
+            Go from idea to selling on Etsy in under 30 minutes with our automated workflow.
           </p>
         </div>
 
-        <div class="grid md:grid-cols-4 gap-8">
-          <div class="text-center">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-bold mb-6">
-              01
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div class="text-center group">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 text-white text-2xl font-bold mb-6 group-hover:scale-110 transition-transform shadow-lg">
+              <span>01</span>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">Start Analysis</h3>
-            <p class="text-gray-600">Drop any Etsy shop link. We automatically analyze reviews, spot bestsellers, and extract what buyers love most.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">Analyze & Research</h3>
+            <p class="text-gray-600 text-sm leading-relaxed">Paste any Etsy shop URL. Our AI analyzes bestsellers, reviews, and buyer preferences to identify winning products.</p>
           </div>
 
-          <div class="text-center">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-bold mb-6">
-              02
+          <div class="text-center group">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 text-white text-2xl font-bold mb-6 group-hover:scale-110 transition-transform shadow-lg">
+              <span>02</span>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">Generate Designs</h3>
-            <p class="text-gray-600">AI creates new design concepts inspired by top-performing listings. We do cut, trim, color-grade, and add engaging transitions.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">Generate Designs</h3>
+            <p class="text-gray-600 text-sm leading-relaxed">AI creates unique design variations inspired by top-performing listings. Customize colors, text, and layout in seconds.</p>
           </div>
 
-          <div class="text-center">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-bold mb-6">
-              03
+          <div class="text-center group">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 text-white text-2xl font-bold mb-6 group-hover:scale-110 transition-transform shadow-lg">
+              <span>03</span>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">Create Mockups</h3>
-            <p class="text-gray-600">Turn your designs into realistic mockups for t-shirts, mugs, frames & more. Upload your own PSDs or use built-ins. Just with one click.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">Create Mockups</h3>
+            <p class="text-gray-600 text-sm leading-relaxed">Automatically generate professional product mockups for t-shirts, mugs, phone cases, and 50+ other products.</p>
           </div>
 
-          <div class="text-center">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-bold mb-6">
-              04
+          <div class="text-center group">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 text-white text-2xl font-bold mb-6 group-hover:scale-110 transition-transform shadow-lg">
+              <span>04</span>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">Publish</h3>
-            <p class="text-gray-600">We generate SEO optimized titles, descriptions, and tags — ready to upload to your Etsy store.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">Publish & Sell</h3>
+            <p class="text-gray-600 text-sm leading-relaxed">One-click publishing to your Etsy store with optimized SEO content. Orders automatically fulfilled with your POD provider.</p>
           </div>
         </div>
       </div>
@@ -214,63 +248,93 @@
     <section class="py-20 px-4 bg-white">
       <div class="mx-auto max-w-7xl">
         <div class="text-center mb-16">
-          <h2 class="text-4xl font-bold text-gray-900 mb-4">Why Most Etsy Sellers Burn Out?</h2>
+          <h2 class="text-4xl font-bold text-gray-900 mb-4">Stop Guessing, Start Growing</h2>
           <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-            A quick comparison of the struggles print-on-demand sellers face — and how we fix every one of them.
+            Traditional POD methods vs. our AI-powered platform
           </p>
         </div>
 
         <div class="grid md:grid-cols-2 gap-8">
           <!-- Problems -->
           <div class="p-8 rounded-2xl bg-red-50 border-2 border-red-200">
-            <h3 class="text-2xl font-bold text-red-900 mb-6">Seller Problems</h3>
+            <h3 class="text-2xl font-bold text-red-900 mb-6">The Old Way</h3>
             <ul class="space-y-4">
-              <li class="flex items-start gap-3">
-                <span class="text-red-600 text-xl">✗</span>
-                <span class="text-gray-700">It's hard to know what to sell</span>
+              <li class="flex items-start gap-4">
+                <span class="text-red-600 text-xl mt-1">✗</span>
+                <div>
+                  <span class="text-gray-700 font-medium">Endless product research</span>
+                  <p class="text-gray-600 text-sm mt-1">Hours spent guessing what might sell</p>
+                </div>
               </li>
-              <li class="flex items-start gap-3">
-                <span class="text-red-600 text-xl">✗</span>
-                <span class="text-gray-700">Design takes too much time</span>
+              <li class="flex items-start gap-4">
+                <span class="text-red-600 text-xl mt-1">✗</span>
+                <div>
+                  <span class="text-gray-700 font-medium">Design struggles</span>
+                  <p class="text-gray-600 text-sm mt-1">Limited by your design skills or budget</p>
+                </div>
               </li>
-              <li class="flex items-start gap-3">
-                <span class="text-red-600 text-xl">✗</span>
-                <span class="text-gray-700">My mockups don't look professional</span>
+              <li class="flex items-start gap-4">
+                <span class="text-red-600 text-xl mt-1">✗</span>
+                <div>
+                  <span class="text-gray-700 font-medium">Manual mockup creation</span>
+                  <p class="text-gray-600 text-sm mt-1">Time-consuming Photoshop work</p>
+                </div>
               </li>
-              <li class="flex items-start gap-3">
-                <span class="text-red-600 text-xl">✗</span>
-                <span class="text-gray-700">Writing product descriptions is a pain</span>
+              <li class="flex items-start gap-4">
+                <span class="text-red-600 text-xl mt-1">✗</span>
+                <div>
+                  <span class="text-gray-700 font-medium">SEO guesswork</span>
+                  <p class="text-gray-600 text-sm mt-1">Trial and error with keywords</p>
+                </div>
               </li>
-              <li class="flex items-start gap-3">
-                <span class="text-red-600 text-xl">✗</span>
-                <span class="text-gray-700">Managing all this manually is exhausting</span>
+              <li class="flex items-start gap-4">
+                <span class="text-red-600 text-xl mt-1">✗</span>
+                <div>
+                  <span class="text-gray-700 font-medium">Slow scaling</span>
+                  <p class="text-gray-600 text-sm mt-1">Months to build a substantial catalog</p>
+                </div>
               </li>
             </ul>
           </div>
 
           <!-- Solutions -->
           <div class="p-8 rounded-2xl bg-green-50 border-2 border-green-200">
-            <h3 class="text-2xl font-bold text-green-900 mb-6">Our Solution</h3>
+            <h3 class="text-2xl font-bold text-green-900 mb-6">Our AI Solution</h3>
             <ul class="space-y-4">
-              <li class="flex items-start gap-3">
-                <span class="text-green-600 text-xl">✓</span>
-                <span class="text-gray-700">We identify your competitors' best-selling products</span>
+              <li class="flex items-start gap-4">
+                <span class="text-green-600 text-xl mt-1">✓</span>
+                <div>
+                  <span class="text-gray-700 font-medium">Data-driven research</span>
+                  <p class="text-gray-600 text-sm mt-1">AI identifies proven bestsellers</p>
+                </div>
               </li>
-              <li class="flex items-start gap-3">
-                <span class="text-green-600 text-xl">✓</span>
-                <span class="text-gray-700">Generate 100+ designs in minutes with AI</span>
+              <li class="flex items-start gap-4">
+                <span class="text-green-600 text-xl mt-1">✓</span>
+                <div>
+                  <span class="text-gray-700 font-medium">Instant design generation</span>
+                  <p class="text-gray-600 text-sm mt-1">100+ designs in minutes, no skills needed</p>
+                </div>
               </li>
-              <li class="flex items-start gap-3">
-                <span class="text-green-600 text-xl">✓</span>
-                <span class="text-gray-700">Studio-quality mockups, ready for Etsy</span>
+              <li class="flex items-start gap-4">
+                <span class="text-green-600 text-xl mt-1">✓</span>
+                <div>
+                  <span class="text-gray-700 font-medium">Automated mockups</span>
+                  <p class="text-gray-600 text-sm mt-1">Professional quality in one click</p>
+                </div>
               </li>
-              <li class="flex items-start gap-3">
-                <span class="text-green-600 text-xl">✓</span>
-                <span class="text-gray-700">Instant SEO-friendly titles, descriptions & tags</span>
+              <li class="flex items-start gap-4">
+                <span class="text-green-600 text-xl mt-1">✓</span>
+                <div>
+                  <span class="text-gray-700 font-medium">Optimized SEO content</span>
+                  <p class="text-gray-600 text-sm mt-1">AI-generated titles and descriptions</p>
+                </div>
               </li>
-              <li class="flex items-start gap-3">
-                <span class="text-green-600 text-xl">✓</span>
-                <span class="text-gray-700">Fully automated workflow with real-time tracking</span>
+              <li class="flex items-start gap-4">
+                <span class="text-green-600 text-xl mt-1">✓</span>
+                <div>
+                  <span class="text-gray-700 font-medium">Rapid scaling</span>
+                  <p class="text-gray-600 text-sm mt-1">100+ listings created simultaneously</p>
+                </div>
               </li>
             </ul>
           </div>
@@ -282,21 +346,25 @@
     <section id="pricing" class="py-20 px-4 bg-gradient-to-b from-gray-50 to-white">
       <div class="mx-auto max-w-7xl">
         <div class="text-center mb-16">
-          <h2 class="text-4xl font-bold text-gray-900 mb-4">Simple Pricing</h2>
+          <h2 class="text-4xl font-bold text-gray-900 mb-4">Simple, Fair Pricing</h2>
           <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-            Whether you're just testing the waters or scaling with thousands of products, we offer a plan that fits your needs — no fluff, no hidden fees.
+            Only pay when you make sales. No monthly fees, no hidden costs, no risk.
           </p>
         </div>
 
         <div class="max-w-md mx-auto">
-          <div class="p-8 rounded-2xl bg-white border-2 border-blue-200 shadow-xl">
+          <div class="p-8 rounded-2xl bg-white border-2 border-orange-200 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 bg-orange-500 text-white px-4 py-1 text-sm font-semibold rounded-bl-lg">
+              Most Popular
+            </div>
+            
             <div class="text-center mb-8">
               <h3 class="text-2xl font-bold text-gray-900 mb-2">Pay Per Sale</h3>
               <div class="mb-4">
                 <span class="text-5xl font-bold text-gray-900">2%</span>
                 <span class="text-xl text-gray-600"> commission</span>
               </div>
-              <p class="text-gray-600">Only pay when you make a sale. No monthly fees, no hidden costs.</p>
+              <p class="text-gray-600">Only pay when you make a sale. Perfect for beginners and scaling businesses.</p>
             </div>
 
             <div class="space-y-4 mb-8">
@@ -322,7 +390,7 @@
                 <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>
-                <span class="text-gray-700">Unlimited SEO Content Generation</span>
+                <span class="text-gray-700">Unlimited SEO Content</span>
               </div>
               <div class="flex items-center gap-3">
                 <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -339,12 +407,38 @@
             </div>
 
             <a
-              href="/frontend/login.html"
-              class="block w-full text-center rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 text-lg font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              href="/login.html"
+              class="block w-full text-center rounded-lg bg-gradient-to-r from-orange-600 to-red-600 px-6 py-4 text-lg font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105"
             >
-              Start Now
+              Start Free Trial
             </a>
+            
+            <p class="text-center text-gray-500 text-sm mt-4">No credit card required • 14-day free trial</p>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 px-4 bg-gradient-to-br from-orange-500 to-red-600 text-white">
+      <div class="mx-auto max-w-4xl text-center">
+        <h2 class="text-4xl font-bold mb-6">Ready to Launch Your Etsy Empire?</h2>
+        <p class="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
+          Join thousands of sellers who've automated their POD business and are making real money on Etsy.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <a
+            href="/login.html"
+            class="rounded-lg bg-white text-orange-600 px-8 py-4 text-lg font-semibold shadow-2xl hover:scale-105 transition-all"
+          >
+            Start Free Trial
+          </a>
+          <a
+            href="#how-it-works"
+            class="rounded-lg border-2 border-white text-white px-8 py-4 text-lg font-semibold hover:bg-white hover:text-orange-600 transition-all"
+          >
+            Learn More
+          </a>
         </div>
       </div>
     </section>
@@ -353,17 +447,20 @@
     <footer class="py-12 px-4 bg-gray-900 text-gray-400">
       <div class="mx-auto max-w-7xl">
         <div class="text-center mb-8">
-          <div class="flex items-center justify-center gap-2 mb-4">
-            <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <span class="text-white font-bold text-lg">E</span>
+          <div class="flex items-center justify-center gap-3 mb-4">
+            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
             </div>
             <span class="text-xl font-bold text-white">Etsy AI POD</span>
           </div>
-          <p class="text-sm mb-4">The Fastest Way to Start ETSY Print On Demand Business</p>
-          <p class="text-sm">Create AI-generated designs, mockups, and listings in minutes — no design skills needed.</p>
+          <p class="text-sm mb-4">The Fastest Way to Start Your ETSY Print On Demand Business</p>
+          <p class="text-sm">AI-generated designs, automated mockups, and instant Etsy listings.</p>
         </div>
         <div class="border-t border-gray-800 pt-8 text-center text-sm">
           <p>The term 'Etsy' is a trademark of Etsy, Inc. This application uses the Etsy API but is not endorsed or certified by Etsy.</p>
+          <p class="mt-2">© 2024 Etsy AI POD. All rights reserved.</p>
         </div>
       </div>
     </footer>
