@@ -361,6 +361,11 @@ body {
   color: white;
 }
 
+.auth-logo svg {
+  width: 32px;
+  height: 32px;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
