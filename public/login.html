@@ -5,72 +5,85 @@
     <title>Login – Etsy AI POD</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     
-    <!-- Cache Control -->
-    <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
-
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/assets/css/styles.css" />
+
+    <style>
+      /* Additional inline styles for better control */
+      .feature-icon svg {
+        width: 24px;
+        height: 24px;
+      }
+      
+      .auth-logo svg {
+        width: 32px;
+        height: 32px;
+      }
+    </style>
   </head>
   
   <body class="auth-container">
-    <div class="w-full max-w-6xl flex flex-col lg:flex-row items-center justify-center">
+    <div class="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center min-h-screen py-8">
       <!-- Left Side - Brand & Features -->
-      <div class="w-full lg:w-1/2 mb-8 lg:mb-0 lg:mr-12">
-        <div class="bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl text-white p-8 lg:p-12">
+      <div class="w-full lg:w-1/2 mb-8 lg:mb-0 lg:mr-12 px-4">
+        <div class="bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl text-white p-8 lg:p-12 shadow-2xl">
           <div class="flex items-center gap-3 mb-8">
             <div class="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="auth-logo" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
               </svg>
             </div>
-            <span class="text-2xl font-bold">Etsy AI POD</span>
+            <div>
+              <span class="text-2xl font-bold block">Etsy AI POD</span>
+              <span class="text-orange-100 text-sm">Premium Platform</span>
+            </div>
           </div>
           
-          <h1 class="text-4xl font-bold mb-6">Launch Your Print-on-Demand Empire</h1>
-          <p class="text-orange-100 text-lg mb-8">AI-powered designs, automated mockups, and seamless Etsy integration.</p>
+          <h1 class="text-4xl font-bold mb-6 leading-tight">Launch Your Print-on-Demand Empire</h1>
+          <p class="text-orange-100 text-lg mb-8 opacity-90">AI-powered designs, automated mockups, and seamless Etsy integration.</p>
 
           <div class="space-y-4">
             <div class="feature-card">
               <div class="feature-icon">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                 </svg>
               </div>
               <div>
-                <h3 class="font-semibold text-lg">AI Design Generation</h3>
-                <p class="text-orange-100 text-sm">Create unique, trending designs in seconds</p>
+                <h3 class="font-semibold text-lg mb-1">AI Design Generation</h3>
+                <p class="text-orange-100 text-sm opacity-80">Create unique, trending designs in seconds</p>
               </div>
             </div>
             
             <div class="feature-card">
               <div class="feature-icon">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
               </div>
               <div>
-                <h3 class="font-semibold text-lg">Professional Mockups</h3>
-                <p class="text-orange-100 text-sm">High-quality product presentations</p>
+                <h3 class="font-semibold text-lg mb-1">Professional Mockups</h3>
+                <p class="text-orange-100 text-sm opacity-80">High-quality product presentations</p>
               </div>
             </div>
             
             <div class="feature-card">
               <div class="feature-icon">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                 </svg>
               </div>
               <div>
-                <h3 class="font-semibold text-lg">Etsy Integration</h3>
-                <p class="text-orange-100 text-sm">Automated store management</p>
+                <h3 class="font-semibold text-lg mb-1">Etsy Integration</h3>
+                <p class="text-orange-100 text-sm opacity-80">Automated store management</p>
               </div>
             </div>
           </div>
@@ -78,12 +91,12 @@
       </div>
 
       <!-- Right Side - Login Form -->
-      <div class="w-full lg:w-1/2 flex justify-center">
-        <div class="auth-card fade-in">
+      <div class="w-full lg:w-1/2 flex justify-center px-4">
+        <div class="auth-card fade-in w-full max-w-md">
           <!-- Logo -->
           <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 mb-4 shadow-lg">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="auth-logo" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
               </svg>
             </div>
@@ -124,7 +137,7 @@
             </div>
             <button
               type="submit"
-              class="w-full btn-primary py-4 text-lg"
+              class="w-full btn-primary py-4 text-base font-semibold"
             >
               Sign In
             </button>
@@ -180,7 +193,7 @@
             </div>
             <button
               type="submit"
-              class="w-full btn-primary py-4 text-lg"
+              class="w-full btn-primary py-4 text-base font-semibold"
             >
               Create Account
             </button>
@@ -203,7 +216,7 @@
 
     <!-- Forgot Password Modal -->
     <div id="forgot-password-modal" class="modal-overlay hidden">
-      <div class="modal-content">
+      <div class="modal-content max-w-md">
         <div class="mb-6 flex items-center justify-between">
           <h2 class="text-2xl font-bold text-gray-900">Reset Password</h2>
           <button id="modal-close" class="text-gray-400 hover:text-gray-600 transition-colors">
@@ -227,7 +240,7 @@
           </div>
           <button
             type="submit"
-            class="w-full btn-primary py-4 text-lg"
+            class="w-full btn-primary py-4 text-base font-semibold"
           >
             Send Reset Link
           </button>
@@ -237,9 +250,9 @@
       </div>
     </div>
 
-    <script src="/frontend/env.js"></script>
     <script type="module">
-      import { supabase } from '/frontend/assets/js/supabaseClient.js';
+      // Import from correct path
+      import { supabase } from '/assets/js/supabaseClient.js';
 
       // Tab Management
       const tabs = {
@@ -253,19 +266,24 @@
       };
 
       function activateTab(activeTab) {
+        console.log('Activating tab:', activeTab);
+        
         // Reset all tabs
         Object.values(tabs).forEach(tab => {
           tab.classList.remove('active');
         });
         
         // Hide all forms
-        Object.values(forms).forEach(form => form.classList.add('hidden'));
+        Object.values(forms).forEach(form => {
+          form.classList.add('hidden');
+        });
         
         // Activate selected tab
         tabs[activeTab].classList.add('active');
         forms[activeTab].classList.remove('hidden');
       }
 
+      // Tab event listeners
       tabs.login.addEventListener('click', () => activateTab('login'));
       tabs.signup.addEventListener('click', () => activateTab('signup'));
 
@@ -304,11 +322,16 @@
         const password = forms.login.querySelector('#login-password').value;
         
         const submitBtn = forms.login.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<div class="loading-spinner mx-auto"></div>';
         
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          const { data, error } = await supabase.auth.signInWithPassword({ 
+            email: email.trim(), 
+            password: password 
+          });
+          
           if (error) {
             msgEl.textContent = error.message;
             msgEl.className = 'mt-6 text-sm text-center text-red-600';
@@ -316,7 +339,7 @@
             msgEl.textContent = 'Success! Redirecting to dashboard...';
             msgEl.className = 'mt-6 text-sm text-center text-green-600';
             setTimeout(() => {
-              window.location.href = '/frontend/dashboard.html';
+              window.location.href = '/dashboard.html';
             }, 1000);
           }
         } catch (error) {
@@ -324,7 +347,7 @@
           msgEl.className = 'mt-6 text-sm text-center text-red-600';
         } finally {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Sign In';
+          submitBtn.textContent = originalText;
         }
       });
 
@@ -347,16 +370,17 @@
         }
         
         const submitBtn = forms.signup.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<div class="loading-spinner mx-auto"></div>';
         
         try {
           const { data, error } = await supabase.auth.signUp({ 
-            email, 
-            password,
+            email: email.trim(), 
+            password: password,
             options: {
               data: {
-                full_name: fullName
+                full_name: fullName.trim()
               }
             }
           });
@@ -367,13 +391,15 @@
           } else {
             msgEl.textContent = 'Account created successfully! Please check your email for verification.';
             msgEl.className = 'mt-6 text-sm text-center text-green-600';
+            // Clear form
+            forms.signup.reset();
           }
         } catch (error) {
           msgEl.textContent = 'An error occurred. Please try again.';
           msgEl.className = 'mt-6 text-sm text-center text-red-600';
         } finally {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Create Account';
+          submitBtn.textContent = originalText;
         }
       });
 
@@ -387,11 +413,12 @@
         const email = forgotPasswordForm.querySelector('#forgot-email').value;
         
         const submitBtn = forgotPasswordForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<div class="loading-spinner mx-auto"></div>';
         
         try {
-          const { error } = await supabase.auth.resetPasswordForEmail(email);
+          const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
           
           if (error) {
             msgEl.textContent = error.message;
@@ -402,6 +429,7 @@
             setTimeout(() => {
               forgotPasswordModal.classList.add('hidden');
               forgotPasswordModal.classList.remove('flex');
+              forgotPasswordForm.reset();
             }, 2000);
           }
         } catch (error) {
@@ -409,9 +437,12 @@
           msgEl.className = 'mt-6 text-sm text-center text-red-600';
         } finally {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Send Reset Link';
+          submitBtn.textContent = originalText;
         }
       });
+
+      // Initialize with login form active
+      activateTab('login');
     </script>
   </body>
 </html>
