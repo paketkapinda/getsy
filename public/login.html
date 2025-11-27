@@ -3,50 +3,113 @@
   <head>
     <meta charset="utf-8" />
     <title>Login – Etsy AI POD</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
-  <!-- Cache kontrolü -->
-  <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <!-- Cache Control -->
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
 
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/frontend/assets/css/styles.css" />
-</head>
-  <body class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-    <main class="flex min-h-screen items-center justify-center px-4 py-12">
-      <div class="w-full max-w-md">
-        <!-- Logo -->
-        <div class="text-center mb-8">
-          <div class="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 mb-4 shadow-lg">
-            <span class="text-white font-bold text-2xl">E</span>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/frontend/assets/css/styles.css" />
+  </head>
+  <body class="auth-container">
+    <div class="w-full max-w-4xl flex">
+      <!-- Left Side - Brand & Features -->
+      <div class="hidden lg:flex flex-1 flex-col justify-between p-12 rounded-3xl bg-gradient-to-br from-blue-600 to-purple-700 text-white mr-8">
+        <div>
+          <div class="flex items-center gap-3 mb-8">
+            <div class="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <span class="text-white font-bold text-xl">E</span>
+            </div>
+            <span class="text-2xl font-bold">Etsy AI POD</span>
           </div>
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p class="text-gray-600">Sign in to your Etsy AI POD account</p>
+          
+          <h1 class="text-4xl font-bold mb-6">Start Your Print-on-Demand Journey</h1>
+          <p class="text-blue-100 text-lg mb-8">AI-powered designs, automated mockups, and Etsy integration in one platform.</p>
         </div>
 
-        <!-- Login Card -->
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-xl p-8">
-          <form id="email-login-form" class="space-y-4">
+        <div class="space-y-4">
+          <div class="flex items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur-sm">
+            <div class="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <span class="text-white">🎨</span>
+            </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2" for="email">Email</label>
+              <h3 class="font-semibold">AI Design Generation</h3>
+              <p class="text-blue-100 text-sm">Create unique designs in seconds</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur-sm">
+            <div class="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <span class="text-white">📦</span>
+            </div>
+            <div>
+              <h3 class="font-semibold">Automated Mockups</h3>
+              <p class="text-blue-100 text-sm">Professional product presentations</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur-sm">
+            <div class="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <span class="text-white">🚀</span>
+            </div>
+            <div>
+              <h3 class="font-semibold">Etsy Integration</h3>
+              <p class="text-blue-100 text-sm">Seamless store management</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side - Login Form -->
+      <div class="flex-1 flex items-center justify-center">
+        <div class="auth-card fade-in">
+          <!-- Logo -->
+          <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 mb-4 shadow-lg">
+              <span class="text-white font-bold text-2xl">E</span>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+            <p class="text-gray-600">Sign in to your Etsy AI POD account</p>
+          </div>
+
+          <!-- Tab Navigation -->
+          <div class="flex mb-6 bg-gray-100 rounded-2xl p-1">
+            <button id="tab-login" class="flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-200 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+              Sign In
+            </button>
+            <button id="tab-signup" class="flex-1 py-3 px-4 rounded-xl font-semibold text-gray-600 hover:text-gray-900 transition-all duration-200">
+              Sign Up
+            </button>
+          </div>
+
+          <!-- Login Form -->
+          <form id="login-form" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="login-email">Email</label>
               <input
-                id="email"
+                id="login-email"
                 name="email"
                 type="email"
                 required
                 placeholder="you@example.com"
-                class="w-full"
+                class="input-field"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2" for="password">Password</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="login-password">Password</label>
               <input
-                id="password"
+                id="login-password"
                 name="password"
                 type="password"
                 required
                 minlength="6"
                 placeholder="••••••••"
-                class="w-full"
+                class="input-field"
               />
             </div>
             <button
@@ -57,65 +120,175 @@
             </button>
           </form>
 
-          <div class="mt-6">
+          <!-- Sign Up Form -->
+          <form id="signup-form" class="space-y-4 hidden">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="signup-fullname">Full Name</label>
+              <input
+                id="signup-fullname"
+                name="fullname"
+                type="text"
+                required
+                placeholder="John Doe"
+                class="input-field"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="signup-email">Email</label>
+              <input
+                id="signup-email"
+                name="email"
+                type="email"
+                required
+                placeholder="you@example.com"
+                class="input-field"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="signup-password">Password</label>
+              <input
+                id="signup-password"
+                name="password"
+                type="password"
+                required
+                minlength="6"
+                placeholder="••••••••"
+                class="input-field"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="signup-confirm-password">Confirm Password</label>
+              <input
+                id="signup-confirm-password"
+                name="confirmPassword"
+                type="password"
+                required
+                minlength="6"
+                placeholder="••••••••"
+                class="input-field"
+              />
+            </div>
             <button
-              id="magic-link-btn"
-              class="w-full btn-secondary py-3"
+              type="submit"
+              class="w-full btn-tertiary py-3"
             >
-              Send Magic Link
+              Create Account
             </button>
-          </div>
+          </form>
 
-          <div class="mt-6 pt-6 border-t border-gray-200">
-            <p class="text-xs text-gray-500 mb-3">Environment Mode</p>
-            <select
-              id="mode-select"
-              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700"
+          <!-- Forgot Password Link -->
+          <div class="mt-6 text-center">
+            <button
+              id="forgot-password-btn"
+              class="text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors duration-200"
             >
-              <option value="STATIC">STATIC (Mock Only)</option>
-              <option value="SERVER">SERVER (Supabase Edge)</option>
-              <option value="REAL">REAL (External APIs)</option>
-            </select>
-            <p class="mt-2 text-xs text-gray-500">
-              Mode toggles behavior in api.js and Edge functions
-            </p>
+              Forgot your password?
+            </button>
           </div>
 
           <p id="login-message" class="mt-4 text-sm text-center"></p>
         </div>
-
-        <!-- Footer -->
-        <div class="mt-8 text-center">
-          <p class="text-sm text-gray-600">
-            Don't have an account? 
-            <a href="/" class="text-blue-600 hover:text-blue-700 font-medium">Get Started</a>
-          </p>
-        </div>
       </div>
-    </main>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgot-password-modal" class="modal-overlay hidden">
+      <div class="modal-content max-w-md">
+        <div class="mb-6 flex items-center justify-between">
+          <h2 class="text-2xl font-bold text-gray-900">Reset Password</h2>
+          <button id="modal-close" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <form id="forgot-password-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="forgot-email">Email</label>
+            <input
+              id="forgot-email"
+              name="email"
+              type="email"
+              required
+              placeholder="you@example.com"
+              class="input-field"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full btn-tertiary py-3"
+          >
+            Send Reset Link
+          </button>
+        </form>
+        
+        <p id="forgot-message" class="mt-4 text-sm text-center"></p>
+      </div>
+    </div>
 
     <script src="/frontend/env.js"></script>
     <script type="module">
       import { supabase } from '/frontend/assets/js/supabaseClient.js';
       import { setMode } from '/frontend/assets/js/api.js';
 
-      const form = document.querySelector('#email-login-form');
-      const msgEl = document.querySelector('#login-message');
-      const magicBtn = document.querySelector('#magic-link-btn');
-      const modeSelect = document.querySelector('#mode-select');
+      // Tab Management
+      const tabs = {
+        login: document.querySelector('#tab-login'),
+        signup: document.querySelector('#tab-signup')
+      };
 
-      modeSelect.addEventListener('change', () => {
-        setMode(modeSelect.value);
+      const forms = {
+        login: document.querySelector('#login-form'),
+        signup: document.querySelector('#signup-form')
+      };
+
+      function activateTab(activeTab) {
+        // Reset all tabs
+        Object.values(tabs).forEach(tab => {
+          tab.classList.remove('bg-gradient-to-r', 'from-blue-600', 'to-purple-600', 'text-white');
+          tab.classList.add('text-gray-600', 'hover:text-gray-900');
+        });
+        
+        // Hide all forms
+        Object.values(forms).forEach(form => form.classList.add('hidden'));
+        
+        // Activate selected tab
+        tabs[activeTab].classList.add('bg-gradient-to-r', 'from-blue-600', 'to-purple-600', 'text-white');
+        tabs[activeTab].classList.remove('text-gray-600', 'hover:text-gray-900');
+        forms[activeTab].classList.remove('hidden');
+      }
+
+      tabs.login.addEventListener('click', () => activateTab('login'));
+      tabs.signup.addEventListener('click', () => activateTab('signup'));
+
+      // Forgot Password Modal
+      const forgotPasswordBtn = document.querySelector('#forgot-password-btn');
+      const forgotPasswordModal = document.querySelector('#forgot-password-modal');
+      const modalClose = document.querySelector('#modal-close');
+      const forgotPasswordForm = document.querySelector('#forgot-password-form');
+
+      forgotPasswordBtn.addEventListener('click', () => {
+        forgotPasswordModal.classList.remove('hidden');
+        forgotPasswordModal.classList.add('flex');
       });
 
-      form.addEventListener('submit', async (e) => {
+      modalClose.addEventListener('click', () => {
+        forgotPasswordModal.classList.add('hidden');
+        forgotPasswordModal.classList.remove('flex');
+      });
+
+      // Login Form
+      forms.login.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const msgEl = document.querySelector('#login-message');
         msgEl.textContent = '';
         msgEl.className = 'mt-4 text-sm text-center';
-        const email = form.email.value;
-        const password = form.password.value;
         
-        const submitBtn = form.querySelector('button[type="submit"]');
+        const email = forms.login.querySelector('#login-email').value;
+        const password = forms.login.querySelector('#login-password').value;
+        
+        const submitBtn = forms.login.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Signing in...';
         
@@ -134,26 +307,77 @@
         submitBtn.textContent = 'Sign In';
       });
 
-      magicBtn.addEventListener('click', async () => {
+      // Sign Up Form
+      forms.signup.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msgEl = document.querySelector('#login-message');
         msgEl.textContent = '';
         msgEl.className = 'mt-4 text-sm text-center';
-        const email = document.querySelector('#email').value;
-        if (!email) {
-          msgEl.textContent = 'Please enter an email first.';
-          msgEl.className = 'mt-4 text-sm text-center text-yellow-600';
+        
+        const fullName = forms.signup.querySelector('#signup-fullname').value;
+        const email = forms.signup.querySelector('#signup-email').value;
+        const password = forms.signup.querySelector('#signup-password').value;
+        const confirmPassword = forms.signup.querySelector('#signup-confirm-password').value;
+        
+        if (password !== confirmPassword) {
+          msgEl.textContent = 'Passwords do not match';
+          msgEl.className = 'mt-4 text-sm text-center text-red-600';
           return;
         }
-        magicBtn.disabled = true;
-        magicBtn.textContent = 'Sending...';
-        const { error } = await supabase.auth.signInWithOtp({ email });
-        msgEl.textContent = error
-          ? error.message
-          : 'Magic link sent! Check your inbox and then reload this page.';
-        msgEl.className = error
-          ? 'mt-4 text-sm text-center text-red-600'
-          : 'mt-4 text-sm text-center text-green-600';
-        magicBtn.disabled = false;
-        magicBtn.textContent = 'Send Magic Link';
+        
+        const submitBtn = forms.signup.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating Account...';
+        
+        const { data, error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            data: {
+              full_name: fullName
+            }
+          }
+        });
+        
+        if (error) {
+          msgEl.textContent = error.message;
+          msgEl.className = 'mt-4 text-sm text-center text-red-600';
+        } else {
+          msgEl.textContent = 'Account created! Please check your email for verification.';
+          msgEl.className = 'mt-4 text-sm text-center text-green-600';
+        }
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Account';
+      });
+
+      // Forgot Password Form
+      forgotPasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msgEl = document.querySelector('#forgot-message');
+        msgEl.textContent = '';
+        msgEl.className = 'mt-4 text-sm text-center';
+        
+        const email = forgotPasswordForm.querySelector('#forgot-email').value;
+        
+        const submitBtn = forgotPasswordForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending...';
+        
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        
+        if (error) {
+          msgEl.textContent = error.message;
+          msgEl.className = 'mt-4 text-sm text-center text-red-600';
+        } else {
+          msgEl.textContent = 'Password reset link sent! Check your email.';
+          msgEl.className = 'mt-4 text-sm text-center text-green-600';
+          setTimeout(() => {
+            forgotPasswordModal.classList.add('hidden');
+            forgotPasswordModal.classList.remove('flex');
+          }, 2000);
+        }
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Reset Link';
       });
     </script>
   </body>
