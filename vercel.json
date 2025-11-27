@@ -1,6 +1,16 @@
 {
-  "source": "/frontend/assets/(.*)",
+  "version": 2,
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/frontend/(.*)", "dest": "/frontend/$1" },
+    { "src": "/", "dest": "/public/index.html" }
+  ],
   "headers": [
-    { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+    {
+      "source": "/frontend/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
   ]
 }
