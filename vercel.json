@@ -1,7 +1,7 @@
 {
   "version": 2,
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/api/env/(.*)", "dest": "/api/$1" },
     { "src": "/frontend/(.*)", "dest": "/frontend/$1" },
     { "src": "/", "dest": "/public/index.html" },
     { "src": "/(.*\\.(html|css|js|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))", "dest": "/$1" }
@@ -21,3 +21,4 @@
     }
   ]
 }
+
