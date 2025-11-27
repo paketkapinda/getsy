@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Login – Etsy AI POD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- Cache kontrolü -->
+  <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/frontend/assets/css/styles.css" />
+</head>
+  <body class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <main class="flex min-h-screen items-center justify-center px-4 py-12">
+      <div class="w-full max-w-md">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+          <div class="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 mb-4 shadow-lg">
+            <span class="text-white font-bold text-2xl">E</span>
+          </div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+          <p class="text-gray-600">Sign in to your Etsy AI POD account</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-xl p-8">
+          <form id="email-login-form" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="email">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                placeholder="you@example.com"
+                class="w-full"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="password">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                minlength="6"
+                placeholder="••••••••"
+                class="w-full"
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full btn-primary py-3"
+            >
+              Sign In
+            </button>
+          </form>
+
+          <div class="mt-6">
+            <button
+              id="magic-link-btn"
+              class="w-full btn-secondary py-3"
+            >
+              Send Magic Link
+            </button>
+          </div>
+
+          <div class="mt-6 pt-6 border-t border-gray-200">
+            <p class="text-xs text-gray-500 mb-3">Environment Mode</p>
+            <select
+              id="mode-select"
+              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700"
+            >
+              <option value="STATIC">STATIC (Mock Only)</option>
+              <option value="SERVER">SERVER (Supabase Edge)</option>
+              <option value="REAL">REAL (External APIs)</option>
+            </select>
+            <p class="mt-2 text-xs text-gray-500">
+              Mode toggles behavior in api.js and Edge functions
+            </p>
+          </div>
+
+          <p id="login-message" class="mt-4 text-sm text-center"></p>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 text-center">
+          <p class="text-sm text-gray-600">
+            Don't have an account? 
+            <a href="/" class="text-blue-600 hover:text-blue-700 font-medium">Get Started</a>
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <script src="/frontend/env.js"></script>
+    <script type="module">
+      import { supabase } from '/frontend/assets/js/supabaseClient.js';
+      import { setMode } from '/frontend/assets/js/api.js';
+
+      const form = document.querySelector('#email-login-form');
+      const msgEl = document.querySelector('#login-message');
+      const magicBtn = document.querySelector('#magic-link-btn');
+      const modeSelect = document.querySelector('#mode-select');
+
+      modeSelect.addEventListener('change', () => {
+        setMode(modeSelect.value);
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        msgEl.textContent = '';
+        msgEl.className = 'mt-4 text-sm text-center';
+        const email = form.email.value;
+        const password = form.password.value;
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Signing in...';
+        
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          msgEl.textContent = error.message;
+          msgEl.className = 'mt-4 text-sm text-center text-red-600';
+        } else {
+          msgEl.textContent = 'Success! Redirecting...';
+          msgEl.className = 'mt-4 text-sm text-center text-green-600';
+          setTimeout(() => {
+            window.location.href = '/frontend/dashboard.html';
+          }, 500);
+        }
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In';
+      });
+
+      magicBtn.addEventListener('click', async () => {
+        msgEl.textContent = '';
+        msgEl.className = 'mt-4 text-sm text-center';
+        const email = document.querySelector('#email').value;
+        if (!email) {
+          msgEl.textContent = 'Please enter an email first.';
+          msgEl.className = 'mt-4 text-sm text-center text-yellow-600';
+          return;
+        }
+        magicBtn.disabled = true;
+        magicBtn.textContent = 'Sending...';
+        const { error } = await supabase.auth.signInWithOtp({ email });
+        msgEl.textContent = error
+          ? error.message
+          : 'Magic link sent! Check your inbox and then reload this page.';
+        msgEl.className = error
+          ? 'mt-4 text-sm text-center text-red-600'
+          : 'mt-4 text-sm text-center text-green-600';
+        magicBtn.disabled = false;
+        magicBtn.textContent = 'Send Magic Link';
+      });
+    </script>
+  </body>
+</html>
