@@ -4,5 +4,16 @@
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/frontend/(.*)", "dest": "/frontend/$1" },
     { "src": "/", "dest": "/public/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/frontend/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
   ]
 }
