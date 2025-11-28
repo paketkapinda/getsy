@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Orders – Etsy AI POD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- Cache kontrolü -->
+  <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/frontend/assets/css/styles.css" />
+</head>
+  <body class="min-h-screen bg-gray-50 text-gray-900">
+    <!-- Navigation -->
+    <nav class="border-b border-gray-200 bg-white">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+        <a href="/frontend/dashboard.html" class="flex items-center gap-2">
+          <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <span class="text-white font-bold">E</span>
+          </div>
+          <span class="text-lg font-bold text-gray-900">Etsy AI POD</span>
+        </a>
+        <div class="flex items-center gap-4">
+          <a href="/frontend/products.html" class="text-sm text-gray-600 hover:text-blue-600 transition-colors">Products</a>
+          <a href="/frontend/orders.html" class="text-sm font-medium text-blue-600">Orders</a>
+          <a href="/frontend/ai-assistant.html" class="text-sm text-gray-600 hover:text-blue-600 transition-colors">AI Assistant</a>
+          <a href="/frontend/settings.html" class="text-sm text-gray-600 hover:text-blue-600 transition-colors">Settings</a>
+          <button id="btn-logout" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Logout</button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="mx-auto max-w-7xl px-4 py-8">
+      <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">Orders</h1>
+        <p class="text-gray-600 mt-1">Manage and fulfill your Etsy orders</p>
+      </div>
+
+      <div class="mb-6 flex gap-3">
+        <select id="filter-status" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="processing">Processing</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+        </select>
+      </div>
+
+      <div id="orders-list" class="space-y-4">
+        <!-- Orders loaded via JS -->
+      </div>
+
+      <div id="orders-empty" class="hidden rounded-xl border-2 border-dashed border-gray-300 bg-white p-12 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-gray-600 font-medium">No orders found</p>
+        <p class="text-sm text-gray-500 mt-1">Orders will appear here when you receive them from Etsy</p>
+      </div>
+    </main>
+
+    <script src="/frontend/env.js"></script>
+    <script type="module" src="/frontend/assets/js/supabaseClient.js"></script>
+    <script type="module" src="/frontend/assets/js/auth.js"></script>
+    <script type="module" src="/frontend/assets/js/api.js"></script>
+    <script type="module" src="/frontend/assets/js/ui.js"></script>
+    <script type="module" src="/frontend/assets/js/orders.js"></script>
+  </body>
+</html>
