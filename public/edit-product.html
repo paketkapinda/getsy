@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Edit Product – Etsy AI POD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+  </head>
+  
+  <body class="dashboard-container">
+    <div class="dashboard-layout">
+      <!-- Sidebar -->
+      <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="sidebar-title">Etsy AI POD</div>
+            <div class="sidebar-subtitle">PREMIUM PLATFORM</div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="/dashboard.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            Dashboard
+          </a>
+          <a href="/products.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+            </svg>
+            Products
+          </a>
+          <a href="/orders.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+            </svg>
+            Orders
+          </a>
+          <a href="/ai-assistant.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            AI Assistant
+          </a>
+          <a href="/settings.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Settings
+          </a>
+        </nav>
+
+        <div class="sidebar-user">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="user-avatar">JD</div>
+            <div>
+              <div style="font-weight: 600; color: #18181b;">John Doe</div>
+              <div style="font-size: 12px; color: #6b7280;">admin@example.com</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="dashboard-main">
+        <!-- Header -->
+        <header class="products-header">
+          <div class="products-title">
+            <h1>Edit Product</h1>
+            <p>Update your product information</p>
+          </div>
+          <a href="/products.html" class="btn btn-outline">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to Products
+          </a>
+        </header>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-400"></div>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="hidden">
+          <div class="empty-state">
+            <div class="empty-icon error">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <h3 class="empty-title">Product Not Found</h3>
+            <p class="empty-description">The product you're trying to edit doesn't exist or you don't have permission to edit it.</p>
+            <a href="/products.html" class="btn btn-primary">
+              Back to Products
+            </a>
+          </div>
+        </div>
+
+        <!-- Edit Form -->
+        <div id="edit-form-container" class="hidden">
+          <div class="form-card">
+            <form id="form-edit-product">
+              <input type="hidden" id="edit-product-id" />
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="edit-product-title">Product Title</label>
+                  <input
+                    type="text"
+                    id="edit-product-title"
+                    required
+                    placeholder="Enter product title"
+                    class="form-input"
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="edit-product-category">Category</label>
+                  <select
+                    id="edit-product-category"
+                    required
+                    class="form-input"
+                  >
+                    <option value="">Select category</option>
+                    <option value="tshirt">T-Shirt</option>
+                    <option value="mug">Mug</option>
+                    <option value="plate">Plate</option>
+                    <option value="phone-case">Phone Case</option>
+                    <option value="jewelry">Jewelry</option>
+                    <option value="wood">Wood Product</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="edit-product-price">Price (USD)</label>
+                  <input
+                    type="number"
+                    id="edit-product-price"
+                    step="0.01"
+                    min="0"
+                    required
+                    placeholder="0.00"
+                    class="form-input"
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="edit-product-status">Status</label>
+                  <select
+                    id="edit-product-status"
+                    class="form-input"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="edit-product-description">Description</label>
+                <textarea
+                  id="edit-product-description"
+                  rows="4"
+                  placeholder="Enter product description..."
+                  class="form-input"
+                  style="resize: vertical;"
+                ></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-flex">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  Update Product
+                </button>
+                <button type="button" class="btn btn-outline btn-flex" id="btn-cancel-edit">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- JavaScript Import -->
+    <script src="/assets/js/env.js"></script>
+    <script type="module" src="/assets/js/supabaseClient.js"></script>
+    <script type="module" src="/assets/js/auth.js"></script>
+    <script type="module" src="/assets/js/api.js"></script>
+    <script type="module" src="/assets/js/ui.js"></script>
+    <script type="module" src="/assets/js/edit-product.js"></script>
+  </body>
+</html>
