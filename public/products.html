@@ -3,90 +3,110 @@
   <head>
     <meta charset="utf-8" />
     <title>Products – Etsy AI POD</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+  </head>
   
-  <!-- Cache kontrolü -->
-  <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
-
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/css/styles.css" />
-</head>
-  <body class="min-h-screen bg-gray-50 text-gray-900">
-    <!-- Navigation -->
-    <nav class="border-b border-gray-200 bg-white">
-      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-        <a href="/frontend/dashboard.html" class="flex items-center gap-2">
-          <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <span class="text-white font-bold">E</span>
-          </div>
-          <span class="text-lg font-bold text-gray-900">Etsy AI POD</span>
-        </a>
-        <div class="flex items-center gap-4">
-          <a href="/frontend/products.html" class="text-sm font-medium text-blue-600">Products</a>
-          <a href="/frontend/orders.html" class="text-sm text-gray-600 hover:text-blue-600 transition-colors">Orders</a>
-          <a href="/frontend/ai-assistant.html" class="text-sm text-gray-600 hover:text-blue-600 transition-colors">AI Assistant</a>
-          <a href="/frontend/settings.html" class="text-sm text-gray-600 hover:text-blue-600 transition-colors">Settings</a>
-          <button id="btn-logout" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Logout</button>
-        </div>
-      </div>
-    </nav>
-
-    <main class="mx-auto max-w-7xl px-4 py-8">
-      <div class="mb-6 flex items-center justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-gray-900">Products</h1>
-          <p class="text-gray-600 mt-1">Manage your product catalog and generate mockups</p>
-        </div>
-        <button
-          id="btn-new-product"
-          class="btn-primary"
-        >
-          + New Product
-        </button>
-      </div>
-
-      <div id="products-grid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <!-- Products loaded via JS -->
-      </div>
-
-      <div id="products-empty" class="hidden rounded-xl border-2 border-dashed border-gray-300 bg-white p-12 text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-        </svg>
-        <p class="text-gray-600 font-medium">No products yet</p>
-        <p class="text-sm text-gray-500 mt-1">Create your first product to get started</p>
-      </div>
-    </main>
-
-    <!-- Product Modal -->
-    <div id="modal-product" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div class="modal-content">
-        <div class="mb-6 flex items-center justify-between">
-          <h2 class="text-2xl font-bold text-gray-900" id="modal-product-title">New Product</h2>
-          <button id="modal-product-close" class="text-gray-400 hover:text-gray-600 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+  <body class="dashboard-container">
+    <div class="dashboard-layout">
+      <!-- Sidebar -->
+      <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
-          </button>
-        </div>
-        <form id="form-product" class="space-y-4">
-          <input type="hidden" id="product-id" />
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
-            <input
-              type="text"
-              id="product-title"
-              required
-              class="w-full"
-            />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-            <select
-              id="product-category"
-              required
-              class="w-full"
-            >
+            <div class="sidebar-title">Etsy AI POD</div>
+            <div class="sidebar-subtitle">PREMIUM PLATFORM</div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="/dashboard.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            Dashboard
+          </a>
+          <a href="/products.html" class="sidebar-nav-item active">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+            </svg>
+            Products
+          </a>
+          <a href="/orders.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+            </svg>
+            Orders
+          </a>
+          <a href="/ai-assistant.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            AI Assistant
+          </a>
+          <a href="/settings.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Settings
+          </a>
+        </nav>
+
+        <div class="sidebar-user">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="user-avatar">JD</div>
+            <div>
+              <div style="font-weight: 600; color: #18181b;">John Doe</div>
+              <div style="font-size: 12px; color: #6b7280;">admin@example.com</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="dashboard-main">
+        <!-- Header -->
+        <header class="products-header">
+          <div class="products-title">
+            <h1>Products</h1>
+            <p>Manage your product catalog and generate mockups</p>
+          </div>
+          <button class="btn btn-primary" id="btn-new-product">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            New Product
+          </button>
+        </header>
+
+        <!-- Filters -->
+        <div class="products-filters">
+          <div class="filter-group">
+            <label class="filter-label">Status:</label>
+            <select class="select-input" id="filter-status">
+              <option value="">All Status</option>
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">Category:</label>
+            <select class="select-input" id="filter-category">
+              <option value="">All Categories</option>
               <option value="tshirt">T-Shirt</option>
               <option value="mug">Mug</option>
               <option value="plate">Plate</option>
@@ -95,61 +115,134 @@
               <option value="wood">Wood Product</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Price (USD)</label>
-            <input
-              type="number"
-              id="product-price"
-              step="0.01"
-              required
-              class="w-full"
-            />
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid" id="products-grid">
+          <!-- Products will be loaded here via products.js -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="products-empty hidden" id="products-empty">
+          <div class="empty-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+            </svg>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+          <h3 class="empty-title">No products yet</h3>
+          <p class="empty-description">Create your first product to get started with your Etsy POD business</p>
+          <button class="btn btn-primary" id="btn-empty-new-product">
+            Create First Product
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <!-- Product Modal -->
+    <div class="modal" id="modal-product">
+      <div class="modal-content" style="max-width: 600px;">
+        <button class="modal-close" id="modal-product-close">&times;</button>
+        <div class="modal-header">
+          <h2 class="modal-title" id="modal-product-title">New Product</h2>
+          <p class="modal-subtitle">Add a new product to your catalog</p>
+        </div>
+        
+        <form id="form-product">
+          <input type="hidden" id="product-id" />
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="product-title">Product Title</label>
+              <input
+                type="text"
+                id="product-title"
+                required
+                placeholder="Enter product title"
+                class="form-input"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="product-category">Category</label>
+              <select
+                id="product-category"
+                required
+                class="form-input"
+              >
+                <option value="">Select category</option>
+                <option value="tshirt">T-Shirt</option>
+                <option value="mug">Mug</option>
+                <option value="plate">Plate</option>
+                <option value="phone-case">Phone Case</option>
+                <option value="jewelry">Jewelry</option>
+                <option value="wood">Wood Product</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="product-price">Price (USD)</label>
+              <input
+                type="number"
+                id="product-price"
+                step="0.01"
+                min="0"
+                required
+                placeholder="0.00"
+                class="form-input"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="product-status">Status</label>
+              <select
+                id="product-status"
+                class="form-input"
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="product-description">Description</label>
             <textarea
               id="product-description"
               rows="4"
-              class="w-full"
+              placeholder="Enter product description..."
+              class="form-input"
+              style="resize: vertical;"
             ></textarea>
           </div>
-          <div class="flex gap-3 pt-4">
-            <button
-              type="submit"
-              class="flex-1 btn-primary"
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              id="btn-cancel-product"
-              class="btn-secondary"
-            >
-              Cancel
-            </button>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-flex">Save Product</button>
+            <button type="button" class="btn btn-outline btn-flex" id="btn-cancel-product">Cancel</button>
           </div>
         </form>
       </div>
     </div>
 
     <!-- Mockup Generation Modal -->
-    <div id="modal-mockup" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div class="modal-content max-w-5xl">
-        <div class="mb-6 flex items-center justify-between">
-          <h2 class="text-2xl font-bold text-gray-900">Generate Mockups</h2>
-          <button id="modal-mockup-close" class="text-gray-400 hover:text-gray-600 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <div class="modal" id="modal-mockup">
+      <div class="modal-content" style="max-width: 800px;">
+        <button class="modal-close" id="modal-mockup-close">&times;</button>
+        <div class="modal-header">
+          <h2 class="modal-title">Generate Mockups</h2>
+          <p class="modal-subtitle">Create professional product mockups for your designs</p>
         </div>
-        <div id="mockup-editor-container" class="space-y-4">
-          <!-- Mockup editor loaded here -->
+        
+        <div id="mockup-editor-container">
+          <!-- Mockup editor will be loaded here via products.js -->
         </div>
       </div>
     </div>
 
-    <script src="/assets/env.js"></script>
+    <!-- JavaScript Import -->
+    <script src="/assets/js/env.js"></script>
     <script type="module" src="/assets/js/supabaseClient.js"></script>
     <script type="module" src="/assets/js/auth.js"></script>
     <script type="module" src="/assets/js/api.js"></script>
