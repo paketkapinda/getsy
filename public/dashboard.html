@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Dashboard – Etsy AI POD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <!-- Cache Control -->
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/frontend/assets/css/styles.css" />
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside class="hidden w-80 border-r border-gray-200 bg-white/80 backdrop-blur-sm px-6 py-8 md:block">
+        <div class="flex items-center gap-3 mb-12">
+          <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <span class="text-white font-bold text-xl">E</span>
+          </div>
+          <div>
+            <span class="text-2xl font-bold text-gray-900">Etsy AI POD</span>
+            <p class="text-xs text-gray-500">Premium Platform</p>
+          </div>
+        </div>
+        
+        <nav class="space-y-2">
+          <a href="/frontend/dashboard.html" class="nav-link nav-link-active">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            Dashboard
+          </a>
+          <a href="/frontend/products.html" class="nav-link">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+            </svg>
+            Products
+          </a>
+          <a href="/frontend/orders.html" class="nav-link">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+            </svg>
+            Orders
+          </a>
+          <a href="/frontend/ai-assistant.html" class="nav-link">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            AI Assistant
+          </a>
+          <a href="/frontend/settings.html" class="nav-link">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Settings
+          </a>
+        </nav>
+
+        <!-- User Profile Card -->
+        <div class="mt-auto pt-8 border-t border-gray-200">
+          <div class="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-purple-50">
+            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <span class="text-white font-semibold text-sm">JD</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-gray-900 truncate">John Doe</p>
+              <p class="text-xs text-gray-500 truncate">admin@example.com</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 px-4 py-6 md:px-8 md:py-8">
+        <header class="flex items-center justify-between gap-4 mb-8">
+          <div class="slide-up">
+            <h1 class="text-4xl font-bold text-gray-900">Dashboard</h1>
+            <p class="text-gray-600 mt-2">Overview of your Etsy POD business performance</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <select
+              id="active-shop-select"
+              class="input-field text-sm w-48"
+            ></select>
+            <button
+              id="logout-btn"
+              class="btn-secondary text-sm"
+            >
+              Logout
+            </button>
+          </div>
+        </header>
+
+        <!-- KPI Cards -->
+        <section class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          <div class="kpi-card group hover:border-blue-300">
+            <p class="kpi-label">Total Products</p>
+            <p id="kpi-products" class="kpi-value">–</p>
+            <div class="mt-2 text-xs text-green-600 font-semibold">
+              +12% this month
+            </div>
+          </div>
+          <div class="kpi-card group hover:border-purple-300">
+            <p class="kpi-label">Active Orders</p>
+            <p id="kpi-orders" class="kpi-value">–</p>
+            <div class="mt-2 text-xs text-blue-600 font-semibold">
+              5 pending fulfillment
+            </div>
+          </div>
+          <div class="kpi-card group hover:border-teal-300">
+            <p class="kpi-label">Monthly Revenue</p>
+            <p id="kpi-revenue" class="kpi-value">–</p>
+            <div class="mt-2 text-xs text-green-600 font-semibold">
+              +8% from last month
+            </div>
+          </div>
+          <div class="kpi-card group hover:border-amber-300">
+            <p class="kpi-label">Store Rating</p>
+            <p id="kpi-rating" class="kpi-value">–</p>
+            <div class="mt-2 text-xs text-amber-600 font-semibold">
+              4.8/5.0 stars
+            </div>
+          </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <section class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+          <!-- Top Seller Analysis -->
+          <div class="card col-span-2">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h2 class="text-2xl font-bold text-gray-900">Top-Seller Analysis</h2>
+                <p class="text-gray-600 mt-2">
+                  AI-powered time-series trends and 3-month forecast per listing
+                </p>
+              </div>
+              <button
+                id="analyze-top-seller-btn"
+                class="btn-primary text-sm"
+              >
+                Analyze Now
+              </button>
+            </div>
+            <div id="top-seller-results" class="space-y-3">
+              <div class="text-center py-12">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <p class="text-gray-500">Click "Analyze Now" to generate insights</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar Widgets -->
+          <div class="space-y-6">
+            <!-- Quick Actions -->
+            <div class="card">
+              <h2 class="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+              <div class="space-y-3">
+                <a href="/frontend/products.html" class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group">
+                  <div class="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                  </div>
+                  <span class="font-medium text-gray-700">Create New Product</span>
+                </a>
+                <a href="/frontend/ai-assistant.html" class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 group">
+                  <div class="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                  </div>
+                  <span class="font-medium text-gray-700">AI Assistant</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Job Queue -->
+            <div class="card">
+              <h2 class="text-xl font-bold text-gray-900 mb-4">Job Queue</h2>
+              <p class="text-sm text-gray-600 mb-4">
+                Pending jobs for mockup renders, Etsy sync and order sends
+              </p>
+              <ul id="job-queue" class="space-y-3">
+                <li class="flex items-center justify-between p-3 rounded-xl bg-gray-50">
+                  <div class="flex items-center gap-3">
+                    <div class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                      <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                      </svg>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Mockup Generation</span>
+                  </div>
+                  <span class="status-badge status-processing">Processing</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Recent AI Activity -->
+            <div class="card">
+              <h2 class="text-xl font-bold text-gray-900 mb-4">Recent AI Activity</h2>
+              <ul id="ai-logs" class="space-y-3">
+                <li class="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+                  <div class="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-700">Design Generated</p>
+                    <p class="text-xs text-gray-500">2 minutes ago</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/frontend/env.js"></script>
+    <script type="module">
+      import { requireLogin, signOut, loadShopsIntoSelect } from '/frontend/assets/js/auth.js';
+      import { callFunction } from '/frontend/assets/js/api.js';
+      import { supabase } from '/frontend/assets/js/supabaseClient.js';
+
+      await requireLogin();
+
+      const logoutBtn = document.querySelector('#logout-btn');
+      logoutBtn.addEventListener('click', async () => {
+        await signOut();
+      });
+
+      await loadShopsIntoSelect(document.querySelector('#active-shop-select'));
+
+      // Load KPIs
+      const { count: productsCount } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true });
+      document.querySelector('#kpi-products').textContent = productsCount || '0';
+
+      const { count: ordersCount } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true });
+      document.querySelector('#kpi-orders').textContent = ordersCount || '0';
+
+      const { data: payments } = await supabase
+        .from('payments')
+        .select('net_payout')
+        .eq('status', 'completed');
+      const revenue = payments?.reduce((sum, p) => sum + parseFloat(p.net_payout || '0'), 0) || 0;
+      document.querySelector('#kpi-revenue').textContent = `$${revenue.toFixed(2)}`;
+
+      // Set rating (mock data)
+      document.querySelector('#kpi-rating').textContent = '4.8';
+
+      // Top Seller Analysis
+      const topSellerBtn = document.querySelector('#analyze-top-seller-btn');
+      const resultsEl = document.querySelector('#top-seller-results');
+
+      topSellerBtn.addEventListener('click', async () => {
+        topSellerBtn.disabled = true;
+        topSellerBtn.textContent = 'Analyzing...';
+        resultsEl.innerHTML = '<div class="text-center py-4"><div class="loading-spinner mx-auto mb-4"></div><p class="text-gray-500">Analyzing your store data...</p></div>';
+        
+        try {
+          const data = await callFunction('ai-top-seller', { months: 12 });
+          if (data.trend_scores && data.trend_scores.length > 0) {
+            resultsEl.innerHTML = data.trend_scores
+              .slice(0, 5)
+              .map(
+                (row, index) => `
+                  <div class="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 hover:border-blue-300 transition-all duration-200">
+                    <div class="flex items-center gap-4">
+                      <div class="h-10 w-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center font-bold text-blue-600">
+                        ${index + 1}
+                      </div>
+                      <div>
+                        <p class="font-semibold text-gray-900 text-sm">${row.listing_title || 'Untitled Product'}</p>
+                        <p class="text-xs text-gray-500">Trend score</p>
+                      </div>
+                    </div>
+                    <span class="text-lg font-bold text-blue-600">${row.trend_score?.toFixed(1) || 0}</span>
+                  </div>
+                `,
+              )
+              .join('');
+          } else {
+            resultsEl.innerHTML = '<p class="text-gray-500 text-center py-8">No analysis data available. Start by adding some products!</p>';
+          }
+        } catch (e) {
+          resultsEl.innerHTML = `<p class="text-red-600 text-center py-8">${e.message || 'Failed to load analysis'}</p>`;
+        } finally {
+          topSellerBtn.disabled = false;
+          topSellerBtn.textContent = 'Analyze Now';
+        }
+      });
+    </script>
+  </body>
+</html>
