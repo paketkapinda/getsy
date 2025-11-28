@@ -734,38 +734,41 @@ h3 {
 
 .modal.active {
   display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 
 .modal-content {
   background: white;
-  border-radius: 20px;
-  padding: 32px;
-  width: 100%;
-  max-width: 440px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  padding: 0;
   position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
 }
-
 .modal-close {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 1rem;
+  right: 1rem;
   background: none;
   border: none;
-  font-size: 24px;
-  color: #a1a1aa;
+  font-size: 1.5rem;
   cursor: pointer;
-  width: 32px;
-  height: 32px;
+  color: #6b7280;
+  width: 2rem;
+  height: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 4px;
+  z-index: 10;
 }
 
 .modal-close:hover {
-  background: #f4f4f5;
-  color: #71717a;
+  background: #f3f4f6;
+  color: #374151;
 }
 
 .modal-header {
