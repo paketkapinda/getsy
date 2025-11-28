@@ -193,8 +193,7 @@
       </main>
     </div>
 
-<!-- Product Modal - product-detail.html'in body içine ekle -->
-<!-- product-detail.html body içine bu modalı ekleyin -->
+<!-- product-detail.html'de modal bu şekilde olmalı -->
 <div class="modal" id="modal-product">
   <div class="modal-content" style="max-width: 600px;">
     <button class="modal-close" id="modal-product-close">&times;</button>
@@ -203,7 +202,7 @@
       <p class="modal-subtitle">Update your product information</p>
     </div>
     
-      <form id="form-product">
+    <form id="form-product">
       <input type="hidden" id="product-id" />
       
       <div class="form-row">
@@ -218,7 +217,7 @@
           />
         </div>
         
-         <div class="form-group">
+        <div class="form-group">
           <label class="form-label" for="product-category">Category</label>
           <select
             id="product-category"
@@ -235,7 +234,7 @@
           </select>
         </div>
       </div>
-        
+
       <div class="form-row">
         <div class="form-group">
           <label class="form-label" for="product-price">Price (USD)</label>
@@ -250,7 +249,7 @@
           />
         </div>
         
-         <div class="form-group">
+        <div class="form-group">
           <label class="form-label" for="product-status">Status</label>
           <select
             id="product-status"
@@ -263,7 +262,7 @@
         </div>
       </div>
 
-        <div class="form-group">
+      <div class="form-group">
         <label class="form-label" for="product-description">Description</label>
         <textarea
           id="product-description"
@@ -290,8 +289,7 @@
       </div>
     </form>
   </div>
-</div>
-    
+</div>    
     <!-- JavaScript Import -->
     <script src="/assets/js/env.js"></script>
     <script type="module" src="/assets/js/supabaseClient.js"></script>
@@ -302,5 +300,6 @@
     
   </body>
 </html>
+
 
 
