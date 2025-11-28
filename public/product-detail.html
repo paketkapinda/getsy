@@ -194,6 +194,7 @@
     </div>
 
 <!-- Product Modal - product-detail.html'in body içine ekle -->
+<!-- product-detail.html body içine bu modalı ekleyin -->
 <div class="modal" id="modal-product">
   <div class="modal-content" style="max-width: 600px;">
     <button class="modal-close" id="modal-product-close">&times;</button>
@@ -202,7 +203,7 @@
       <p class="modal-subtitle">Update your product information</p>
     </div>
     
-    <form id="form-product">
+      <form id="form-product">
       <input type="hidden" id="product-id" />
       
       <div class="form-row">
@@ -217,7 +218,7 @@
           />
         </div>
         
-        <div class="form-group">
+         <div class="form-group">
           <label class="form-label" for="product-category">Category</label>
           <select
             id="product-category"
@@ -234,7 +235,7 @@
           </select>
         </div>
       </div>
-
+        
       <div class="form-row">
         <div class="form-group">
           <label class="form-label" for="product-price">Price (USD)</label>
@@ -249,7 +250,7 @@
           />
         </div>
         
-        <div class="form-group">
+         <div class="form-group">
           <label class="form-label" for="product-status">Status</label>
           <select
             id="product-status"
@@ -262,7 +263,7 @@
         </div>
       </div>
 
-      <div class="form-group">
+        <div class="form-group">
         <label class="form-label" for="product-description">Description</label>
         <textarea
           id="product-description"
@@ -274,13 +275,22 @@
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary btn-flex">Update Product</button>
-        <button type="button" class="btn btn-outline btn-flex" id="btn-cancel-product">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-flex">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Update Product
+        </button>
+        <button type="button" class="btn btn-outline btn-flex" id="btn-cancel-product">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Cancel
+        </button>
       </div>
     </form>
   </div>
 </div>
-
     
     <!-- JavaScript Import -->
     <script src="/assets/js/env.js"></script>
@@ -289,9 +299,8 @@
     <script type="module" src="/assets/js/api.js"></script>
     <script type="module" src="/assets/js/ui.js"></script>
     <script type="module" src="/assets/js/product-detail.js"></script>
-
-
     
   </body>
 </html>
+
 
