@@ -14,7 +14,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="public/fronted/assets/css/styles.css" />
+    <link rel="stylesheet" href="/assets/css/styles.css" />
 
     <style>
       /* Login Özel Stilleri */
@@ -515,9 +515,9 @@
     </div>
 
     <!-- ÖNCE env.js YÜKLENMELİ -->
-    <script src="public/fronted/assets/js/env.js"></script>
+    <script src="/assets/js/env.js"></script>
     <!-- SONRA supabaseClient.js -->
-    <script type="module" src="public/fronted/assets/js/supabaseClient.js"></script>
+    <script type="module" src="/assets/js/supabaseClient.js"></script>
 
     <script type="module">
       // Tab Management
@@ -601,7 +601,7 @@
       }
 
       // Import supabase after env.js is loaded
-      import('public/fronted/assets/js/supabaseClient.js')
+      import('/assets/js/supabaseClient.js')
         .then(({ supabase }) => {
           // Login Form
           const loginForm = document.querySelector('#login-form');
