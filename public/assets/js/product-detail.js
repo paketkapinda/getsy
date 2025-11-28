@@ -214,15 +214,20 @@ async function loadProductDetail() {
   }
 }
 
-// Action butonlarını setup et
+// product-detail.js - setupActionButtons fonksiyonunu güncelleyelim
 function setupActionButtons() {
-  // Edit butonu
+  // Edit butonu - MODAL açacak şekilde güncellendi
   const editBtn = document.getElementById('btn-edit');
   if (editBtn) {
     editBtn.addEventListener('click', function() {
       const productId = getProductIdFromURL();
-      // Edit sayfasına yönlendir
-      window.location.href = `/edit-product.html?id=${productId}`;
+      // Products.js'deki editProduct fonksiyonunu çağır
+      if (window.editProduct) {
+        window.editProduct(productId);
+      } else {
+        // Fallback: direkt modal aç
+        openEditModal(productId);
+      }
     });
   }
   
@@ -257,48 +262,35 @@ function setupActionButtons() {
   }
 }
 
-// Ürün silme fonksiyonu
-async function deleteProduct(productId) {
+// Edit modal açma fonksiyonu
+async function openEditModal(productId) {
   try {
-    const { error } = await supabase
-      .from('products')
-      .delete()
-      .eq('id', productId);
-
-    if (error) throw error;
+    const product = await getProductById(productId);
     
-    showNotification('Product deleted successfully!', 'success');
-    setTimeout(() => {
-      window.location.href = '/products.html';
-    }, 1000);
+    // Formu doldur
+    document.getElementById('product-id').value = product.id;
+    document.getElementById('product-title').value = product.title;
+    document.getElementById('product-category').value = product.category;
+    document.getElementById('product-price').value = product.price;
+    document.getElementById('product-status').value = product.status;
+    document.getElementById('product-description').value = product.description || '';
+    
+    document.getElementById('modal-product-title').textContent = 'Edit Product';
+    
+    // Modalı aç
+    const productModal = document.getElementById('modal-product');
+    if (productModal) {
+      productModal.classList.add('active');
+    } else {
+      // Modal yoksa, products.html'deki modalı kullan
+      showNotification('Edit feature requires products page modal', 'info');
+    }
     
   } catch (error) {
-    console.error('❌ Delete error:', error);
-    
-    // Mock delete for demo
-    showNotification('Product deleted successfully! (Demo)', 'success');
-    setTimeout(() => {
-      window.location.href = '/products.html';
-    }, 1000);
+    console.error('Edit modal error:', error);
+    showNotification('Failed to load product for editing', 'error');
   }
 }
-
-// Etsy'ye yayınlama fonksiyonu
-async function publishToEtsy(productId) {
-  try {
-    // Simüle edilmiş yayınlama
-    showNotification('Connecting to Etsy...', 'info');
-    
-    setTimeout(() => {
-      showNotification('Product published to Etsy successfully!', 'success');
-    }, 2000);
-    
-  } catch (error) {
-    console.error('❌ Etsy publish error:', error);
-    throw error;
-  }
-}
-
 // Sayfa yüklendiğinde ürün detaylarını yükle
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 Product Detail yüklendi');
