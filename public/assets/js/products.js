@@ -622,7 +622,85 @@ function setupModalEvents() {
   }
 }
 
+// products.js içinde - product card oluşturan fonksiyona buton ekleyin
+function createProductCard(product) {
+  const statusClass = getStatusClass(product.status);
+  const categoryIcon = getCategoryIcon(product.category);
+  
+  return `
+    <div class="product-card" data-product-id="${product.id}">
+      <div class="product-card-header">
+        <div class="product-image">
+          <img src="${product.image_url || '/assets/images/placeholder-product.jpg'}" 
+               alt="${product.title}" 
+               class="product-img" />
+          <div class="product-overlay">
+            <button class="btn-view-detail" data-product-id="${product.id}">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              View Details
+            </button>
+          </div>
+        </div>
+        <div class="product-badge ${statusClass}">
+          ${product.status}
+        </div>
+      </div>
+      
+      <div class="product-card-body">
+        <div class="product-category">
+          ${categoryIcon}
+          <span>${getCategoryName(product.category)}</span>
+        </div>
+        <h3 class="product-title">${product.title}</h3>
+        <p class="product-description">${product.description || 'No description available'}</p>
+        
+        <div class="product-meta">
+          <div class="product-price">$${parseFloat(product.price).toFixed(2)}</div>
+          <div class="product-date">${formatDate(product.created_at)}</div>
+        </div>
+      </div>
+      
+      <div class="product-card-actions">
+        <button class="btn btn-outline btn-sm btn-view-detail" data-product-id="${product.id}">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+          View Details
+        </button>
+        <button class="btn btn-primary btn-sm btn-generate-mockup" data-product-id="${product.id}">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          Mockup
+        </button>
+      </div>
+    </div>
+  `;
+}
 
+// View Details butonlarına event listener ekleyin
+function setupViewDetailButtons() {
+  document.addEventListener('click', function(e) {
+    const viewDetailBtn = e.target.closest('.btn-view-detail');
+    if (viewDetailBtn) {
+      const productId = viewDetailBtn.dataset.productId;
+      if (productId) {
+        // Product detail sayfasına yönlendir
+        window.location.href = `/product-detail.html?id=${productId}`;
+      }
+    }
+  });
+}
+
+// Sayfa yüklendiğinde buton event'lerini kur
+document.addEventListener('DOMContentLoaded', function() {
+  setupViewDetailButtons();
+  // Diğer mevcut kodlar...
+});
 
 
 
