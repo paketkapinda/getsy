@@ -5,58 +5,58 @@
     <title>Dashboard – Etsy AI POD</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     
-    <!-- Cache Control -->
-    <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
-
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="/assets/css/styles.css" />
   </head>
-  <body class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
-    <div class="flex min-h-screen">
+  
+  <body class="dashboard-container">
+    <div class="dashboard-layout">
       <!-- Sidebar -->
-      <aside class="hidden w-80 border-r border-gray-200 bg-white/80 backdrop-blur-sm px-6 py-8 md:block">
-        <div class="flex items-center gap-3 mb-12">
-          <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-            <span class="text-white font-bold text-xl">E</span>
+      <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
           </div>
           <div>
-            <span class="text-2xl font-bold text-gray-900">Etsy AI POD</span>
-            <p class="text-xs text-gray-500">Premium Platform</p>
+            <div class="sidebar-title">Etsy AI POD</div>
+            <div class="sidebar-subtitle">PREMIUM PLATFORM</div>
           </div>
         </div>
-        
-        <nav class="space-y-2">
-          <a href="/frontend/dashboard.html" class="nav-link nav-link-active">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+        <nav class="sidebar-nav">
+          <a href="/dashboard.html" class="sidebar-nav-item active">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>
             Dashboard
           </a>
-          <a href="/frontend/products.html" class="nav-link">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <a href="/products.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
             </svg>
             Products
           </a>
-          <a href="/frontend/orders.html" class="nav-link">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <a href="/orders.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
             </svg>
             Orders
           </a>
-          <a href="/frontend/ai-assistant.html" class="nav-link">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <a href="/ai-assistant.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
             AI Assistant
           </a>
-          <a href="/frontend/settings.html" class="nav-link">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <a href="/settings.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
@@ -64,172 +64,194 @@
           </a>
         </nav>
 
-        <!-- User Profile Card -->
-        <div class="mt-auto pt-8 border-t border-gray-200">
-          <div class="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-purple-50">
-            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <span class="text-white font-semibold text-sm">JD</span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold text-gray-900 truncate">John Doe</p>
-              <p class="text-xs text-gray-500 truncate">admin@example.com</p>
+        <div class="sidebar-user">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="user-avatar">JD</div>
+            <div>
+              <div style="font-weight: 600; color: #18181b;">John Doe</div>
+              <div style="font-size: 12px; color: #6b7280;">admin@example.com</div>
             </div>
           </div>
         </div>
       </aside>
 
       <!-- Main Content -->
-      <main class="flex-1 px-4 py-6 md:px-8 md:py-8">
-        <header class="flex items-center justify-between gap-4 mb-8">
-          <div class="slide-up">
-            <h1 class="text-4xl font-bold text-gray-900">Dashboard</h1>
-            <p class="text-gray-600 mt-2">Overview of your Etsy POD business performance</p>
+      <main class="dashboard-main">
+        <!-- Header -->
+        <header class="dashboard-header">
+          <div class="header-title">
+            <h1>Dashboard</h1>
+            <p>Overview of your Etsy POD business performance</p>
           </div>
-          <div class="flex items-center gap-3">
-            <select
-              id="active-shop-select"
-              class="input-field text-sm w-48"
-            ></select>
-            <button
-              id="logout-btn"
-              class="btn-secondary text-sm"
-            >
+          <div class="header-actions">
+            <select class="select-input" id="active-shop-select">
+              <option>My Etsy Shop</option>
+              <option>Second Store</option>
+            </select>
+            <button class="btn btn-secondary" id="logout-btn">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+              </svg>
               Logout
             </button>
           </div>
         </header>
 
         <!-- KPI Cards -->
-        <section class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-          <div class="kpi-card group hover:border-blue-300">
-            <p class="kpi-label">Total Products</p>
-            <p id="kpi-products" class="kpi-value">–</p>
-            <div class="mt-2 text-xs text-green-600 font-semibold">
-              +12% this month
+        <section class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <div class="kpi-icon orange">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                </svg>
+              </div>
+              <div class="kpi-trend trend-up">+12%</div>
             </div>
+            <div class="kpi-value" id="kpi-products">–</div>
+            <div class="kpi-label">Total Products</div>
           </div>
-          <div class="kpi-card group hover:border-purple-300">
-            <p class="kpi-label">Active Orders</p>
-            <p id="kpi-orders" class="kpi-value">–</p>
-            <div class="mt-2 text-xs text-blue-600 font-semibold">
-              5 pending fulfillment
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <div class="kpi-icon red">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                </svg>
+              </div>
+              <div class="kpi-trend trend-up">+8%</div>
             </div>
+            <div class="kpi-value" id="kpi-orders">–</div>
+            <div class="kpi-label">Active Orders</div>
           </div>
-          <div class="kpi-card group hover:border-teal-300">
-            <p class="kpi-label">Monthly Revenue</p>
-            <p id="kpi-revenue" class="kpi-value">–</p>
-            <div class="mt-2 text-xs text-green-600 font-semibold">
-              +8% from last month
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <div class="kpi-icon amber">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                </svg>
+              </div>
+              <div class="kpi-trend trend-up">+15%</div>
             </div>
+            <div class="kpi-value" id="kpi-revenue">–</div>
+            <div class="kpi-label">Monthly Revenue</div>
           </div>
-          <div class="kpi-card group hover:border-amber-300">
-            <p class="kpi-label">Store Rating</p>
-            <p id="kpi-rating" class="kpi-value">–</p>
-            <div class="mt-2 text-xs text-amber-600 font-semibold">
-              4.8/5.0 stars
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <div class="kpi-icon emerald">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                </svg>
+              </div>
+              <div class="kpi-trend trend-up">+0.2</div>
             </div>
+            <div class="kpi-value" id="kpi-rating">–</div>
+            <div class="kpi-label">Store Rating</div>
           </div>
         </section>
 
-        <!-- Main Content Grid -->
-        <section class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-          <!-- Top Seller Analysis -->
-          <div class="card col-span-2">
-            <div class="flex items-center justify-between mb-6">
-              <div>
-                <h2 class="text-2xl font-bold text-gray-900">Top-Seller Analysis</h2>
-                <p class="text-gray-600 mt-2">
-                  AI-powered time-series trends and 3-month forecast per listing
-                </p>
+        <!-- Main Grid -->
+        <section class="dashboard-grid">
+          <!-- Left Column -->
+          <div>
+            <!-- Quick Actions -->
+            <div class="widget-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Quick Actions</div>
+                  <div class="card-subtitle">Start creating and managing your products</div>
+                </div>
               </div>
-              <button
-                id="analyze-top-seller-btn"
-                class="btn-primary text-sm"
-              >
-                Analyze Now
-              </button>
+              <div class="quick-actions">
+                <a href="/products.html" class="action-btn">
+                  <div class="action-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                  </div>
+                  <div class="action-text">Create Product</div>
+                </a>
+                <a href="/ai-assistant.html" class="action-btn">
+                  <div class="action-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                  </div>
+                  <div class="action-text">AI Assistant</div>
+                </a>
+              </div>
             </div>
-            <div id="top-seller-results" class="space-y-3">
-              <div class="text-center py-12">
-                <div class="loading-spinner mx-auto mb-4"></div>
-                <p class="text-gray-500">Click "Analyze Now" to generate insights</p>
+
+            <!-- Top Seller Analysis -->
+            <div class="analysis-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Top-Seller Analysis</div>
+                  <div class="card-subtitle">AI-powered time-series trends and 3-month forecast</div>
+                </div>
+                <button class="btn btn-primary" id="analyze-top-seller-btn">
+                  Analyze Now
+                </button>
+              </div>
+              <div class="analysis-results" id="top-seller-results">
+                <div style="text-align: center; color: #6b7280;">
+                  <div class="loading-spinner" style="margin: 0 auto 16px;"></div>
+                  <div>Click "Analyze Now" to generate insights</div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Sidebar Widgets -->
-          <div class="space-y-6">
-            <!-- Quick Actions -->
-            <div class="card">
-              <h2 class="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-              <div class="space-y-3">
-                <a href="/frontend/products.html" class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group">
-                  <div class="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+          <!-- Right Column -->
+          <div>
+            <!-- Job Queue -->
+            <div class="widget-card">
+              <div class="widget-title">Job Queue</div>
+              <div class="job-queue" id="job-queue">
+                <div class="job-item">
+                  <div class="job-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                   </div>
-                  <span class="font-medium text-gray-700">Create New Product</span>
-                </a>
-                <a href="/frontend/ai-assistant.html" class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 group">
-                  <div class="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
+                  <div class="job-content">
+                    <div class="job-name">Mockup Generation</div>
+                    <div class="job-status">Processing 5 products</div>
                   </div>
-                  <span class="font-medium text-gray-700">AI Assistant</span>
-                </a>
+                  <div class="status-badge status-processing">Processing</div>
+                </div>
               </div>
             </div>
 
-            <!-- Job Queue -->
-            <div class="card">
-              <h2 class="text-xl font-bold text-gray-900 mb-4">Job Queue</h2>
-              <p class="text-sm text-gray-600 mb-4">
-                Pending jobs for mockup renders, Etsy sync and order sends
-              </p>
-              <ul id="job-queue" class="space-y-3">
-                <li class="flex items-center justify-between p-3 rounded-xl bg-gray-50">
-                  <div class="flex items-center gap-3">
-                    <div class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                      <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                      </svg>
-                    </div>
-                    <span class="text-sm font-medium text-gray-700">Mockup Generation</span>
-                  </div>
-                  <span class="status-badge status-processing">Processing</span>
-                </li>
-              </ul>
-            </div>
-
             <!-- Recent AI Activity -->
-            <div class="card">
-              <h2 class="text-xl font-bold text-gray-900 mb-4">Recent AI Activity</h2>
-              <ul id="ai-logs" class="space-y-3">
-                <li class="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
-                  <div class="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
-                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="widget-card">
+              <div class="widget-title">Recent AI Activity</div>
+              <div class="ai-logs" id="ai-logs">
+                <div class="activity-item">
+                  <div class="activity-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                   </div>
-                  <div>
-                    <p class="text-sm font-medium text-gray-700">Design Generated</p>
-                    <p class="text-xs text-gray-500">2 minutes ago</p>
+                  <div class="activity-content">
+                    <div class="activity-text">Design Generated</div>
+                    <div class="activity-time">2 minutes ago</div>
                   </div>
-                </li>
-              </ul>
+                </div>
+              </div>
             </div>
           </div>
         </section>
       </main>
     </div>
 
-    <script src="/frontend/env.js"></script>
+    <script src="/assets/js/env.js"></script>
     <script type="module">
-      import { requireLogin, signOut, loadShopsIntoSelect } from '/frontend/assets/js/auth.js';
-      import { callFunction } from '/frontend/assets/js/api.js';
-      import { supabase } from '/frontend/assets/js/supabaseClient.js';
+      import { requireLogin, signOut, loadShopsIntoSelect } from '/assets/js/auth.js';
+      import { callFunction } from '/assets/js/api.js';
+      import { supabase } from '/assets/js/supabaseClient.js';
 
       await requireLogin();
 
@@ -258,7 +280,6 @@
       const revenue = payments?.reduce((sum, p) => sum + parseFloat(p.net_payout || '0'), 0) || 0;
       document.querySelector('#kpi-revenue').textContent = `$${revenue.toFixed(2)}`;
 
-      // Set rating (mock data)
       document.querySelector('#kpi-rating').textContent = '4.8';
 
       // Top Seller Analysis
@@ -267,8 +288,8 @@
 
       topSellerBtn.addEventListener('click', async () => {
         topSellerBtn.disabled = true;
-        topSellerBtn.textContent = 'Analyzing...';
-        resultsEl.innerHTML = '<div class="text-center py-4"><div class="loading-spinner mx-auto mb-4"></div><p class="text-gray-500">Analyzing your store data...</p></div>';
+        topSellerBtn.innerHTML = '<div class="loading-spinner"></div>';
+        resultsEl.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="loading-spinner" style="margin: 0 auto 16px;"></div><div style="color: #6b7280;">Analyzing your store data...</div></div>';
         
         try {
           const data = await callFunction('ai-top-seller', { months: 12 });
@@ -277,26 +298,22 @@
               .slice(0, 5)
               .map(
                 (row, index) => `
-                  <div class="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 hover:border-blue-300 transition-all duration-200">
-                    <div class="flex items-center gap-4">
-                      <div class="h-10 w-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center font-bold text-blue-600">
-                        ${index + 1}
-                      </div>
-                      <div>
-                        <p class="font-semibold text-gray-900 text-sm">${row.listing_title || 'Untitled Product'}</p>
-                        <p class="text-xs text-gray-500">Trend score</p>
-                      </div>
+                  <div class="result-item">
+                    <div class="result-rank">${index + 1}</div>
+                    <div class="result-content">
+                      <div class="result-title">${row.listing_title || 'Untitled Product'}</div>
+                      <div class="result-subtitle">Trend score</div>
                     </div>
-                    <span class="text-lg font-bold text-blue-600">${row.trend_score?.toFixed(1) || 0}</span>
+                    <div class="result-score">${row.trend_score?.toFixed(1) || 0}</div>
                   </div>
                 `,
               )
               .join('');
           } else {
-            resultsEl.innerHTML = '<p class="text-gray-500 text-center py-8">No analysis data available. Start by adding some products!</p>';
+            resultsEl.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;">No analysis data available. Start by adding some products!</div>';
           }
         } catch (e) {
-          resultsEl.innerHTML = `<p class="text-red-600 text-center py-8">${e.message || 'Failed to load analysis'}</p>`;
+          resultsEl.innerHTML = `<div style="text-align: center; padding: 40px; color: #dc2626;">${e.message || 'Failed to load analysis'}</div>`;
         } finally {
           topSellerBtn.disabled = false;
           topSellerBtn.textContent = 'Analyze Now';
