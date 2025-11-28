@@ -1969,3 +1969,40 @@ h3 {
     justify-content: space-between;
   }
 }
+/* style.css'ye ekle */
+
+/* Status badge colors */
+.product-badge.published { background: linear-gradient(135deg, #059669, #10b981); }
+.product-badge.draft { background: linear-gradient(135deg, #d97706, #f59e0b); }
+.product-badge.archived { background: linear-gradient(135deg, #6b7280, #9ca3af); }
+
+/* Modal backdrop */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal.active {
+  display: flex;
+}
+
+/* Responsive grid düzenlemesi */
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-content {
+    margin: 20px;
+    width: calc(100% - 40px);
+  }
+}
