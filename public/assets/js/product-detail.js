@@ -206,7 +206,7 @@ function getMockProductById(productId) {
   return mockProducts[productId] || mockProducts['mock-1'];
 }
 
-// Edit modal açma fonksiyonu
+// Edit modal açma fonksiyonu - DEBUG versiyonu
 async function openEditModal() {
   if (!currentProduct) {
     showNotification('Product data not loaded', 'error');
@@ -214,23 +214,96 @@ async function openEditModal() {
   }
 
   console.log('📝 Opening edit modal for:', currentProduct);
+  console.log('🔍 Form element IDs to fill:');
+  console.log('- product-id:', document.getElementById('product-id'));
+  console.log('- product-title:', document.getElementById('product-title'));
+  console.log('- product-category:', document.getElementById('product-category'));
+  console.log('- product-price:', document.getElementById('product-price'));
+  console.log('- product-status:', document.getElementById('product-status'));
+  console.log('- product-description:', document.getElementById('product-description'));
   
   try {
-    // Formu doldur
-    document.getElementById('product-id').value = currentProduct.id;
-    document.getElementById('product-title').value = currentProduct.title || '';
-    document.getElementById('product-category').value = currentProduct.category || '';
-    document.getElementById('product-price').value = currentProduct.price || '';
-    document.getElementById('product-status').value = currentProduct.status || 'draft';
-    document.getElementById('product-description').value = currentProduct.description || '';
+    // Form elementlerini al
+    const productIdInput = document.getElementById('product-id');
+    const productTitleInput = document.getElementById('product-title');
+    const productCategorySelect = document.getElementById('product-category');
+    const productPriceInput = document.getElementById('product-price');
+    const productStatusSelect = document.getElementById('product-status');
+    const productDescriptionTextarea = document.getElementById('product-description');
+
+    // Debug: Elementler bulunuyor mu?
+    console.log('🔍 Form elements found:');
+    console.log('- productIdInput:', productIdInput);
+    console.log('- productTitleInput:', productTitleInput);
+    console.log('- productCategorySelect:', productCategorySelect);
+    console.log('- productPriceInput:', productPriceInput);
+    console.log('- productStatusSelect:', productStatusSelect);
+    console.log('- productDescriptionTextarea:', productDescriptionTextarea);
+
+    // Formu doldur - HER BİR ALANI TEK TEK KONTROL EDELİM
+    if (productIdInput) {
+      productIdInput.value = currentProduct.id;
+      console.log('✅ Set product-id:', currentProduct.id);
+    } else {
+      console.error('❌ product-id input not found');
+    }
+
+    if (productTitleInput) {
+      productTitleInput.value = currentProduct.title || '';
+      console.log('✅ Set product-title:', currentProduct.title);
+    } else {
+      console.error('❌ product-title input not found');
+    }
+
+    if (productCategorySelect) {
+      productCategorySelect.value = currentProduct.category || '';
+      console.log('✅ Set product-category:', currentProduct.category);
+    } else {
+      console.error('❌ product-category select not found');
+    }
+
+    if (productPriceInput) {
+      productPriceInput.value = currentProduct.price || '';
+      console.log('✅ Set product-price:', currentProduct.price);
+    } else {
+      console.error('❌ product-price input not found');
+    }
+
+    if (productStatusSelect) {
+      productStatusSelect.value = currentProduct.status || 'draft';
+      console.log('✅ Set product-status:', currentProduct.status);
+    } else {
+      console.error('❌ product-status select not found');
+    }
+
+    if (productDescriptionTextarea) {
+      productDescriptionTextarea.value = currentProduct.description || '';
+      console.log('✅ Set product-description:', currentProduct.description);
+    } else {
+      console.error('❌ product-description textarea not found');
+    }
     
-    document.getElementById('modal-product-title').textContent = 'Edit Product';
+    // Modal title'ı güncelle
+    const modalTitle = document.getElementById('modal-product-title');
+    if (modalTitle) {
+      modalTitle.textContent = 'Edit Product';
+      console.log('✅ Set modal title');
+    }
     
     // Modalı aç
     const productModal = document.getElementById('modal-product');
     if (productModal) {
       productModal.classList.add('active');
       console.log('✅ Modal opened successfully');
+      
+      // Açıldıktan sonra değerleri tekrar kontrol et
+      setTimeout(() => {
+        console.log('🔄 Double-checking form values after modal open:');
+        console.log('- product-title value:', document.getElementById('product-title')?.value);
+        console.log('- product-category value:', document.getElementById('product-category')?.value);
+        console.log('- product-price value:', document.getElementById('product-price')?.value);
+      }, 100);
+      
     } else {
       console.error('❌ Modal element not found');
       showNotification('Edit modal not found', 'error');
