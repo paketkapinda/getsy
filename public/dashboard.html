@@ -646,6 +646,63 @@
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
+<!-- dashboard.html'e payments section ekle -->
+<div class="dashboard-section">
+  <div class="section-header">
+    <h2>💰 Payments & Revenue</h2>
+    <a href="/payments.html" class="btn btn-outline btn-sm">
+      View All Payments
+    </a>
+  </div>
+  
+  <div class="payments-overview">
+    <div class="revenue-stats">
+      <div class="revenue-card">
+        <div class="revenue-icon total">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div class="revenue-info">
+          <div class="amount" id="total-revenue">$0.00</div>
+          <div class="label">Total Revenue</div>
+        </div>
+      </div>
+      
+      <div class="revenue-card">
+        <div class="revenue-icon pending">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div class="revenue-info">
+          <div class="amount" id="pending-payouts">$0.00</div>
+          <div class="label">Pending Payouts</div>
+        </div>
+      </div>
+      
+      <div class="revenue-card">
+        <div class="revenue-icon completed">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+        </div>
+        <div class="revenue-info">
+          <div class="amount" id="completed-payouts">$0.00</div>
+          <div class="label">Completed Payouts</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="recent-payments">
+      <h4>Recent Payments</h4>
+      <div class="payments-list" id="recent-payments-list">
+        <!-- Payments buraya yüklenecek -->
+      </div>
+    </div>
+  </div>
+</div>
+            
             AI Assistant
           </a>
           <a href="/settings.html" class="sidebar-nav-item">
