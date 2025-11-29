@@ -13,598 +13,442 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/assets/css/styles.css" />
 
- <style>
- /* Dashboard Özel Stilleri */
-
-/* Dashboard Layout */
-.dashboard-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #fef7f0 0%, #fef2f2 100%);
-  font-family: 'Inter', sans-serif;
-}
-
-.dashboard-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* Sidebar */
-.dashboard-sidebar {
-  width: 280px;
-  background: white;
-  border-right: 1px solid #e5e7eb;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 32px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.sidebar-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #ea580c, #dc2626);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sidebar-logo svg {
-  width: 20px;
-  height: 20px;
-  color: white;
-}
-
-.sidebar-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #18181b;
-}
-
-.sidebar-subtitle {
-  font-size: 12px;
-  color: #ea580c;
-  font-weight: 600;
-}
-
-.sidebar-nav {
-  flex: 1;
-}
-
-.sidebar-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  color: #6b7280;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.sidebar-nav-item:hover {
-  background: #fef7f0;
-  color: #ea580c;
-}
-
-.sidebar-nav-item.active {
-  background: linear-gradient(135deg, #fef3f2, #fef7f0);
-  color: #ea580c;
-  border-left: 3px solid #ea580c;
-}
-
-.sidebar-nav-item svg {
-  width: 20px;
-  height: 20px;
-}
-
-.sidebar-user {
-  padding: 16px;
-  background: #fef7f0;
-  border-radius: 12px;
-  margin-top: auto;
-}
-
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #ea580c, #dc2626);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-/* Main Content */
-.dashboard-main {
-  flex: 1;
-  padding: 24px;
-  overflow-y: auto;
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: between;
-  align-items: center;
-  margin-bottom: 32px;
-}
-
-.header-title h1 {
-  font-size: 32px;
-  font-weight: 700;
-  color: #18181b;
-  margin-bottom: 8px;
-}
-
-.header-title p {
-  color: #6b7280;
-  font-size: 16px;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-/* KPI Cards */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-.kpi-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 24px;
-  transition: all 0.3s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(234, 88, 12, 0.15);
-  border-color: #fdba74;
-}
-
-.kpi-header {
-  display: flex;
-  justify-content: between;
-  align-items: start;
-  margin-bottom: 16px;
-}
-
-.kpi-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.kpi-icon.orange { background: #fef3f2; }
-.kpi-icon.red { background: #fef2f2; }
-.kpi-icon.amber { background: #fffbeb; }
-.kpi-icon.emerald { background: #f0fdf4; }
-
-.kpi-icon svg {
-  width: 24px;
-  height: 24px;
-}
-
-.kpi-icon.orange svg { color: #ea580c; }
-.kpi-icon.red svg { color: #dc2626; }
-.kpi-icon.amber svg { color: #d97706; }
-.kpi-icon.emerald svg { color: #059669; }
-
-.kpi-trend {
-  font-size: 14px;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 6px;
-}
-
-.trend-up { background: #f0fdf4; color: #059669; }
-.trend-down { background: #fef2f2; color: #dc2626; }
-
-.kpi-value {
-  font-size: 32px;
-  font-weight: 700;
-  color: #18181b;
-  margin-bottom: 4px;
-}
-
-.kpi-label {
-  font-size: 14px;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-/* Main Grid */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
-}
-
-/* Analysis Card */
-.analysis-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 24px;
-  grid-column: 1 / -1;
-}
-
-.card-header {
-  display: flex;
-  justify-content: between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.card-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #18181b;
-}
-
-.card-subtitle {
-  font-size: 14px;
-  color: #6b7280;
-  margin-top: 4px;
-}
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 14px;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  border: none;
-  cursor: pointer;
-  gap: 8px;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #ea580c, #dc2626);
-  color: white;
-  box-shadow: 0 1px 3px rgba(234, 88, 12, 0.2);
-}
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
-}
-
-.btn-secondary {
-  background: white;
-  color: #374151;
-  border: 1px solid #d1d5db;
-}
-
-.btn-secondary:hover {
-  border-color: #ea580c;
-  color: #ea580c;
-}
-
-.btn-sm {
-  padding: 8px 16px;
-  font-size: 13px;
-}
-
-/* Select */
-.select-input {
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: white;
-  font-size: 14px;
-  color: #374151;
-  min-width: 200px;
-}
-
-.select-input:focus {
-  outline: none;
-  border-color: #ea580c;
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
-}
-
-/* Analysis Results */
-.analysis-results {
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.result-item {
-  display: flex;
-  align-items: center;
-  justify-content: between;
-  padding: 16px;
-  background: #fafafa;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  transition: all 0.2s ease;
-}
-
-.result-item:hover {
-  background: #fef7f0;
-  transform: translateX(4px);
-}
-
-.result-rank {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #ea580c, #dc2626);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.result-content {
-  flex: 1;
-  margin: 0 16px;
-}
-
-.result-title {
-  font-weight: 500;
-  color: #18181b;
-  margin-bottom: 4px;
-}
-
-.result-subtitle {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.result-score {
-  font-weight: 600;
-  color: #ea580c;
-  font-size: 18px;
-}
-
-/* Widget Cards */
-.widget-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 24px;
-}
-
-.widget-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #18181b;
-  margin-bottom: 16px;
-}
-
-/* Job Queue */
-.job-item {
-  display: flex;
-  align-items: center;
-  justify-content: between;
-  padding: 12px;
-  background: #fafafa;
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-
-.job-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: #eff6ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.job-icon svg {
-  width: 16px;
-  height: 16px;
-  color: #2563eb;
-}
-
-.job-content {
-  flex: 1;
-  margin: 0 12px;
-}
-
-.job-name {
-  font-weight: 500;
-  color: #18181b;
-  font-size: 14px;
-}
-
-.job-status {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.status-processing { background: #eff6ff; color: #2563eb; }
-.status-completed { background: #f0fdf4; color: #059669; }
-.status-pending { background: #fffbeb; color: #d97706; }
-
-/* AI Activity */
-.activity-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: linear-gradient(135deg, #f0fdf4, #f0f9ff);
-  border-radius: 8px;
-  margin-bottom: 8px;
-  border: 1px solid #dcfce7;
-}
-
-.activity-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: #059669;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.activity-icon svg {
-  width: 16px;
-  height: 16px;
-  color: white;
-}
-
-.activity-content {
-  flex: 1;
-}
-
-.activity-text {
-  font-weight: 500;
-  color: #18181b;
-  font-size: 14px;
-}
-
-.activity-time {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-/* Quick Actions */
-.quick-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  text-decoration: none;
-  color: #374151;
-  transition: all 0.2s ease;
-}
-
-.action-btn:hover {
-  border-color: #ea580c;
-  color: #ea580c;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.1);
-}
-
-.action-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: #fef7f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.action-icon svg {
-  width: 20px;
-  height: 20px;
-  color: #ea580c;
-}
-
-.action-text {
-  font-weight: 500;
-  font-size: 14px;
-}
-
-/* Loading States */
-.loading-spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid #e5e7eb;
-  border-top: 2px solid #ea580c;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Mobile Responsive */
-@media (max-width: 1024px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .dashboard-sidebar {
-    width: 240px;
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-layout {
-    flex-direction: column;
-  }
-  
-  .dashboard-sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .kpi-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .dashboard-header {
-    flex-direction: column;
-    gap: 16px;
-    align-items: stretch;
-  }
-  
-  .header-actions {
-    justify-content: space-between;
-  }
-}
-</style>    
+    <style>
+    /* AI Analysis Animations */
+    .analysis-loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(10px);
+    }
+
+    .analysis-loading-content {
+      text-align: center;
+      color: white;
+      max-width: 400px;
+    }
+
+    .loading-animation {
+      position: relative;
+      height: 100px;
+      margin-bottom: 2rem;
+    }
+
+    .pulse-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      border: 2px solid #ea580c;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .pulse-circle.delay-1 {
+      width: 90px;
+      height: 90px;
+      animation-delay: 0.5s;
+    }
+
+    .pulse-circle.delay-2 {
+      width: 120px;
+      height: 120px;
+      animation-delay: 1s;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
+      50% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.2); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+    }
+
+    .loading-steps .step {
+      opacity: 0.5;
+      margin: 0.5rem 0;
+      transition: all 0.3s ease;
+    }
+
+    .loading-steps .step.active {
+      opacity: 1;
+      transform: translateX(10px);
+    }
+
+    /* Trend Analysis Cards */
+    .animated-card {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.6s ease;
+    }
+
+    .trend-product-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1rem;
+      min-width: 280px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .trend-high { background: linear-gradient(135deg, #10b981, #059669); }
+    .trend-medium { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .trend-low { background: linear-gradient(135deg, #6b7280, #4b5563); }
+
+    .trend-score {
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+    }
+
+    /* Payments Dashboard */
+    .revenue-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .revenue-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .revenue-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .revenue-icon.total { background: #dbeafe; color: #1e40af; }
+    .revenue-icon.pending { background: #fef3c7; color: #d97706; }
+    .revenue-icon.completed { background: #d1fae5; color: #059669; }
+
+    .revenue-info .amount {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .payment-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .payment-item:last-child {
+      border-bottom: none;
+    }
+
+    /* Analysis Result Modal */
+    .analysis-result-modal .modal-content {
+      max-width: 1000px !important;
+    }
+
+    .analysis-badge {
+      background: linear-gradient(135deg, #ea580c, #c2410c);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .analysis-hero {
+      background: linear-gradient(135deg, #fef7f0, #fef3f2);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .hero-stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #ea580c;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .products-scroll-container {
+      display: flex;
+      overflow-x: auto;
+      gap: 1rem;
+      padding: 1rem 0;
+      scrollbar-width: thin;
+    }
+
+    .products-scroll-container::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .products-scroll-container::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 3px;
+    }
+
+    .products-scroll-container::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+
+    .product-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 1rem;
+    }
+
+    .product-actions .btn-icon {
+      background: none;
+      border: none;
+      padding: 0.5rem;
+      border-radius: 6px;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .product-actions .btn-icon:hover {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .product-title {
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 1rem;
+    }
+
+    .sales-metric {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .metric-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ea580c;
+    }
+
+    .metric-label {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .forecast-chart {
+      margin-bottom: 1rem;
+    }
+
+    .chart-title {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+    }
+
+    .chart-bars {
+      display: flex;
+      gap: 0.5rem;
+      align-items: end;
+      height: 60px;
+    }
+
+    .chart-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+
+    .bar-fill {
+      background: linear-gradient(to top, #ea580c, #fdba74);
+      border-radius: 4px 4px 0 0;
+      width: 20px;
+      min-height: 10px;
+      transition: height 0.3s ease;
+    }
+
+    .chart-bar span {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .forecast-numbers {
+      display: grid;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .forecast-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.875rem;
+    }
+
+    .forecast-item strong {
+      color: #111827;
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    .analysis-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    /* Content Generator Styles */
+    .content-preview {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 2rem;
+    }
+
+    .mockup-previews {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .mockup-preview-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .mockup-preview-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .generated-content-preview {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 1.5rem;
+      min-height: 300px;
+    }
+
+    .content-result .result-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .content-result .result-section h4 {
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+
+    .description-text {
+      line-height: 1.6;
+      color: #4b5563;
+    }
+
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tag {
+      background: #f3f4f6;
+      color: #374151;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+    }
+
+    .price-display {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #059669;
+    }
+
+    /* Payment Status Styles */
+    .payment-status {
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: capitalize;
+    }
+
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-processing { background: #dbeafe; color: #1e40af; }
+    .status-completed { background: #d1fae5; color: #059669; }
+    .status-failed { background: #fee2e2; color: #dc2626; }
+
+    /* Empty States */
+    .empty-payments {
+      text-align: center;
+      padding: 2rem;
+      color: #6b7280;
+    }
+
+    .preview-placeholder {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #9ca3af;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .content-preview {
+        grid-template-columns: 1fr;
+      }
+      
+      .hero-stats {
+        grid-template-columns: 1fr;
+      }
+      
+      .analysis-actions {
+        flex-direction: column;
+      }
+      
+      .revenue-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+    </style>
   </head>
   
   <body class="dashboard-container">
@@ -642,67 +486,16 @@
             </svg>
             Orders
           </a>
+          <a href="/payments.html" class="sidebar-nav-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+            </svg>
+            Payments
+          </a>
           <a href="/ai-assistant.html" class="sidebar-nav-item">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
-<!-- dashboard.html'e payments section ekle -->
-<div class="dashboard-section">
-  <div class="section-header">
-    <h2>💰 Payments & Revenue</h2>
-    <a href="/payments.html" class="btn btn-outline btn-sm">
-      View All Payments
-    </a>
-  </div>
-  
-  <div class="payments-overview">
-    <div class="revenue-stats">
-      <div class="revenue-card">
-        <div class="revenue-icon total">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
-        </div>
-        <div class="revenue-info">
-          <div class="amount" id="total-revenue">$0.00</div>
-          <div class="label">Total Revenue</div>
-        </div>
-      </div>
-      
-      <div class="revenue-card">
-        <div class="revenue-icon pending">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-        </div>
-        <div class="revenue-info">
-          <div class="amount" id="pending-payouts">$0.00</div>
-          <div class="label">Pending Payouts</div>
-        </div>
-      </div>
-      
-      <div class="revenue-card">
-        <div class="revenue-icon completed">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M20 6L9 17l-5-5"/>
-          </svg>
-        </div>
-        <div class="revenue-info">
-          <div class="amount" id="completed-payouts">$0.00</div>
-          <div class="label">Completed Payouts</div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="recent-payments">
-      <h4>Recent Payments</h4>
-      <div class="payments-list" id="recent-payments-list">
-        <!-- Payments buraya yüklenecek -->
-      </div>
-    </div>
-  </div>
-</div>
-            
             AI Assistant
           </a>
           <a href="/settings.html" class="sidebar-nav-item">
@@ -728,247 +521,145 @@
       <!-- Main Content -->
       <main class="dashboard-main">
         <!-- Header -->
-        <header class="dashboard-header">
-          <div class="header-title">
+        <header class="products-header">
+          <div class="products-title">
             <h1>Dashboard</h1>
-            <p>Overview of your Etsy POD business performance</p>
+            <p>Welcome to your Etsy AI POD management platform</p>
           </div>
-          <div class="header-actions">
-            <select class="select-input" id="active-shop-select">
-              <option>My Etsy Shop</option>
-              <option>Second Store</option>
-            </select>
-            <button class="btn btn-secondary" id="logout-btn">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-              </svg>
-              Logout
-            </button>
-          </div>
+          <button class="btn btn-primary" id="btn-analyze-top-seller">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            </svg>
+            Analyze Top Sellers
+          </button>
         </header>
 
-        <!-- KPI Cards -->
-        <section class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-header">
-              <div class="kpi-icon orange">
+        <!-- AI Assistant Tools -->
+        <div class="dashboard-section">
+          <div class="section-header">
+            <h2>🤖 AI Assistant</h2>
+            <p>Powered by advanced AI for your Etsy business</p>
+          </div>
+          
+          <div class="ai-tools-grid">
+            <div class="ai-tool-card" id="btn-generate-description">
+              <div class="ai-tool-icon">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
               </div>
-              <div class="kpi-trend trend-up">+12%</div>
+              <div class="ai-tool-content">
+                <h3 class="ai-tool-title">Generate Description</h3>
+                <p class="ai-tool-description">AI-powered product descriptions optimized for Etsy</p>
+              </div>
             </div>
-            <div class="kpi-value" id="kpi-products">–</div>
-            <div class="kpi-label">Total Products</div>
-          </div>
 
-          <div class="kpi-card">
-            <div class="kpi-header">
-              <div class="kpi-icon red">
+            <div class="ai-tool-card" id="btn-generate-seo">
+              <div class="ai-tool-icon">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
               </div>
-              <div class="kpi-trend trend-up">+8%</div>
+              <div class="ai-tool-content">
+                <h3 class="ai-tool-title">Generate SEO Tags</h3>
+                <p class="ai-tool-description">Optimize your listings for Etsy search algorithms</p>
+              </div>
             </div>
-            <div class="kpi-value" id="kpi-orders">–</div>
-            <div class="kpi-label">Active Orders</div>
-          </div>
 
-          <div class="kpi-card">
-            <div class="kpi-header">
-              <div class="kpi-icon amber">
+            <div class="ai-tool-card" id="btn-analyze-top-seller">
+              <div class="ai-tool-icon">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
               </div>
-              <div class="kpi-trend trend-up">+15%</div>
-            </div>
-            <div class="kpi-value" id="kpi-revenue">–</div>
-            <div class="kpi-label">Monthly Revenue</div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-header">
-              <div class="kpi-icon emerald">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-                </svg>
+              <div class="ai-tool-content">
+                <h3 class="ai-tool-title">Top Seller Analysis</h3>
+                <p class="ai-tool-description">Time-series forecast and market insights</p>
               </div>
-              <div class="kpi-trend trend-up">+0.2</div>
             </div>
-            <div class="kpi-value" id="kpi-rating">–</div>
-            <div class="kpi-label">Store Rating</div>
           </div>
-        </section>
+        </div>
 
-        <!-- Main Grid -->
-        <section class="dashboard-grid">
-          <!-- Left Column -->
-          <div>
-            <!-- Quick Actions -->
-            <div class="widget-card">
-              <div class="card-header">
-                <div>
-                  <div class="card-title">Quick Actions</div>
-                  <div class="card-subtitle">Start creating and managing your products</div>
+        <!-- Payments & Revenue Section -->
+        <div class="dashboard-section">
+          <div class="section-header">
+            <h2>💰 Payments & Revenue</h2>
+            <a href="/payments.html" class="btn btn-outline btn-sm">
+              View All Payments
+            </a>
+          </div>
+          
+          <div class="payments-overview">
+            <div class="revenue-stats">
+              <div class="revenue-card">
+                <div class="revenue-icon total">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                </div>
+                <div class="revenue-info">
+                  <div class="amount" id="total-revenue">$0.00</div>
+                  <div class="label">Total Revenue</div>
                 </div>
               </div>
-              <div class="quick-actions">
-                <a href="/products.html" class="action-btn">
-                  <div class="action-icon">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                    </svg>
-                  </div>
-                  <div class="action-text">Create Product</div>
-                </a>
-                <a href="/ai-assistant.html" class="action-btn">
-                  <div class="action-icon">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                  </div>
-                  <div class="action-text">AI Assistant</div>
-                </a>
+              
+              <div class="revenue-card">
+                <div class="revenue-icon pending">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <div class="revenue-info">
+                  <div class="amount" id="pending-payouts">$0.00</div>
+                  <div class="label">Pending Payouts</div>
+                </div>
+              </div>
+              
+              <div class="revenue-card">
+                <div class="revenue-icon completed">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M20 6L9 17l-5-5"/>
+                  </svg>
+                </div>
+                <div class="revenue-info">
+                  <div class="amount" id="completed-payouts">$0.00</div>
+                  <div class="label">Completed Payouts</div>
+                </div>
               </div>
             </div>
-
-            <!-- Top Seller Analysis -->
-            <div class="analysis-card">
-              <div class="card-header">
-                <div>
-                  <div class="card-title">Top-Seller Analysis</div>
-                  <div class="card-subtitle">AI-powered time-series trends and 3-month forecast</div>
-                </div>
-                <button class="btn btn-primary" id="analyze-top-seller-btn">
-                  Analyze Now
-                </button>
-              </div>
-              <div class="analysis-results" id="top-seller-results">
-                <div style="text-align: center; color: #6b7280;">
-                  <div class="loading-spinner" style="margin: 0 auto 16px;"></div>
-                  <div>Click "Analyze Now" to generate insights</div>
+            
+            <div class="recent-payments">
+              <h4>Recent Payments</h4>
+              <div class="payments-list" id="recent-payments-list">
+                <div class="empty-payments">
+                  <p>No payments yet</p>
+                  <small>Payments will appear here after orders are processed</small>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Right Column -->
-          <div>
-            <!-- Job Queue -->
-            <div class="widget-card">
-              <div class="widget-title">Job Queue</div>
-              <div class="job-queue" id="job-queue">
-                <div class="job-item">
-                  <div class="job-icon">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                  </div>
-                  <div class="job-content">
-                    <div class="job-name">Mockup Generation</div>
-                    <div class="job-status">Processing 5 products</div>
-                  </div>
-                  <div class="status-badge status-processing">Processing</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Recent AI Activity -->
-            <div class="widget-card">
-              <div class="widget-title">Recent AI Activity</div>
-              <div class="ai-logs" id="ai-logs">
-                <div class="activity-item">
-                  <div class="activity-icon">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  </div>
-                  <div class="activity-content">
-                    <div class="activity-text">Design Generated</div>
-                    <div class="activity-time">2 minutes ago</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <!-- Recent Activity -->
+        <div class="dashboard-section">
+          <div class="section-header">
+            <h2>📈 Recent Activity</h2>
           </div>
-        </section>
+          <div class="activity-feed" id="activity-feed">
+            <!-- Activity items will be loaded here -->
+          </div>
+        </div>
       </main>
     </div>
 
+    <!-- JavaScript Import -->
     <script src="/assets/js/env.js"></script>
-    <script type="module">
-      import { requireLogin, signOut, loadShopsIntoSelect } from '/assets/js/auth.js';
-      import { callFunction } from '/assets/js/api.js';
-      import { supabase } from '/assets/js/supabaseClient.js';
-
-      await requireLogin();
-
-      const logoutBtn = document.querySelector('#logout-btn');
-      logoutBtn.addEventListener('click', async () => {
-        await signOut();
-      });
-
-      await loadShopsIntoSelect(document.querySelector('#active-shop-select'));
-
-      // Load KPIs
-      const { count: productsCount } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true });
-      document.querySelector('#kpi-products').textContent = productsCount || '0';
-
-      const { count: ordersCount } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true });
-      document.querySelector('#kpi-orders').textContent = ordersCount || '0';
-
-      const { data: payments } = await supabase
-        .from('payments')
-        .select('net_payout')
-        .eq('status', 'completed');
-      const revenue = payments?.reduce((sum, p) => sum + parseFloat(p.net_payout || '0'), 0) || 0;
-      document.querySelector('#kpi-revenue').textContent = `$${revenue.toFixed(2)}`;
-
-      document.querySelector('#kpi-rating').textContent = '4.8';
-
-      // Top Seller Analysis
-      const topSellerBtn = document.querySelector('#analyze-top-seller-btn');
-      const resultsEl = document.querySelector('#top-seller-results');
-
-      topSellerBtn.addEventListener('click', async () => {
-        topSellerBtn.disabled = true;
-        topSellerBtn.innerHTML = '<div class="loading-spinner"></div>';
-        resultsEl.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="loading-spinner" style="margin: 0 auto 16px;"></div><div style="color: #6b7280;">Analyzing your store data...</div></div>';
-        
-        try {
-          const data = await callFunction('ai-top-seller', { months: 12 });
-          if (data.trend_scores && data.trend_scores.length > 0) {
-            resultsEl.innerHTML = data.trend_scores
-              .slice(0, 5)
-              .map(
-                (row, index) => `
-                  <div class="result-item">
-                    <div class="result-rank">${index + 1}</div>
-                    <div class="result-content">
-                      <div class="result-title">${row.listing_title || 'Untitled Product'}</div>
-                      <div class="result-subtitle">Trend score</div>
-                    </div>
-                    <div class="result-score">${row.trend_score?.toFixed(1) || 0}</div>
-                  </div>
-                `,
-              )
-              .join('');
-          } else {
-            resultsEl.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;">No analysis data available. Start by adding some products!</div>';
-          }
-        } catch (e) {
-          resultsEl.innerHTML = `<div style="text-align: center; padding: 40px; color: #dc2626;">${e.message || 'Failed to load analysis'}</div>`;
-        } finally {
-          topSellerBtn.disabled = false;
-          topSellerBtn.textContent = 'Analyze Now';
-        }
-      });
-    </script>
+    <script type="module" src="/assets/js/supabaseClient.js"></script>
+    <script type="module" src="/assets/js/auth.js"></script>
+    <script type="module" src="/assets/js/api.js"></script>
+    <script type="module" src="/assets/js/ui.js"></script>
+    <script type="module" src="/assets/js/ai-top-seller-enhanced.js"></script>
+    <script type="module" src="/assets/js/dashboard-payments.js"></script>
+    <script type="module" src="/assets/js/main-integrations.js"></script>
   </body>
 </html>
