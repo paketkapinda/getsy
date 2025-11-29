@@ -2,7 +2,7 @@
 import { supabase } from './supabaseClient.js';
 import { api } from './api.js';
 import { showNotification, showModal, hideModal, showLoading } from './ui.js';
-import { formatCurrency, formatDate, formatDateTime, getStatusColor, getStatusLabel } from './helpers.js';
+import { formatCurrency, formatDate, formatDateTime, getStatusColor, getStatusLabel } from './helpers.js'; // helpers.js'den geliyor
 
 let currentOrders = [];
 
@@ -93,7 +93,7 @@ function renderOrders(orders) {
           </div>
         </div>
         <div class="order-status-badge status-${order.status}">
-          ${getStatusLabel(order.status)}
+          ${getStatusLabel(order.status)} {/* helpers.js'den geliyor */}
         </div>
       </div>
       
@@ -218,17 +218,18 @@ function getDateRange(range) {
   }
 }
 
-function getStatusLabel(status) {
-  const statusMap = {
-    'pending': 'Pending',
-    'paid': 'Paid',
-    'processing': 'Processing',
-    'shipped': 'Shipped',
-    'delivered': 'Delivered',
-    'cancelled': 'Cancelled'
-  };
-  return statusMap[status] || status;
-}
+// BU FONKSİYONU SİLİN - helpers.js'den geliyor
+// function getStatusLabel(status) {
+//   const statusMap = {
+//     'pending': 'Pending',
+//     'paid': 'Paid',
+//     'processing': 'Processing',
+//     'shipped': 'Shipped',
+//     'delivered': 'Delivered',
+//     'cancelled': 'Cancelled'
+//   };
+//   return statusMap[status] || status;
+// }
 
 function loadMockOrders() {
   const container = document.getElementById('orders-grid');
