@@ -14,6 +14,194 @@
     <link rel="stylesheet" href="/assets/css/styles.css" />
 
     <style>
+
+/* AI Assistant Tools Grid */
+.ai-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.ai-tool-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.ai-tool-card:hover {
+  border-color: #ea580c;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.1);
+  transform: translateY(-2px);
+}
+
+.ai-tool-icon {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ai-tool-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: white;
+}
+
+.ai-tool-content {
+  flex: 1;
+}
+
+.ai-tool-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.ai-tool-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.ai-tool-arrow {
+  color: #9ca3af;
+  transition: color 0.3s ease;
+}
+
+.ai-tool-card:hover .ai-tool-arrow {
+  color: #ea580c;
+}
+
+/* Dashboard Sections */
+.dashboard-section {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.section-header p {
+  color: #6b7280;
+  margin: 0.5rem 0 0 0;
+  font-size: 0.875rem;
+}
+
+/* Activity Feed */
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.activity-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.activity-icon.product { background: #dbeafe; color: #1e40af; }
+.activity-icon.order { background: #d1fae5; color: #059669; }
+.activity-icon.payment { background: #fef3c7; color: #d97706; }
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-title {
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.activity-description {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.activity-time {
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ai-tools-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .ai-tool-card {
+    padding: 1.25rem;
+  }
+  
+  .revenue-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .ai-tool-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .ai-tool-content {
+    text-align: center;
+  }
+  
+  .dashboard-section {
+    padding: 1.5rem;
+  }
+}
+
     /* AI Analysis Animations */
     .analysis-loading-overlay {
       position: fixed;
@@ -661,6 +849,5 @@
     <script type="module" src="/assets/js/ai-top-seller-enhanced.js"></script>
     <script type="module" src="/assets/js/dashboard-payments.js"></script>
     <script type="module" src="/assets/js/main-integrations.js"></script>
-    <script type="module" src="/assets/js/dashboard-activities.js"></script>
   </body>
 </html>
