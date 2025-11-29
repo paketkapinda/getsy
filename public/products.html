@@ -550,7 +550,26 @@
             </svg>
             New Product
           </button>
+		<!-- products.html'e butonlar ekle -->
+		<button class="btn btn-outline" onclick="analyzeTopSellers('current_shop')">
+  		Analyze Top Sellers
+		</button>
+
+		<button class="btn btn-outline" onclick="showMockupGenerator('product_id')">
+  		Generate Mockups
+		</button>
+
+		<!-- product formuna SEO butonları -->
+		<div class="form-actions">
+  		<button type="button" id="btn-generate-description" class="btn btn-outline">
+    		AI Generate Description
+  		</button>
+  		<button type="button" id="btn-generate-tags" class="btn btn-outline">
+    		AI Generate Tags
+  		</button>
+		</div>
         </header>
+
 
         <!-- Filters -->
         <div class="products-filters">
