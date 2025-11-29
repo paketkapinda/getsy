@@ -3,6 +3,120 @@ import { supabase } from './supabaseClient.js';
 import { showNotification } from './ui.js';
 import { formatCurrency, formatDate } from './helpers.js';
 
+// ===== GLOBAL FUNCTIONS =====
+window.syncAllPayments = async function() {
+  try {
+    showNotification('Syncing payments from Etsy...', 'info');
+    
+    // Simüle sync işlemi
+    setTimeout(() => {
+      showNotification('Payments synced successfully!', 'success');
+      loadPayments(); // Sayfayı yenile
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Error syncing payments:', error);
+    showNotification('Error syncing payments', 'error');
+  }
+};
+
+window.processAllPayouts = async function() {
+  try {
+    showNotification('Processing all pending payouts...', 'info');
+    
+    // Bekleyen tüm ödemeleri al
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: pendingPayments, error } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('status', 'pending');
+
+    if (error) throw error;
+
+    if (!pendingPayments || pendingPayments.length === 0) {
+      showNotification('No pending payouts to process', 'info');
+      return;
+    }
+
+    // Tüm bekleyen ödemeleri işle
+    for (const payment of pendingPayments) {
+      await processPayout(payment.id);
+    }
+
+    showNotification(`Processed ${pendingPayments.length} payouts`, 'success');
+    
+  } catch (error) {
+    console.error('Error processing payouts:', error);
+    showNotification('Error processing payouts', 'error');
+  }
+};
+
+window.processPayout = async function(paymentId) {
+  try {
+    showNotification('Processing payout...', 'info');
+    
+    const { error } = await supabase
+      .from('payments')
+      .update({ 
+        status: 'processing',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', paymentId);
+
+    if (error) throw error;
+
+    // Simüle payout işlemi
+    setTimeout(async () => {
+      await supabase
+        .from('payments')
+        .update({ 
+          status: 'completed',
+          settlement_date: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', paymentId);
+      
+      showNotification('Payout completed successfully', 'success');
+      loadPayments();
+    }, 2000);
+
+  } catch (error) {
+    console.error('Error processing payout:', error);
+    showNotification('Error processing payout', 'error');
+  }
+};
+
+window.viewPaymentDetails = async function(paymentId) {
+  try {
+    const { data: payment, error } = await supabase
+      .from('payments')
+      .select(`
+        *,
+        orders (
+          etsy_order_id,
+          customer_name,
+          customer_email,
+          total_amount,
+          items
+        ),
+        producers (
+          name,
+          provider_type
+        )
+      `)
+      .eq('id', paymentId)
+      .single();
+
+    if (error) throw error;
+
+    showPaymentDetailsModal(payment);
+  } catch (error) {
+    console.error('Error loading payment details:', error);
+    showNotification('Error loading payment details', 'error');
+  }
+};
+
 // ===== COST CALCULATION FUNCTIONS =====
 export function calculateCost(basePrice, podCost, shipping, platformFeePercent = 0.15, paymentGatewayFeePercent = 0.03) {
   const platformFee = basePrice * platformFeePercent;
@@ -75,114 +189,26 @@ export async function distributePayment(orderId, producerId) {
   }
 }
 
-export function renderCostBreakdown(container, costData) {
-  if (!container) return;
-  
-  container.innerHTML = `
-    <div class="cost-breakdown-card">
-      <h4 class="cost-breakdown-title">Cost Breakdown</h4>
-      <div class="cost-items">
-        <div class="cost-item">
-          <span class="cost-label">Base Price</span>
-          <span class="cost-value positive">${formatCurrency(costData.basePrice)}</span>
-        </div>
-        <div class="cost-item">
-          <span class="cost-label">POD Cost</span>
-          <span class="cost-value negative">-${formatCurrency(costData.podCost)}</span>
-        </div>
-        <div class="cost-item">
-          <span class="cost-label">Shipping</span>
-          <span class="cost-value negative">-${formatCurrency(costData.shipping)}</span>
-        </div>
-        <div class="cost-item">
-          <span class="cost-label">Platform Fee (15%)</span>
-          <span class="cost-value negative">-${formatCurrency(costData.platformFee)}</span>
-        </div>
-        <div class="cost-item">
-          <span class="cost-label">Payment Gateway Fee (3%)</span>
-          <span class="cost-value negative">-${formatCurrency(costData.paymentFee)}</span>
-        </div>
-        <div class="cost-divider"></div>
-        <div class="cost-item total">
-          <span class="cost-label">Net Payout</span>
-          <span class="cost-value total-amount">${formatCurrency(costData.netPayout)}</span>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// ===== PAYMENT SETTINGS & TRACKING FUNCTIONS =====
-export async function loadPaymentSettings() {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // Ödeme ayarlarını yükle (varsa)
-    const { data, error } = await supabase
-      .from('payment_settings')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!error && data) {
-      const wiseInput = document.getElementById('wise-api-key');
-      const payoneerInput = document.getElementById('payoneer-api-key');
-      
-      if (wiseInput) wiseInput.value = data.wise_api_key || '';
-      if (payoneerInput) payoneerInput.value = data.payoneer_api_key || '';
-    }
-  } catch (error) {
-    console.error('Error loading payment settings:', error);
-  }
-}
-
-export function initPaymentSettings() {
-  const form = document.getElementById('form-payment');
-  if (!form) return;
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const wiseApiKey = document.getElementById('wise-api-key')?.value || '';
-    const payoneerApiKey = document.getElementById('payoneer-api-key')?.value || '';
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Ödeme ayarlarını kaydet
-      const { error } = await supabase
-        .from('payment_settings')
-        .upsert({
-          user_id: user.id,
-          wise_api_key: wiseApiKey,
-          payoneer_api_key: payoneerApiKey,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        });
-
-      if (error) throw error;
-
-      showNotification('Payment settings saved successfully', 'success');
-    } catch (error) {
-      console.error('Error saving payment settings:', error);
-      showNotification('Error saving payment settings', 'error');
-    }
-  });
-}
-
-// Ödemeleri yükle (Dashboard ve Payments sayfası için)
+// ===== PAYMENT DISPLAY FUNCTIONS =====
 export async function loadPayments() {
   const container = document.getElementById('payments-container');
   if (!container) return;
 
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px;">
+        <div class="loading-spinner"></div>
+        <p style="color: #6b7280; margin-top: 16px;">Loading payments...</p>
+      </div>
+    `;
 
-    // Payments tablosundan verileri çek (orders ve producers ile join)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      container.innerHTML = '<p class="error-message">Please log in to view payments</p>';
+      return;
+    }
+
+    // Payments tablosundan verileri çek
     const { data: payments, error } = await supabase
       .from('payments')
       .select(`
@@ -206,7 +232,7 @@ export async function loadPayments() {
 
     if (!payments || payments.length === 0) {
       container.innerHTML = `
-        <div class="empty-state">
+        <div class="payments-empty">
           <div class="empty-icon">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
@@ -214,6 +240,9 @@ export async function loadPayments() {
           </div>
           <h3 class="empty-title">No Payments Yet</h3>
           <p class="empty-description">Your payment records will appear here after orders are processed</p>
+          <button class="btn btn-primary" onclick="syncAllPayments()">
+            Sync Payments
+          </button>
         </div>
       `;
       return;
@@ -223,20 +252,20 @@ export async function loadPayments() {
     container.innerHTML = `
       <div class="payments-stats-grid">
         <div class="stat-card">
-          <div class="stat-label">Total Revenue</div>
           <div class="stat-value">${formatCurrency(calculateTotalRevenue(payments))}</div>
+          <div class="stat-label">Total Revenue</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Pending Payouts</div>
           <div class="stat-value">${formatCurrency(calculatePendingPayouts(payments))}</div>
+          <div class="stat-label">Pending Payouts</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Completed Payouts</div>
           <div class="stat-value">${formatCurrency(calculateCompletedPayouts(payments))}</div>
+          <div class="stat-label">Completed Payouts</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Profit Margin</div>
           <div class="stat-value">${calculateAverageMargin(payments)}%</div>
+          <div class="stat-label">Profit Margin</div>
         </div>
       </div>
 
@@ -264,7 +293,6 @@ export async function loadPayments() {
                 <td>${payment.orders?.customer_name || 'Unknown'}</td>
                 <td>
                   <div class="amount">${formatCurrency(payment.amount)}</div>
-                  <div class="currency">${payment.currency}</div>
                 </td>
                 <td>
                   <div class="payout ${payment.net_payout > 0 ? 'positive' : ''}">
@@ -310,99 +338,20 @@ export async function loadPayments() {
     `;
   } catch (error) {
     console.error('Error loading payments:', error);
-    container.innerHTML = '<p class="error-message">Error loading payments</p>';
-  }
-}
-
-// ===== DASHBOARD PAYMENTS =====
-export async function loadDashboardPayments() {
-  const container = document.getElementById('dashboard-payments');
-  if (!container) return;
-
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // Son 30 günün ödemelerini getir
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const { data: payments, error } = await supabase
-      .from('payments')
-      .select(`
-        amount,
-        net_payout,
-        status,
-        created_at
-      `)
-      .eq('user_id', user.id)
-      .gte('created_at', thirtyDaysAgo.toISOString())
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    const totalRevenue = calculateTotalRevenue(payments);
-    const totalPayout = calculateCompletedPayouts(payments);
-    const pendingCount = payments.filter(p => p.status === 'pending').length;
-
     container.innerHTML = `
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon revenue">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1"/>
-            </svg>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">${formatCurrency(totalRevenue)}</div>
-            <div class="stat-label">30-Day Revenue</div>
-          </div>
+      <div class="payments-empty">
+        <div class="empty-icon" style="background: #fee2e2;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+          </svg>
         </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon payout">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-            </svg>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">${formatCurrency(totalPayout)}</div>
-            <div class="stat-label">Net Payout</div>
-          </div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon pending">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">${pendingCount}</div>
-            <div class="stat-label">Pending Payouts</div>
-          </div>
-        </div>
+        <h3 class="empty-title">Error Loading Payments</h3>
+        <p class="empty-description">There was an error loading your payment data. Please try again.</p>
+        <button class="btn btn-primary" onclick="loadPayments()">
+          Retry
+        </button>
       </div>
-      
-      ${payments.length > 0 ? `
-        <div class="recent-payments">
-          <h3>Recent Payments</h3>
-          <div class="payments-list">
-            ${payments.slice(0, 5).map(payment => `
-              <div class="payment-item">
-                <div class="payment-amount">${formatCurrency(payment.amount)}</div>
-                <div class="payment-status status-${payment.status}">${payment.status}</div>
-                <div class="payment-date">${formatDate(payment.created_at)}</div>
-              </div>
-            `).join('')}
-          </div>
-          <a href="/payments.html" class="view-all-link">View All Payments →</a>
-        </div>
-      ` : ''}
     `;
-  } catch (error) {
-    console.error('Error loading dashboard payments:', error);
-    container.innerHTML = '<p>Error loading payment data</p>';
   }
 }
 
@@ -435,72 +384,6 @@ function calculateAverageMargin(payments) {
   return (totalMargin / completedPayments.length).toFixed(1);
 }
 
-// ===== GLOBAL FUNCTIONS =====
-window.processPayout = async (paymentId) => {
-  try {
-    showNotification('Processing payout...', 'info');
-    
-    const { error } = await supabase
-      .from('payments')
-      .update({ 
-        status: 'processing',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', paymentId);
-
-    if (error) throw error;
-
-    // Simüle payout işlemi
-    setTimeout(async () => {
-      await supabase
-        .from('payments')
-        .update({ 
-          status: 'completed',
-          settlement_date: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', paymentId);
-      
-      showNotification('Payout completed successfully', 'success');
-      loadPayments();
-    }, 2000);
-
-  } catch (error) {
-    console.error('Error processing payout:', error);
-    showNotification('Error processing payout', 'error');
-  }
-};
-
-window.viewPaymentDetails = async (paymentId) => {
-  try {
-    const { data: payment, error } = await supabase
-      .from('payments')
-      .select(`
-        *,
-        orders (
-          etsy_order_id,
-          customer_name,
-          customer_email,
-          total_amount,
-          items
-        ),
-        producers (
-          name,
-          provider_type
-        )
-      `)
-      .eq('id', paymentId)
-      .single();
-
-    if (error) throw error;
-
-    showPaymentDetailsModal(payment);
-  } catch (error) {
-    console.error('Error loading payment details:', error);
-    showNotification('Error loading payment details', 'error');
-  }
-};
-
 function showPaymentDetailsModal(payment) {
   const modalHTML = `
     <div class="modal-overlay">
@@ -523,7 +406,7 @@ function showPaymentDetailsModal(payment) {
               </div>
               <div class="detail-item">
                 <span class="detail-label">Total Amount:</span>
-                <span class="detail-value">${formatCurrency(payment.amount)} ${payment.currency}</span>
+                <span class="detail-value">${formatCurrency(payment.amount)} ${payment.currency || 'USD'}</span>
               </div>
             </div>
 
@@ -575,33 +458,13 @@ function showPaymentDetailsModal(payment) {
   document.body.appendChild(modalContainer);
 
   window.closePaymentModal = () => {
-    document.body.removeChild(modalContainer);
+    if (modalContainer.parentNode) {
+      document.body.removeChild(modalContainer);
+    }
   };
 }
 
 // ===== INITIALIZATION =====
-if (document.getElementById('form-payment')) {
-  loadPaymentSettings();
-  initPaymentSettings();
-}
-
 if (document.getElementById('payments-container')) {
   loadPayments();
-}
-
-if (document.getElementById('dashboard-payments')) {
-  loadDashboardPayments();
-}
-
-// Orders sayfasında cost breakdown gösterimi için
-export function initOrderCostCalculation(orderId, totalAmount) {
-  const costContainer = document.getElementById(`cost-breakdown-${orderId}`);
-  if (!costContainer) return;
-
-  // Varsayılan maliyetlerle hesaplama yap
-  const podCost = totalAmount * 0.4; // %40 POD maliyeti
-  const shipping = 5.00; // Varsayılan shipping
-  
-  const costData = calculateCost(totalAmount, podCost, shipping);
-  renderCostBreakdown(costContainer, costData);
 }
