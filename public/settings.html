@@ -730,25 +730,8 @@
 </div>
 
 
-
-
-    
-    <!-- JavaScript Import -->
-    <script src="/assets/js/env.js"></script>
-    <script type="module" src="/assets/js/supabaseClient.js"></script>
-    <script type="module" src="/assets/js/auth.js"></script>
-    <script type="module" src="/assets/js/api.js"></script>
-    <script type="module" src="/assets/js/ui.js"></script>
-    <script type="module" src="/assets/js/helpers.js"></script>
-    <script type="module" src="/assets/js/team.js"></script>
-    <script type="module" src="/assets/js/etsy.js"></script>
-    <script type="module" src="/assets/js/producers.js"></script>
-    <script type="module" src="/assets/js/payment_settings.js"></script>
-    <script type="module" src="/assets/js/payment.js"></script>
-    <script type="module" src="/assets/js/ai-tools.js"></script>
-
-  <script>
-// settings.html'in sonuna bu script'i ekle
+// settings.html'in sonuna bu script'i ekleyelim
+<script>
 document.addEventListener('DOMContentLoaded', function() {
   const aiKeysForm = document.getElementById('form-ai-keys');
   const testConnectionsBtn = document.getElementById('btn-test-connections');
@@ -883,10 +866,27 @@ async function testAIConnections() {
     testBtn.innerHTML = originalText;
     testBtn.disabled = false;
   }
-}      
+}
+</script>
 
     
+    <!-- JavaScript Import -->
+    <script src="/assets/js/env.js"></script>
+    <script type="module" src="/assets/js/supabaseClient.js"></script>
+    <script type="module" src="/assets/js/auth.js"></script>
+    <script type="module" src="/assets/js/api.js"></script>
+    <script type="module" src="/assets/js/ui.js"></script>
+    <script type="module" src="/assets/js/helpers.js"></script>
+    <script type="module" src="/assets/js/team.js"></script>
+    <script type="module" src="/assets/js/etsy.js"></script>
+    <script type="module" src="/assets/js/producers.js"></script>
+    <script type="module" src="/assets/js/payment_settings.js"></script>
+    <script type="module" src="/assets/js/payment.js"></script>
+    <script type="module" src="/assets/js/ai-tools.js"></script>
+
+
     
+  <script>
     
     // Global formatDate function for all modules
   function formatDate(dateString) {
@@ -951,6 +951,7 @@ async function testAIConnections() {
 </script> 
 </body>
 </html>
+
 
 
 
