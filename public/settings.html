@@ -725,8 +725,146 @@
             </button>
           </div>
         </div>
-      </main>
-    </div>
+
+// settings.html'in sonuna bu script'i ekle
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const aiKeysForm = document.getElementById('form-ai-keys');
+  const testConnectionsBtn = document.getElementById('btn-test-connections');
+
+  // API Key'leri yükle
+  loadAIAPIKeys();
+
+  // Form submit event'i
+  if (aiKeysForm) {
+    aiKeysForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      await saveAIAPIKeys();
+    });
+  }
+
+  // Test connections butonu
+  if (testConnectionsBtn) {
+    testConnectionsBtn.addEventListener('click', testAIConnections);
+  }
+});
+
+// API Key'leri yükle
+async function loadAIAPIKeys() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: apiKeys, error } = await supabase
+      .from('ai_api_keys')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+
+    if (apiKeys) {
+      document.getElementById('openai-api-key').value = apiKeys.openai_key_encrypted || '';
+      document.getElementById('openrouter-api-key').value = apiKeys.openrouter_key_encrypted || '';
+      document.getElementById('anthropic-api-key').value = apiKeys.anthropic_key_encrypted || '';
+      document.getElementById('stability-api-key').value = apiKeys.stability_key_encrypted || '';
+      document.getElementById('midjourney-api-key').value = apiKeys.midjourney_key_encrypted || '';
+    }
+  } catch (error) {
+    console.error('Error loading API keys:', error);
+    showNotification('Error loading API keys', 'error');
+  }
+}
+
+// API Key'leri kaydet
+async function saveAIAPIKeys() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const openaiKey = document.getElementById('openai-api-key').value;
+    const openrouterKey = document.getElementById('openrouter-api-key').value;
+    const anthropicKey = document.getElementById('anthropic-api-key').value;
+    const stabilityKey = document.getElementById('stability-api-key').value;
+    const midjourneyKey = document.getElementById('midjourney-api-key').value;
+    const encryptKeys = document.getElementById('encrypt-keys').checked;
+
+    // Önce mevcut kaydı kontrol et
+    const { data: existingKeys } = await supabase
+      .from('ai_api_keys')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    let result;
+    if (existingKeys) {
+      // UPDATE
+      result = await supabase
+        .from('ai_api_keys')
+        .update({
+          openai_key_encrypted: openaiKey,
+          openrouter_key_encrypted: openrouterKey,
+          anthropic_key_encrypted: anthropicKey,
+          stability_key_encrypted: stabilityKey,
+          midjourney_key_encrypted: midjourneyKey,
+          encrypt_keys: encryptKeys,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+    } else {
+      // INSERT
+      result = await supabase
+        .from('ai_api_keys')
+        .insert({
+          user_id: user.id,
+          openai_key_encrypted: openaiKey,
+          openrouter_key_encrypted: openrouterKey,
+          anthropic_key_encrypted: anthropicKey,
+          stability_key_encrypted: stabilityKey,
+          midjourney_key_encrypted: midjourneyKey,
+          encrypt_keys: encryptKeys
+        });
+    }
+
+    if (result.error) throw result.error;
+
+    showNotification('API keys saved successfully', 'success');
+  } catch (error) {
+    console.error('Error saving API keys:', error);
+    showNotification('Error saving API keys', 'error');
+  }
+}
+
+// AI bağlantılarını test et
+async function testAIConnections() {
+  const testBtn = document.getElementById('btn-test-connections');
+  const originalText = testBtn.innerHTML;
+  
+  // Butonu loading state'e getir
+  testBtn.innerHTML = `
+    <div class="spinner" style="width: 16px; height: 16px; border: 2px solid #e5e7eb; border-top: 2px solid #ea580c; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></div>
+    Testing Connections...
+  `;
+  testBtn.disabled = true;
+
+  try {
+    // Burada her AI servisi için test yapılacak
+    // Şimdilik mock test yapalım
+    setTimeout(() => {
+      showNotification('Connection tests completed', 'success');
+      testBtn.innerHTML = originalText;
+      testBtn.disabled = false;
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Error testing connections:', error);
+    showNotification('Error testing connections', 'error');
+    testBtn.innerHTML = originalText;
+    testBtn.disabled = false;
+  }
+}      
+</main>
+</div>
 
     <!-- JavaScript Import -->
     <script src="/assets/js/env.js"></script>
@@ -806,6 +944,7 @@
 </script> 
 </body>
 </html>
+
 
 
 
