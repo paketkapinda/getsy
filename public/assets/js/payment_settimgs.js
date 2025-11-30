@@ -1,4 +1,4 @@
-// payment.js - New file for payment settings
+// payment_settings.js - Settings sayfası için ödeme kanalı ayarları
 import { supabase } from './supabaseClient.js';
 import { showNotification } from './ui.js';
 
@@ -7,25 +7,26 @@ export async function loadPaymentSettings() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data, error } = await supabase
+    // Önce mevcut kaydı kontrol et
+    const { data: existingSettings } = await supabase
       .from('payment_settings')
       .select('*')
       .eq('user_id', user.id)
       .single();
 
-    if (error && error.code !== 'PGRST116') throw error;
-
-    if (data) {
-      document.getElementById('wise-api-key').value = data.wise_api_key_encrypted || '';
-      document.getElementById('payoneer-api-key').value = data.payoneer_api_key_encrypted || '';
-      document.getElementById('bank-name').value = data.bank_name || '';
-      document.getElementById('iban').value = data.iban || '';
-      document.getElementById('swift-code').value = data.swift_code || '';
-      document.getElementById('account-holder').value = data.account_holder_name || '';
+    if (existingSettings) {
+      document.getElementById('wise-api-key').value = existingSettings.wise_api_key_encrypted || '';
+      document.getElementById('payoneer-api-key').value = existingSettings.payoneer_api_key_encrypted || '';
+      document.getElementById('bank-name').value = existingSettings.bank_name || '';
+      document.getElementById('iban').value = existingSettings.iban || '';
+      document.getElementById('swift-code').value = existingSettings.swift_code || '';
+      document.getElementById('account-holder').value = existingSettings.account_holder_name || '';
     }
   } catch (error) {
-    console.error('Error loading payment settings:', error);
-    showNotification('Error loading payment settings', 'error');
+    if (error.code !== 'PGRST116') {
+      console.error('Error loading payment settings:', error);
+      showNotification('Error loading payment settings', 'error');
+    }
   }
 }
 
@@ -51,21 +52,44 @@ async function savePaymentSettings() {
     const swiftCode = document.getElementById('swift-code').value;
     const accountHolder = document.getElementById('account-holder').value;
 
-    const { data, error } = await supabase
+    // Önce mevcut kaydı kontrol et
+    const { data: existingSettings } = await supabase
       .from('payment_settings')
-      .upsert({
-        user_id: user.id,
-        wise_api_key_encrypted: wiseApiKey,
-        payoneer_api_key_encrypted: payoneerApiKey,
-        bank_name: bankName,
-        iban: iban,
-        swift_code: swiftCode,
-        account_holder_name: accountHolder,
-        updated_at: new Date().toISOString()
-      })
-      .select();
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
 
-    if (error) throw error;
+    let result;
+    if (existingSettings) {
+      // UPDATE işlemi
+      result = await supabase
+        .from('payment_settings')
+        .update({
+          wise_api_key_encrypted: wiseApiKey,
+          payoneer_api_key_encrypted: payoneerApiKey,
+          bank_name: bankName,
+          iban: iban,
+          swift_code: swiftCode,
+          account_holder_name: accountHolder,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+    } else {
+      // INSERT işlemi
+      result = await supabase
+        .from('payment_settings')
+        .insert({
+          user_id: user.id,
+          wise_api_key_encrypted: wiseApiKey,
+          payoneer_api_key_encrypted: payoneerApiKey,
+          bank_name: bankName,
+          iban: iban,
+          swift_code: swiftCode,
+          account_holder_name: accountHolder
+        });
+    }
+
+    if (result.error) throw result.error;
 
     showNotification('Payment settings saved successfully', 'success');
   } catch (error) {
@@ -74,7 +98,7 @@ async function savePaymentSettings() {
   }
 }
 
-// Initialize
+// Settings sayfası için initialize
 if (document.getElementById('form-payment')) {
   loadPaymentSettings();
   initPaymentSettings();
