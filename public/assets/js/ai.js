@@ -1,430 +1,636 @@
-// AI Assistant Functions - NEW DESIGN
+// ai.js - Complete AI Assistant with All Features
 import { supabase } from './supabaseClient.js';
-import { api } from './api.js';
 import { showNotification } from './ui.js';
 
-let chatHistory = [];
+// ===== PRODUCT CONTENT GENERATION =====
+window.generateProductDescription = async function(productData) {
+    try {
+        showNotification('Generating product description...', 'info');
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch('/api/generate-description', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                productName: productData.name,
+                productType: productData.type,
+                keywords: productData.keywords,
+                targetAudience: productData.audience,
+                style: productData.style || 'professional'
+            })
+        });
 
-export function initAI() {
-  console.log('🚀 AI Assistant initializing...');
-  
-  // AI Tools - Yeni card yapısına uygun
-  const generateDescBtn = document.getElementById('btn-generate-description');
-  const generateSeoBtn = document.getElementById('btn-generate-seo');
-  const analyzeBtn = document.getElementById('btn-analyze-top-seller');
-  const sendBtn = document.getElementById('btn-send-chat');
-  const clearBtn = document.getElementById('btn-clear-chat');
-  const chatInput = document.getElementById('chat-input');
-
-  // AI Tools Event Listeners
-  if (generateDescBtn) {
-    generateDescBtn.addEventListener('click', () => {
-      addMessage('user', 'Generate a product description for a new t-shirt design');
-      generateProductDescription();
-    });
-  }
-
-  if (generateSeoBtn) {
-    generateSeoBtn.addEventListener('click', () => {
-      addMessage('user', 'Generate SEO tags for a vintage t-shirt');
-      generateSEOTags();
-    });
-  }
-
-  if (analyzeBtn) {
-    analyzeBtn.addEventListener('click', () => {
-      addMessage('user', 'Analyze top seller trends for my Etsy shop');
-      analyzeTopSellers();
-    });
-  }
-
-  // Chat Event Listeners
-  if (sendBtn && chatInput) {
-    sendBtn.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendMessage();
-    });
-  }
-
-  if (clearBtn) {
-    clearBtn.addEventListener('click', clearChat);
-  }
-
-  console.log('✅ AI Assistant initialized');
-}
-
-// Yeni mesaj ekleme fonksiyonu
-function addMessage(role, content) {
-  const messagesContainer = document.getElementById('chat-messages');
-  if (!messagesContainer) return;
-
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `chat-message ${role}-message`;
-  
-  const avatar = document.createElement('div');
-  avatar.className = 'message-avatar';
-  
-  const messageContent = document.createElement('div');
-  messageContent.className = 'message-content';
-  
-  if (role === 'user') {
-    avatar.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>';
-    messageContent.innerHTML = `<p>${content}</p>`;
-  } else {
-    avatar.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>';
-    messageContent.innerHTML = `<p>${content}</p>`;
-  }
-  
-  messageDiv.appendChild(avatar);
-  messageDiv.appendChild(messageContent);
-  messagesContainer.appendChild(messageDiv);
-  
-  // Scroll to bottom
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  
-  // Add to history
-  chatHistory.push({ role, content });
-}
-
-// Typing indicator
-function showTypingIndicator() {
-  const messagesContainer = document.getElementById('chat-messages');
-  if (!messagesContainer) return;
-
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'chat-message ai-message';
-  typingDiv.id = 'typing-indicator';
-  
-  const avatar = document.createElement('div');
-  avatar.className = 'message-avatar';
-  avatar.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>';
-  
-  const messageContent = document.createElement('div');
-  messageContent.className = 'message-content chat-loading';
-  messageContent.innerHTML = `
-    <div class="chat-loading-dot"></div>
-    <div class="chat-loading-dot"></div>
-    <div class="chat-loading-dot"></div>
-  `;
-  
-  typingDiv.appendChild(avatar);
-  typingDiv.appendChild(messageContent);
-  messagesContainer.appendChild(typingDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function hideTypingIndicator() {
-  const typingIndicator = document.getElementById('typing-indicator');
-  if (typingIndicator) {
-    typingIndicator.remove();
-  }
-}
-
-// Chat mesajı gönderme
-async function sendMessage() {
-  const chatInput = document.getElementById('chat-input');
-  if (!chatInput || !chatInput.value.trim()) return;
-
-  const message = chatInput.value.trim();
-  chatInput.value = '';
-  
-  addMessage('user', message);
-  showTypingIndicator();
-  
-  try {
-    // Gerçek API çağrısı veya mock response
-    const response = await getAIResponse(message);
-    
-    setTimeout(() => {
-      hideTypingIndicator();
-      addMessage('ai', response);
-    }, 1000);
-    
-  } catch (error) {
-    hideTypingIndicator();
-    console.error('Chat error:', error);
-    showNotification('Failed to send message', 'error');
-    addMessage('ai', 'Sorry, I encountered an error. Please try again.');
-  }
-}
-
-// AI Response - Gerçek API veya mock
-async function getAIResponse(message) {
-  try {
-    // Önce gerçek API'yi dene
-    const { data, error } = await supabase.functions.invoke('ai-chat', {
-      body: { 
-        message,
-        history: chatHistory.slice(-10) // Son 10 mesaj
-      }
-    });
-
-    if (!error && data) {
-      return data.response;
+        if (!response.ok) throw new Error('Description generation failed');
+        
+        const result = await response.json();
+        showNotification('Product description generated successfully!', 'success');
+        return result.description;
+    } catch (error) {
+        console.error('Error generating description:', error);
+        showNotification('Error generating product description', 'error');
+        return null;
     }
+};
+
+window.generateProductTitle = async function(productData) {
+    try {
+        showNotification('Generating product title...', 'info');
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch('/api/generate-title', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                productType: productData.type,
+                keywords: productData.keywords,
+                style: productData.style || 'catchy',
+                characterLimit: productData.characterLimit || 60
+            })
+        });
+
+        if (!response.ok) throw new Error('Title generation failed');
+        
+        const result = await response.json();
+        showNotification('Product title generated successfully!', 'success');
+        return result.titles; // Array of title options
+    } catch (error) {
+        console.error('Error generating title:', error);
+        showNotification('Error generating product title', 'error');
+        return null;
+    }
+};
+
+window.generateSEOTags = async function(productData) {
+    try {
+        showNotification('Generating SEO tags and metadata...', 'info');
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch('/api/generate-seo-tags', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                productName: productData.name,
+                productType: productData.type,
+                keywords: productData.keywords,
+                description: productData.description,
+                targetPlatform: productData.platform || 'etsy'
+            })
+        });
+
+        if (!response.ok) throw new Error('SEO generation failed');
+        
+        const result = await response.json();
+        showNotification('SEO tags generated successfully!', 'success');
+        return {
+            metaDescription: result.metaDescription,
+            tags: result.tags,
+            categories: result.categories
+        };
+    } catch (error) {
+        console.error('Error generating SEO tags:', error);
+        showNotification('Error generating SEO tags', 'error');
+        return null;
+    }
+};
+
+window.generateProductTags = async function(productData) {
+    try {
+        showNotification('Generating product tags...', 'info');
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch('/api/generate-tags', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                productName: productData.name,
+                productType: productData.type,
+                category: productData.category,
+                style: productData.style,
+                materials: productData.materials,
+                maxTags: productData.maxTags || 13
+            })
+        });
+
+        if (!response.ok) throw new Error('Tags generation failed');
+        
+        const result = await response.json();
+        showNotification('Product tags generated successfully!', 'success');
+        return result.tags;
+    } catch (error) {
+        console.error('Error generating product tags:', error);
+        showNotification('Error generating product tags', 'error');
+        return null;
+    }
+};
+
+// ===== PRODUCT DESIGN GENERATION =====
+window.generateProductDesign = async function(designPrompt, style = 'modern', colors = [], dimensions = '1000x1000') {
+    try {
+        showNotification('Generating product design...', 'info');
+        
+        // Show design generation progress
+        const progressHTML = `
+            <div class="connection-progress" style="position: fixed; top: 20px; right: 20px; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div class="spinner" style="width: 16px; height: 16px; border: 2px solid #e5e7eb; border-top: 2px solid #ea580c; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <span>Generating AI design...</span>
+                </div>
+            </div>
+        `;
+        
+        const progressContainer = document.createElement('div');
+        progressContainer.innerHTML = progressHTML;
+        document.body.appendChild(progressContainer);
+
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch('/api/generate-design', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                prompt: designPrompt,
+                style: style,
+                colorPalette: colors,
+                dimensions: dimensions,
+                aspectRatio: '1:1'
+            })
+        });
+
+        if (!response.ok) throw new Error('Design generation failed');
+        
+        const result = await response.json();
+        
+        // Remove progress indicator
+        document.body.removeChild(progressContainer);
+        
+        showNotification('Product design generated successfully!', 'success');
+        return {
+            imageUrl: result.designUrl,
+            prompt: designPrompt,
+            style: style,
+            colors: colors
+        };
+    } catch (error) {
+        console.error('Error generating design:', error);
+        showNotification('Error generating product design', 'error');
+        return null;
+    }
+};
+
+window.generateDesignVariations = async function(baseDesign, variations = 4) {
+    try {
+        showNotification(`Generating ${variations} design variations...`, 'info');
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch('/api/generate-design-variations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                baseDesign: baseDesign,
+                variations: variations,
+                styles: ['minimal', 'vintage', 'modern', 'abstract']
+            })
+        });
+
+        if (!response.ok) throw new Error('Design variations generation failed');
+        
+        const result = await response.json();
+        showNotification(`${variations} design variations generated!`, 'success');
+        return result.variations;
+    } catch (error) {
+        console.error('Error generating design variations:', error);
+        showNotification('Error generating design variations', 'error');
+        return null;
+    }
+};
+
+// ===== PRICE & BUSINESS INTELLIGENCE =====
+window.recommendPrice = async function(productData, marketData = {}) {
+    try {
+        showNotification('Analyzing market for price recommendation...', 'info');
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch('/api/recommend-price', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                productCost: productData.cost,
+                productType: productData.type,
+                competitionPrices: marketData.competition || [],
+                targetMargin: marketData.margin || 0.4,
+                platform: marketData.platform || 'etsy'
+            })
+        });
+
+        if (!response.ok) throw new Error('Price recommendation failed');
+        
+        const result = await response.json();
+        showNotification('Price recommendation generated!', 'success');
+        return {
+            recommendedPrice: result.recommendedPrice,
+            minPrice: result.minPrice,
+            maxPrice: result.maxPrice,
+            profitMargin: result.profitMargin,
+            competitionAnalysis: result.competitionAnalysis
+        };
+    } catch (error) {
+        console.error('Error generating price recommendation:', error);
+        showNotification('Error generating price recommendation', 'error');
+        return null;
+    }
+};
+
+window.analyzeProductPerformance = async function(productId) {
+    try {
+        showNotification('Analyzing product performance...', 'info');
+        
+        // Get product data
+        const { data: productData, error: productError } = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', productId)
+            .single();
+
+        if (productError) throw productError;
+
+        // Get sales data
+        const { data: salesData, error: salesError } = await supabase
+            .from('orders')
+            .select('total_amount, created_at, status')
+            .eq('product_id', productId);
+
+        if (salesError) throw salesError;
+
+        // Get view data
+        const { data: viewData, error: viewError } = await supabase
+            .from('product_analytics')
+            .select('views, clicks, conversions')
+            .eq('product_id', productId);
+
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch('/api/analyze-performance', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                productData: productData,
+                salesData: salesData || [],
+                viewData: viewData || [],
+                timePeriod: '30d'
+            })
+        });
+
+        if (!response.ok) throw new Error('Performance analysis failed');
+        
+        const result = await response.json();
+        showNotification('Product analysis completed!', 'success');
+        return result.analysis;
+    } catch (error) {
+        console.error('Error analyzing product performance:', error);
+        showNotification('Error analyzing product performance', 'error');
+        return null;
+    }
+};
+
+// ===== CONTENT OPTIMIZATION =====
+window.optimizeProductListing = async function(productData) {
+    try {
+        showNotification('Optimizing product listing...', 'info');
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch('/api/optimize-listing', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                title: productData.title,
+                description: productData.description,
+                tags: productData.tags,
+                category: productData.category,
+                platform: productData.platform || 'etsy'
+            })
+        });
+
+        if (!response.ok) throw new Error('Listing optimization failed');
+        
+        const result = await response.json();
+        showNotification('Listing optimization completed!', 'success');
+        return {
+            optimizedTitle: result.optimizedTitle,
+            optimizedDescription: result.optimizedDescription,
+            suggestedTags: result.suggestedTags,
+            seoScore: result.seoScore,
+            improvements: result.improvements
+        };
+    } catch (error) {
+        console.error('Error optimizing product listing:', error);
+        showNotification('Error optimizing product listing', 'error');
+        return null;
+    }
+};
+
+window.generateMarketingCopy = async function(productData, platform = 'etsy') {
+    try {
+        showNotification('Generating marketing copy...', 'info');
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch('/api/generate-marketing-copy', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                productName: productData.name,
+                productDescription: productData.description,
+                targetAudience: productData.audience,
+                platform: platform,
+                tone: productData.tone || 'enthusiastic'
+            })
+        });
+
+        if (!response.ok) throw new Error('Marketing copy generation failed');
+        
+        const result = await response.json();
+        showNotification('Marketing copy generated!', 'success');
+        return {
+            socialMediaPosts: result.socialMediaPosts,
+            emailTemplates: result.emailTemplates,
+            adCopy: result.adCopy
+        };
+    } catch (error) {
+        console.error('Error generating marketing copy:', error);
+        showNotification('Error generating marketing copy', 'error');
+        return null;
+    }
+};
+
+// ===== BULK OPERATIONS =====
+window.bulkGenerateDescriptions = async function(products) {
+    try {
+        showNotification(`Generating descriptions for ${products.length} products...`, 'info');
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch('/api/bulk-generate-descriptions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                products: products,
+                batchSize: 5
+            })
+        });
+
+        if (!response.ok) throw new Error('Bulk description generation failed');
+        
+        const result = await response.json();
+        showNotification(`Generated descriptions for ${result.processed} products!`, 'success');
+        return result.descriptions;
+    } catch (error) {
+        console.error('Error in bulk description generation:', error);
+        showNotification('Error generating bulk descriptions', 'error');
+        return null;
+    }
+};
+
+// ===== AI CHAT ASSISTANT =====
+window.sendAIChatMessage = async function(message, conversationHistory = []) {
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch('/api/ai-chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                message: message,
+                history: conversationHistory,
+                context: 'product_management'
+            })
+        });
+
+        if (!response.ok) throw new Error('Chat failed');
+        
+        const result = await response.json();
+        return result.response;
+    } catch (error) {
+        console.error('Error in AI chat:', error);
+        showNotification('Error communicating with AI assistant', 'error');
+        return "I'm sorry, I'm having trouble responding right now. Please try again.";
+    }
+};
+
+// ===== HELPER FUNCTIONS =====
+async function getSalesData(productId) {
+    const { data, error } = await supabase
+        .from('orders')
+        .select('total_amount, created_at, status')
+        .eq('product_id', productId);
     
-    // API yoksa mock response
-    return generateMockAIResponse(message);
+    if (error) throw error;
+    return data;
+}
+
+async function getViewData(productId) {
+    const { data, error } = await supabase
+        .from('product_analytics')
+        .select('views, clicks, conversions, created_at')
+        .eq('product_id', productId);
     
-  } catch (error) {
-    console.log('AI API not available, using mock response');
-    return generateMockAIResponse(message);
-  }
+    if (error) throw error;
+    return data;
 }
 
-// Mock AI responses
-function generateMockAIResponse(message) {
-  const lowerMessage = message.toLowerCase();
-  
-  if (lowerMessage.includes('description') || lowerMessage.includes('describe')) {
-    return "I'll help you create compelling product descriptions! For best results, please provide:\n\n• Product type (t-shirt, mug, etc.)\n• Design style/theme\n• Key features\n• Target audience\n\nWould you like me to generate a description based on these details?";
-  }
-  
-  if (lowerMessage.includes('seo') || lowerMessage.includes('tag')) {
-    return "Great! SEO optimization is crucial for Etsy success. I can help you:\n\n• Generate relevant keywords\n• Optimize product titles\n• Create effective tags\n• Improve search visibility\n\nPlease share your product details for personalized SEO suggestions.";
-  }
-  
-  if (lowerMessage.includes('analyze') || lowerMessage.includes('trend') || lowerMessage.includes('top seller')) {
-    return "I can analyze market trends and top-performing products! For accurate analysis, I'll need:\n\n• Your product category\n• Target market\n• Current sales data (if available)\n• Competitor information\n\nThis helps me provide data-driven insights for your business strategy.";
-  }
-  
-  if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-    return "Hello! I'm your AI Assistant for Etsy POD. I specialize in:\n\n📝 Product Descriptions\n🔍 SEO Optimization\n📈 Trend Analysis\n💡 Business Insights\n\nHow can I help you grow your Etsy business today?";
-  }
-  
-  if (lowerMessage.includes('help')) {
-    return "I'm here to assist with various aspects of your Etsy business:\n\n**Quick Actions:**\n• Generate product descriptions\n• Create SEO-optimized tags\n• Analyze market trends\n• Provide business insights\n\n**Just ask me about:**\n• Product optimization\n• Sales strategies\n• Market research\n• Competitor analysis\n\nWhat specific area would you like help with?";
-  }
-  
-  return "I understand you're looking for assistance with your Etsy business. I specialize in product optimization, SEO strategies, and market analysis. Could you provide more details about what you'd like help with? I'm here to support your business growth!";
-}
-
-// AI Tools Functions
-function generateProductDescription() {
-  showTypingIndicator();
-  
-  setTimeout(() => {
-    hideTypingIndicator();
-    const description = `**Vintage Retro T-Shirt - Premium Quality**
-
-🌟 **Product Description:**
-
-Crafted with exceptional attention to detail, this vintage-inspired t-shirt seamlessly blends retro aesthetics with modern comfort. Made from 100% premium ring-spun cotton, it offers unparalleled softness and durability for everyday wear.
-
-✨ **Key Features:**
-• Premium 100% ring-spun cotton fabric
-• Retro vintage design with vibrant, long-lasting print
-• Comfortable regular fit for all-day wear
-• Pre-shrunk to maintain perfect shape wash after wash
-• Breathable, soft material that gets better with time
-
-🎨 **Design Excellence:**
-Our unique retro pattern captures the essence of classic style while maintaining contemporary appeal. Each design is carefully curated to tell a story and evoke nostalgia, making it a conversation starter wherever you go.
-
-📏 **Perfect Fit & Sizing:**
-Available in sizes S-XXL with a true-to-size regular fit. Designed for comfort and versatility - perfect for layering or wearing as a standalone statement piece.
-
-💫 **Why Choose This Shirt:**
-• High-quality, eco-friendly materials
-• Unique designs you won't find anywhere else
-• Professional printing that withstands washing
-• Perfect for casual outings, concerts, or adding vintage charm to any outfit
-• Excellent gift choice for vintage enthusiasts and fashion lovers
-
-🛍️ **Care Instructions:**
-Machine wash cold, tumble dry low. For best results, turn inside out before washing and avoid bleach.
-
-Add this standout piece to your collection today and experience the perfect blend of vintage style and modern comfort!`;
-    
-    addMessage('ai', description);
-    showNotification('Product description generated!', 'success');
-  }, 2000);
-}
-
-function generateSEOTags() {
-  showTypingIndicator();
-  
-  setTimeout(() => {
-    hideTypingIndicator();
-    const tags = `**SEO Optimization for Vintage T-Shirt**
-
-🏷️ **Primary Keywords:**
-vintage tshirt, retro clothing, vintage style tshirt, retro graphic tee, vintage apparel
-
-🎯 **Secondary Keywords:**
-vintage inspired clothing, retro fashion tee, cotton tshirt vintage, comfort wear retro, unique vintage design
-
-🔍 **Long-tail Keywords:**
-vintage retro graphic tshirt, comfortable cotton vintage shirt, unique retro design tee, vintage style cotton apparel, retro inspired comfort wear
-
-📈 **Etsy-Specific Tags:**
-vintage aesthetic clothing, retro vibe tshirt, throwback style tee, classic vintage design, nostalgic clothing apparel
-
-💡 **Optimization Tips:**
-
-**Title Structure:**
-Vintage Retro Graphic Tshirt - Premium Cotton Comfort Fit - [Your Brand Name]
-
-**Description Keywords:**
-- Mention "vintage" and "retro" multiple times
-- Include "premium cotton" and "comfort fit"
-- Add "unique design" and "exclusive print"
-- Use "unisex" and "regular fit" for sizing
-
-**Tag Strategy:**
-1. Start with broad terms (vintage tshirt)
-2. Add specific descriptors (graphic, cotton)
-3. Include style words (retro, classic)
-4. Add occasion tags (casual, everyday wear)
-5. Include material and quality terms
-
-**Pro Tip:** Update your tags seasonally and monitor which ones drive the most traffic!`;
-    
-    addMessage('ai', tags);
-    showNotification('SEO tags generated!', 'success');
-  }, 2000);
-}
-
-function analyzeTopSellers() {
-  showTypingIndicator();
-  
-  setTimeout(() => {
-    hideTypingIndicator();
-    const analysis = `**Top Seller Analysis - Vintage & POD Category**
-
-📊 **Market Overview:**
-• Vintage category growth: +25% YoY
-• Personalized items: +18% monthly growth  
-• Sustainable materials: +30% engagement
-• Average order value: $42.50
-
-🎯 **Top Performing Niches:**
-1. **Vintage Band Tees** (+42%)
-   - High demand for 70s-90s bands
-   - Strong nostalgia factor
-   - Good for bundle deals
-
-2. **Retro Gaming Designs** (+35%)
-   - Classic console themes performing well
-   - 25-35 age group most engaged
-   - Great for limited editions
-
-3. **80s/90s Nostalgia** (+28%)
-   - Pop culture references trending
-   - Social media driven demand
-   - Seasonal spikes around holidays
-
-4. **Custom Vintage Styles** (+22%)
-   - Personalized elements increase value
-   - Higher price point acceptance
-   - Repeat customer potential
-
-💰 **Pricing Insights:**
-• **Optimal Range:** $24-$32
-• **Premium Vintage:** $35-$45 (performs well)
-• **Bundle Deals:** Increase AOV by 18%
-• **Free Shipping:** 22% conversion boost at $35+
-
-📈 **Q4 Forecast (Next 90 Days):**
-• Expected growth: 15-20%
-• Seasonal peak in 45-60 days
-• Competitor activity increasing
-• Holiday shopping starts early November
-
-🚀 **Growth Opportunities:**
-1. Expand vintage gaming collection
-2. Test sustainable material options
-3. Implement bundle pricing strategies
-4. Prepare Q4 holiday inventory
-5. Focus on social media marketing
-
-💡 **Actionable Recommendations:**
-• Stock up on best-sellers 60 days before holidays
-• Create 3-5 new vintage designs monthly
-• Test $35+ premium pricing tier
-• Implement customer review collection
-• Optimize for mobile shoppers (68% of traffic)`;
-    
-    addMessage('ai', analysis);
-    showNotification('Market analysis completed!', 'success');
-  }, 2500);
-}
-
-function clearChat() {
-  const messagesContainer = document.getElementById('chat-messages');
-  if (messagesContainer) {
-    messagesContainer.innerHTML = `
-      <div class="chat-message ai-message">
-        <div class="message-avatar">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
-        </div>
-        <div class="message-content">
-          <p>Hello! I'm your AI Assistant for Etsy POD. I can help you generate product descriptions, SEO tags, analyze market trends, and provide business insights. What would you like to work on today?</p>
-        </div>
-      </div>
-    `;
-  }
-  
-  chatHistory = [];
-  showNotification('Chat history cleared', 'info');
-}
-
-// Products sayfasından çağrılacak fonksiyonlar
-export async function generateDescription(productId, context) {
-  try {
-    showNotification('Generating AI description...', 'info');
-    const result = await api.post('/functions/v1/ai-seo', {
-      product_id: productId,
-      type: 'description',
-      context,
-    });
-    showNotification('Description generated successfully!', 'success');
-    return result;
-  } catch (error) {
-    console.error('Error generating description:', error);
-    showNotification('Failed to generate description', 'error');
-    return null;
-  }
-}
-
-export async function generateSEOTags(productId, title) {
-  try {
-    showNotification('Generating SEO tags...', 'info');
-    const result = await api.post('/functions/v1/ai-seo', {
-      product_id: productId,
-      type: 'tags',
-      title,
-    });
-    showNotification('SEO tags generated successfully!', 'success');
-    return result;
-  } catch (error) {
-    console.error('Error generating SEO tags:', error);
-    showNotification('Failed to generate SEO tags', 'error');
-    return null;
-  }
-}
-
-export async function analyzeTopSeller(shopId, months = 12) {
-  try {
-    showNotification('Analyzing top sellers...', 'info');
-    const result = await api.post('/functions/v1/ai-top-seller', {
-      shop_id: shopId,
-      months,
-    });
-    if (result.error) throw new Error(result.error);
-    showNotification('Top seller analysis completed', 'success');
-    return result;
-  } catch (error) {
-    console.error('Error analyzing top sellers:', error);
-    showNotification('Failed to analyze top sellers', 'error');
-    return null;
-  }
-}
-
-// Initialize
+// ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 AI Assistant loaded');
-  initAI();
+    console.log('🤖 AI Assistant initialized with all features');
+    
+    // Initialize AI action buttons
+    initializeAIActions();
 });
+
+function initializeAIActions() {
+    // Product page AI buttons
+    const aiActionButtons = [
+        { selector: '[data-ai-action="generate-title"]', action: 'generateTitle' },
+        { selector: '[data-ai-action="generate-description"]', action: 'generateDescription' },
+        { selector: '[data-ai-action="generate-tags"]', action: 'generateTags' },
+        { selector: '[data-ai-action="generate-seo"]', action: 'generateSEO' },
+        { selector: '[data-ai-action="generate-design"]', action: 'generateDesign' },
+        { selector: '[data-ai-action="optimize-listing"]', action: 'optimizeListing' }
+    ];
+
+    aiActionButtons.forEach(({ selector, action }) => {
+        const buttons = document.querySelectorAll(selector);
+        buttons.forEach(button => {
+            button.addEventListener('click', async function() {
+                await handleAIAction(action, this);
+            });
+        });
+    });
+}
+
+async function handleAIAction(action, element) {
+    const productData = getProductDataFromPage();
+    
+    switch(action) {
+        case 'generateTitle':
+            const titles = await generateProductTitle(productData);
+            if (titles) {
+                showTitleSelectionModal(titles);
+            }
+            break;
+            
+        case 'generateDescription':
+            const description = await generateProductDescription(productData);
+            if (description) {
+                document.getElementById('product-description').value = description;
+            }
+            break;
+            
+        case 'generateTags':
+            const tags = await generateProductTags(productData);
+            if (tags) {
+                document.getElementById('product-tags').value = tags.join(', ');
+            }
+            break;
+            
+        case 'generateSEO':
+            const seoData = await generateSEOTags(productData);
+            if (seoData) {
+                showSEOModal(seoData);
+            }
+            break;
+            
+        case 'generateDesign':
+            const designPrompt = prompt('Enter design description:');
+            if (designPrompt) {
+                const design = await generateProductDesign(designPrompt);
+                if (design) {
+                    showDesignModal(design);
+                }
+            }
+            break;
+            
+        case 'optimizeListing':
+            const optimization = await optimizeProductListing(productData);
+            if (optimization) {
+                showOptimizationModal(optimization);
+            }
+            break;
+            
+        default:
+            console.log('Unknown AI action:', action);
+    }
+}
+
+function getProductDataFromPage() {
+    // Extract product data from form fields
+    return {
+        name: document.getElementById('product-name')?.value || '',
+        type: document.getElementById('product-type')?.value || '',
+        category: document.getElementById('product-category')?.value || '',
+        description: document.getElementById('product-description')?.value || '',
+        keywords: document.getElementById('product-keywords')?.value?.split(',') || [],
+        cost: parseFloat(document.getElementById('product-cost')?.value) || 0
+    };
+}
+
+// Modal functions for AI results
+function showTitleSelectionModal(titles) {
+    const modalHTML = `
+        <div class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Select a Title</h3>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    ${titles.map((title, index) => `
+                        <div class="ai-option" onclick="selectTitle('${title}')">
+                            ${title}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+    showModal(modalHTML);
+}
+
+function showSEOModal(seoData) {
+    const modalHTML = `
+        <div class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>SEO Recommendations</h3>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="seo-section">
+                        <h4>Meta Description</h4>
+                        <p>${seoData.metaDescription}</p>
+                    </div>
+                    <div class="seo-section">
+                        <h4>Tags</h4>
+                        <p>${seoData.tags.join(', ')}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    showModal(modalHTML);
+}
+
+// Utility functions
+function showModal(html) {
+    const modalContainer = document.createElement('div');
+    modalContainer.innerHTML = html;
+    document.body.appendChild(modalContainer);
+}
+
+window.closeModal = function() {
+    const modals = document.querySelectorAll('.modal-overlay');
+    modals.forEach(modal => modal.remove());
+};
+
+window.selectTitle = function(title) {
+    document.getElementById('product-name').value = title;
+    closeModal();
+};
+
+console.log('✅ AI Assistant loaded with all features:');
+console.log('   - Product Content Generation');
+console.log('   - Design Generation');
+console.log('   - Price Intelligence');
+console.log('   - SEO Optimization');
+console.log('   - Marketing Copy');
+console.log('   - Bulk Operations');
+console.log('   - Chat Assistant');
