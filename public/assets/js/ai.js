@@ -421,46 +421,93 @@ window.bulkGenerateDescriptions = async function(products) {
 
 // ===== AI CHAT ASSISTANT =====
 // ai.js - Düzeltilmiş sendAIChatMessage fonksiyonu
+// ai.js - Gerçek AI API bağlantılı
 window.sendAIChatMessage = async function(message, conversationHistory = []) {
     try {
-        console.log('💬 Sending chat message:', message);
+        console.log('💬 Sending to AI API:', message);
         
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             throw new Error('No authentication session');
         }
 
-        // Önce gerçek API'yi dene
-        try {
-            const response = await fetch('/api/ai-chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify({
-                    message: message,
-                    history: conversationHistory,
-                    context: 'etsy_business'
-                })
-            });
+        const response = await fetch('/api/ai-chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+                message: message,
+                history: conversationHistory,
+                context: 'etsy_business'
+            })
+        });
 
-            if (response.ok) {
-                const result = await response.json();
-                console.log('✅ AI response received:', result.response);
-                return result.response;
-            }
-        } catch (apiError) {
-            console.log('⚠️ API not available, using fallback:', apiError.message);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'AI service error');
         }
 
-        // Fallback: Yapay zeka benzeri yanıtlar üret
-        return generateFallbackResponse(message, conversationHistory);
+        const result = await response.json();
+        console.log('✅ AI response received');
+        return result.response;
         
     } catch (error) {
-        console.error('❌ Error in AI chat:', error);
-        return generateFallbackResponse(message, conversationHistory);
+        console.error('❌ AI Chat Error:', error);
+        throw new Error('Unable to connect to AI services. Please check your API keys and try again.');
     }
+};
+
+// Özel Etsy fonksiyonları
+window.generateProductDescriptionAI = async function(productData) {
+    const prompt = `Create an Etsy product description for:
+Product: ${productData.name}
+Type: ${productData.type}
+Keywords: ${productData.keywords?.join(', ')}
+Target Audience: ${productData.audience}
+
+Please create a compelling description that includes:
+- Engaging opening
+- Key features and benefits
+- Technical specifications
+- Usage suggestions
+- Emotional appeal
+- Call to action`;
+
+    return await window.sendAIChatMessage(prompt);
+};
+
+window.generateSEOTagsAI = async function(productData) {
+    const prompt = `Generate SEO-optimized tags and metadata for Etsy:
+Product: ${productData.name}
+Category: ${productData.category}
+Materials: ${productData.materials}
+Style: ${productData.style}
+
+Provide:
+1. Primary keywords (3-5)
+2. Long-tail keywords (5-7)
+3. Meta description
+4. Product tags (13 max for Etsy)`;
+
+    return await window.sendAIChatMessage(prompt);
+};
+
+window.analyzeSalesAI = async function(salesData) {
+    const prompt = `Analyze this Etsy sales data and provide insights:
+Total Sales: ${salesData.totalSales}
+Conversion Rate: ${salesData.conversionRate}%
+Average Order Value: $${salesData.averageOrderValue}
+Top Products: ${salesData.topProducts?.join(', ')}
+
+Provide:
+- Performance analysis
+- Growth opportunities
+- Recommendations for improvement
+- Seasonal trends if visible`;
+
+    return await window.sendAIChatMessage(prompt);
 };
 
 // Fallback yanıt üretici
@@ -705,4 +752,5 @@ console.log('   - SEO Optimization');
 console.log('   - Marketing Copy');
 console.log('   - Bulk Operations');
 console.log('   - Chat Assistant');
+
 
