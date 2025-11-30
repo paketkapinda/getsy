@@ -242,6 +242,30 @@
     gap: 0.5rem;
   }
 }
+
+ /* Add to your CSS */
+.connection-status {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.connection-status.connected {
+  color: #10b981;
+}
+
+.connection-status.disconnected {
+  color: #ef4444;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+} 
 </style>
 
   </head>
@@ -497,5 +521,6 @@
     </body>
 
 </html>
+
 
 
