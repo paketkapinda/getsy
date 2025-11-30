@@ -1,4 +1,4 @@
-// Etsy shops management
+// etsy.js - Güncellenmiş versiyon
 import { supabase } from './supabaseClient.js';
 import { showNotification } from './ui.js';
 
@@ -32,16 +32,18 @@ export async function loadEtsyShops() {
     }
 
     container.innerHTML = data.map(shop => {
-      const connectionStatus = shop.is_active ? 
-        '<span class="connection-status connected">🟢 Connected</span>' : 
-        '<span class="connection-status disconnected">🔴 Disconnected</span>';
+      const status = shop.is_active ? 'connected' : 'disconnected';
+      const statusIcon = shop.is_active ? '🟢' : '🔴';
+      const statusText = shop.is_active ? 'Connected' : 'Disconnected';
       
       return `
         <div class="settings-list-item">
           <div class="settings-list-item-info">
             <div class="settings-list-item-name">
               ${shop.shop_display_name || shop.shop_name || 'Unnamed Shop'}
-              ${connectionStatus}
+              <span class="connection-status ${status}">
+                ${statusIcon} ${statusText}
+              </span>
             </div>
             <div class="settings-list-item-desc">
               ${shop.shop_id} · ${shop.is_active ? 'Active' : 'Inactive'}
@@ -83,6 +85,129 @@ export async function loadEtsyShops() {
   }
 }
 
+export function initEtsyConnect() {
+  const btnConnect = document.getElementById('btn-connect-etsy');
+  if (!btnConnect) return;
+
+  btnConnect.addEventListener('click', async () => {
+    try {
+      showNotification('Redirecting to Etsy authentication...', 'info');
+      
+      // Önce Etsy kullanıcı kaydı modal'ını göster
+      showEtsyUserRegistrationModal();
+      
+    } catch (error) {
+      console.error('Error connecting Etsy:', error);
+      showNotification('Error connecting to Etsy', 'error');
+    }
+  });
+}
+
+// Yeni Etsy Kullanıcı Kayıt Modal'ı
+function showEtsyUserRegistrationModal() {
+  const modalHTML = `
+    <div class="modal-overlay">
+      <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+          <h3 class="modal-title">Connect Etsy Account</h3>
+          <button class="modal-close" onclick="closeEtsyRegistrationModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="settings-form">
+            <div class="settings-form-group">
+              <label class="settings-form-label">Etsy Shop Name</label>
+              <input type="text" id="etsy-shop-name" class="settings-form-input" placeholder="MyEtsyShop" required>
+            </div>
+            <div class="settings-form-group">
+              <label class="settings-form-label">Shop Display Name</label>
+              <input type="text" id="etsy-display-name" class="settings-form-input" placeholder="My Beautiful Etsy Shop">
+            </div>
+            <div class="settings-form-group">
+              <label class="settings-form-label">Etsy API Key</label>
+              <input type="password" id="etsy-api-key" class="settings-form-input" placeholder="Enter your Etsy API key" required>
+            </div>
+            <div class="settings-form-group">
+              <label class="settings-form-label">API Secret Key</label>
+              <input type="password" id="etsy-api-secret" class="settings-form-input" placeholder="Enter your Etsy API secret">
+            </div>
+            <div class="settings-form-group">
+              <p class="settings-form-label" style="font-size: 0.75rem; color: #6b7280;">
+                You can get your Etsy API keys from your Etsy account settings.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="settings-btn settings-btn-outline" onclick="closeEtsyRegistrationModal()">Cancel</button>
+          <button class="settings-btn settings-btn-primary" onclick="registerEtsyAccount()">Connect Etsy Account</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const modalContainer = document.createElement('div');
+  modalContainer.innerHTML = modalHTML;
+  document.body.appendChild(modalContainer);
+
+  window.closeEtsyRegistrationModal = () => {
+    if (document.body.contains(modalContainer)) {
+      document.body.removeChild(modalContainer);
+    }
+  };
+
+  modalContainer.addEventListener('click', (e) => {
+    if (e.target === modalContainer) {
+      closeEtsyRegistrationModal();
+    }
+  });
+}
+
+window.registerEtsyAccount = async () => {
+  try {
+    const shopName = document.getElementById('etsy-shop-name').value;
+    const displayName = document.getElementById('etsy-display-name').value;
+    const apiKey = document.getElementById('etsy-api-key').value;
+    const apiSecret = document.getElementById('etsy-api-secret').value;
+
+    if (!shopName || !apiKey) {
+      showNotification('Please fill in required fields', 'error');
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Etsy hesabını kaydet
+    const { data, error } = await supabase
+      .from('etsy_accounts')
+      .insert({
+        user_id: user.id,
+        shop_id: `etsy-${Date.now()}`,
+        shop_name: shopName,
+        shop_display_name: displayName,
+        access_token_encrypted: apiKey,
+        refresh_token_encrypted: apiSecret,
+        is_active: true
+      })
+      .select();
+
+    if (error) throw error;
+
+    showNotification('Etsy account connected successfully!', 'success');
+    window.closeEtsyRegistrationModal();
+    loadEtsyShops(); // Listeyi yenile
+    
+    // Bağlantı testini otomatik başlat
+    setTimeout(() => {
+      testEtsyConnection(data[0].id);
+    }, 1000);
+
+  } catch (error) {
+    console.error('Error registering Etsy account:', error);
+    showNotification('Error connecting Etsy account', 'error');
+  }
+};
+
 // Test Etsy connection
 window.testEtsyConnection = async (shopId) => {
   try {
@@ -116,91 +241,64 @@ window.testEtsyConnection = async (shopId) => {
       if (error) throw error;
 
       document.body.removeChild(progressContainer);
-      showNotification('Etsy connection successful!', 'success');
+      showNotification('Etsy connection successful! 🟢', 'success');
       loadEtsyShops(); // Reload to update status
     }, 2000);
 
   } catch (error) {
     console.error('Error testing Etsy connection:', error);
-    showNotification('Error testing Etsy connection', 'error');
+    showNotification('Etsy connection failed! 🔴', 'error');
   }
 };
 
-// Etsy User Info Modal
-window.showEtsyUserModal = async (shopId) => {
+// Diğer fonksiyonlar...
+window.syncEtsyShop = async (shopId) => {
   try {
-    const { data: shop, error } = await supabase
+    showNotification('Syncing Etsy shop...', 'info');
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    const response = await fetch('/api/sync-etsy-orders', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ shop_id: shopId })
+    });
+
+    if (!response.ok) throw new Error('Sync failed');
+    
+    const result = await response.json();
+    showNotification(`Synced ${result.synced} orders from Etsy`, 'success');
+  } catch (error) {
+    console.error('Error syncing Etsy shop:', error);
+    showNotification('Error syncing Etsy shop', 'error');
+  }
+};
+
+window.removeEtsyShop = async (shopId) => {
+  if (!confirm('Are you sure you want to remove this Etsy shop?')) {
+    return;
+  }
+
+  try {
+    const { error } = await supabase
       .from('etsy_accounts')
-      .select('*')
-      .eq('id', shopId)
-      .single();
+      .delete()
+      .eq('id', shopId);
 
     if (error) throw error;
 
-    const modalHTML = `
-      <div class="modal-overlay">
-        <div class="modal-content" style="max-width: 500px;">
-          <div class="modal-header">
-            <h3 class="modal-title">Etsy User Information</h3>
-            <button class="modal-close" onclick="closeEtsyUserModal()">&times;</button>
-          </div>
-          <div class="modal-body">
-            <div class="settings-form">
-              <div class="settings-form-group">
-                <label class="settings-form-label">Shop ID</label>
-                <input type="text" class="settings-form-input" value="${shop.shop_id}" readonly>
-              </div>
-              <div class="settings-form-group">
-                <label class="settings-form-label">Shop Name</label>
-                <input type="text" class="settings-form-input" value="${shop.shop_name || ''}" readonly>
-              </div>
-              <div class="settings-form-group">
-                <label class="settings-form-label">Display Name</label>
-                <input type="text" class="settings-form-input" value="${shop.shop_display_name || ''}" readonly>
-              </div>
-              <div class="settings-form-group">
-                <label class="settings-form-label">Connection Status</label>
-                <input type="text" class="settings-form-input" value="${shop.is_active ? 'Connected 🟢' : 'Disconnected 🔴'}" readonly>
-              </div>
-              <div class="settings-form-group">
-                <label class="settings-form-label">Connected Since</label>
-                <input type="text" class="settings-form-input" value="${formatDate(shop.created_at)}" readonly>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="settings-btn settings-btn-outline" onclick="closeEtsyUserModal()">Close</button>
-            <button class="settings-btn settings-btn-primary" onclick="updateEtsyUserInfo('${shop.id}')">Update Info</button>
-          </div>
-        </div>
-      </div>
-    `;
-
-    const modalContainer = document.createElement('div');
-    modalContainer.innerHTML = modalHTML;
-    document.body.appendChild(modalContainer);
-
-    window.closeEtsyUserModal = () => {
-      if (document.body.contains(modalContainer)) {
-        document.body.removeChild(modalContainer);
-      }
-    };
-
-    modalContainer.addEventListener('click', (e) => {
-      if (e.target === modalContainer) {
-        closeEtsyUserModal();
-      }
-    });
-
+    showNotification('Etsy shop removed successfully', 'success');
+    loadEtsyShops();
   } catch (error) {
-    console.error('Error showing Etsy user modal:', error);
-    showNotification('Error loading shop information', 'error');
+    console.error('Error removing Etsy shop:', error);
+    showNotification('Error removing Etsy shop', 'error');
   }
 };
 
-window.updateEtsyUserInfo = async (shopId) => {
-  showNotification('Etsy user info update feature coming soon!', 'info');
-};
-
-// Diğer fonksiyonlar aynı kalacak...
-// initEtsyConnect, syncEtsyShop, removeEtsyShop fonksiyonları
+// Initialize
+if (document.getElementById('etsy-shops-list')) {
+  loadEtsyShops();
+  initEtsyConnect();
+}
