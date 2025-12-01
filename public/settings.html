@@ -852,25 +852,61 @@
       }).format(amount || 0);
     }
 
-    // Notification function
+    // Notification function - fallback
     function showNotification(message, type = 'info') {
-      // Bu fonksiyon ui.js'den geliyor olmalı
-      // Eğer gelmiyorsa, basit bir uyarı göster
-      if (typeof window.showCustomNotification === 'function') {
-        window.showCustomNotification(message, type);
-      } else {
-        alert(`${type.toUpperCase()}: ${message}`);
-      }
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        background-color: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        font-weight: 500;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease;
+      `;
+      
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      // Remove after 3 seconds
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            document.body.removeChild(notification);
+          }
+        }, 300);
+      }, 3000);
     }
 
-    // AI API Keys management - Only run after modules are loaded
-    async function loadAIAPIKeys() {
+    // Add CSS for animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // AI API Keys management functions
+    window.loadAIAPIKeys = async function() {
       try {
         console.log('🔑 Loading AI API keys...');
         
-        // Supabase client'ın yüklendiğinden emin ol
+        // Check if supabase is defined
         if (typeof supabase === 'undefined') {
-          console.error('❌ supabase is not defined yet');
+          console.log('⏳ Supabase not ready yet, retrying in 1 second...');
+          setTimeout(window.loadAIAPIKeys, 1000);
           return;
         }
 
@@ -923,15 +959,14 @@
         console.error('❌ Error loading API keys:', error);
         showNotification('Error loading API keys', 'error');
       }
-    }
+    };
 
-    // API Key'leri kaydet
-    async function saveAIAPIKeys() {
+    window.saveAIAPIKeys = async function() {
       try {
         console.log('💾 Saving AI API keys...');
         
         if (typeof supabase === 'undefined') {
-          throw new Error('supabase is not defined');
+          throw new Error('supabase is not defined. Please wait for modules to load.');
         }
 
         const { data: { user } } = await supabase.auth.getUser();
@@ -946,8 +981,14 @@
         const midjourneyKey = document.getElementById('midjourney-api-key').value.trim();
         const encryptKeys = document.getElementById('encrypt-keys').checked;
 
+        // Check if any key is provided
+        if (!openaiKey && !openrouterKey && !anthropicKey && !stabilityKey && !midjourneyKey) {
+          showNotification('Please enter at least one API key', 'error');
+          return;
+        }
+
         // Önce mevcut kaydı kontrol et
-        const { data: existingKeys, error: checkError } = await supabase
+        const { data: existingKeys } = await supabase
           .from('ai_api_keys')
           .select('id')
           .eq('user_id', user.id)
@@ -989,13 +1030,13 @@
         showNotification('API keys saved successfully', 'success');
         
         // Reload the keys to update UI
-        await loadAIAPIKeys();
+        await window.loadAIAPIKeys();
         
       } catch (error) {
         console.error('❌ Error saving API keys:', error);
         showNotification('Error saving API keys: ' + error.message, 'error');
       }
-    }
+    };
 
     // AI bağlantılarını test et
     async function testAIConnections() {
@@ -1027,29 +1068,8 @@
     }
 
     // Initialize modules when DOM is loaded
-    document.addEventListener('DOMContentLoaded', async function() {
+    document.addEventListener('DOMContentLoaded', function() {
       console.log('🏁 Settings page loaded');
-      
-      // Wait for modules to load
-      setTimeout(async () => {
-        // Load AI API keys
-        await loadAIAPIKeys();
-        
-        // Setup form submission
-        const aiKeysForm = document.getElementById('form-ai-keys');
-        if (aiKeysForm) {
-          aiKeysForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            await saveAIAPIKeys();
-          });
-        }
-
-        // Test connections button
-        const testConnectionsBtn = document.getElementById('btn-test-connections');
-        if (testConnectionsBtn) {
-          testConnectionsBtn.addEventListener('click', testAIConnections);
-        }
-      }, 1000); // Give modules time to load
       
       // AI Tools butonuna event listener ekle
       const aiToolsBtn = document.getElementById('btn-ai-tools');
@@ -1068,6 +1088,27 @@
       } else {
         console.error('❌ AI Tools button not found');
       }
+
+      // Setup form submission - wait for modules to load
+      const aiKeysForm = document.getElementById('form-ai-keys');
+      if (aiKeysForm) {
+        aiKeysForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          await window.saveAIAPIKeys();
+        });
+      }
+
+      // Test connections button
+      const testConnectionsBtn = document.getElementById('btn-test-connections');
+      if (testConnectionsBtn) {
+        testConnectionsBtn.addEventListener('click', testAIConnections);
+      }
+
+      // Load AI API keys after a delay to ensure supabase is loaded
+      setTimeout(() => {
+        console.log('⏳ Starting API keys load...');
+        window.loadAIAPIKeys();
+      }, 1500);
 
       // Global modal close function
       window.closeModal = function() {
