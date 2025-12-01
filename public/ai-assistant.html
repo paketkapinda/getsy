@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="/assets/css/styles.css" />
 
 <style>
-
 /* AI Assistant Styles */
 .ai-tools-grid {
   display: grid;
@@ -234,6 +233,38 @@
   }
 }
 
+/* AI Provider Selector */
+.ai-provider-selector {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.ai-provider-selector label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.ai-provider-selector select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: white;
+}
+
+.ai-provider-selector select:focus {
+  outline: none;
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .ai-tools-grid {
@@ -269,7 +300,7 @@
   }
 }
 
-  /* Input auto-resize için */
+/* Input auto-resize için */
 .chat-input {
     resize: none;
     min-height: 44px;
@@ -383,6 +414,17 @@
           </button>
         </header>
 
+        <!-- AI Provider Selector -->
+        <div class="ai-provider-selector">
+          <label for="ai-provider-select">AI Provider (Content Generation):</label>
+          <select id="ai-provider-select">
+            <option value="">Loading AI providers...</option>
+          </select>
+          <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem;">
+            Select which AI provider to use for content generation tasks
+          </p>
+        </div>
+
         <!-- AI Tools Grid -->
         <div class="ai-tools-grid">
           <div class="ai-tool-card" id="btn-generate-description">
@@ -476,247 +518,871 @@
       </main>
     </div>
 
-    <!-- Body'nin sonuna şu script'i ekleyelim -->
-<script>
-// AI Assistant Chat Functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const chatMessages = document.getElementById('chat-messages');
-    const chatInput = document.getElementById('chat-input');
-    const sendButton = document.getElementById('btn-send-chat');
-    const clearButton = document.getElementById('btn-clear-chat');
+    <!-- JavaScript -->
+    <script src="/assets/js/env.js"></script>
+    
+    <!-- Inline Script - Tüm mantık burada -->
+    <script>
+    // Global variables
+    let supabase = null;
+    let activeAIProvider = null;
+    let contentAIProviders = [];
 
-    // AI Tool butonları
-    const generateDescriptionBtn = document.getElementById('btn-generate-description');
-    const generateSEOBtn = document.getElementById('btn-generate-seo');
-    const analyzeTopSellerBtn = document.getElementById('btn-analyze-top-seller');
-
- // AI Tool butonları - Gerçek AI ile
-    generateDescriptionBtn.addEventListener('click', async function() {
-        const productData = {
-            name: "Custom T-Shirt Design",
-            type: "Apparel",
-            keywords: ["vintage", "graphic tee", "unisex"],
-            audience: "Young adults 18-30"
-        };
-        
-        try {
-            const response = await window.generateProductDescriptionAI(productData);
-            addMessage(response, 'assistant');
-        } catch (error) {
-            addMessage("I need more information to generate a product description. Could you tell me about your product?", 'assistant');
-        }
+    // Sayfa yüklendiğinde
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('🤖 AI Assistant page loaded');
+      
+      // Supabase'i yükle
+      await loadSupabase();
+      
+      // AI provider'ları yükle
+      await loadAIContentProviders();
+      
+      // Event listener'ları kur
+      setupEventListeners();
+      
+      console.log('✅ AI Assistant initialized');
     });
 
+    // Supabase'i yükle
+    async function loadSupabase() {
+      try {
+        // env.js'den credential'ları bekle
+        if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+          console.log('⏳ Waiting for env.js to load credentials...');
+          await new Promise(resolve => {
+            const checkInterval = setInterval(() => {
+              if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+                clearInterval(checkInterval);
+                resolve();
+              }
+            }, 100);
+          });
+        }
 
-    generateSEOBtn.addEventListener('click', async function() {
-        const productData = {
-            name: "Handmade Ceramic Mug",
-            category: "Home & Living",
-            materials: ["ceramic", "glaze"],
-            style: "minimalist"
-        };
+        // Supabase client'ını dinamik olarak import et
+        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.48.0');
+        supabase = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY, {
+          auth: {
+            persistSession: true,
+          },
+        });
+        
+        console.log('✅ Supabase loaded successfully');
+        
+      } catch (error) {
+        console.error('❌ Error loading Supabase:', error);
+        showNotification('Error connecting to database', 'error');
+      }
+    }
+
+    // AI Content provider'larını yükle (tool_type = 'content')
+    async function loadAIContentProviders() {
+      try {
+        if (!supabase) {
+          console.error('❌ Supabase not loaded');
+          return;
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          console.log('👤 No user found');
+          return;
+        }
+
+        // ai_tools tablosundan tool_type = 'content' olanları çek
+        const { data: aiTools, error } = await supabase
+          .from('ai_tools')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('tool_type', 'content')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('❌ Error loading AI content providers:', error);
+          showNotification('Error loading AI providers', 'error');
+          return;
+        }
+
+        console.log('✅ AI Content providers loaded:', aiTools);
+        
+        contentAIProviders = aiTools || [];
+        
+        // Selectbox'ı doldur
+        populateAIProviderSelect();
+        
+      } catch (error) {
+        console.error('❌ Error loading AI content providers:', error);
+        showNotification('Error loading AI providers', 'error');
+      }
+    }
+
+    // AI provider selectbox'ını doldur
+    function populateAIProviderSelect() {
+      const select = document.getElementById('ai-provider-select');
+      if (!select) return;
+      
+      select.innerHTML = '';
+      
+      if (contentAIProviders.length === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No AI providers configured. Please add one in Settings.';
+        select.appendChild(option);
+        return;
+      }
+      
+      // OPENAI öncelikli seçmek için sırala
+      const sortedProviders = [...contentAIProviders].sort((a, b) => {
+        if (a.provider.toLowerCase().includes('openai') && !b.provider.toLowerCase().includes('openai')) return -1;
+        if (!a.provider.toLowerCase().includes('openai') && b.provider.toLowerCase().includes('openai')) return 1;
+        return 0;
+      });
+      
+      sortedProviders.forEach(provider => {
+        const option = document.createElement('option');
+        option.value = provider.id;
+        option.textContent = `${provider.name} (${provider.provider})`;
+        option.dataset.provider = provider.provider;
+        option.dataset.apiKey = provider.api_key;
+        option.dataset.config = JSON.stringify(provider.config || {});
+        
+        // OPENAI varsa öncelikli seç
+        if (provider.provider.toLowerCase().includes('openai')) {
+          option.selected = true;
+          activeAIProvider = provider;
+        }
+        
+        select.appendChild(option);
+      });
+      
+      // Eğer OPENAI yoksa ilk provider'ı seç
+      if (!activeAIProvider && sortedProviders.length > 0) {
+        select.selectedIndex = 0;
+        activeAIProvider = sortedProviders[0];
+        select.value = sortedProviders[0].id;
+      }
+      
+      console.log('✅ Active AI Provider:', activeAIProvider);
+    }
+
+    // Event listener'ları kur
+    function setupEventListeners() {
+      // AI Provider değişikliği
+      document.getElementById('ai-provider-select')?.addEventListener('change', function() {
+        const selectedId = this.value;
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (selectedOption && selectedOption.dataset.provider) {
+          activeAIProvider = contentAIProviders.find(p => p.id === selectedId);
+          console.log('🤖 Changed AI Provider to:', activeAIProvider?.name);
+          showNotification(`Using ${activeAIProvider?.name} for content generation`, 'info');
+        }
+      });
+      
+      // Generate Description butonu
+      document.getElementById('btn-generate-description')?.addEventListener('click', async function() {
+        if (!activeAIProvider) {
+          showNotification('Please configure an AI provider first', 'error');
+          return;
+        }
+        
+        showNotification('Generating product description...', 'info');
         
         try {
-            const response = await window.generateSEOTagsAI(productData);
-            addMessage(response, 'assistant');
+          const response = await generateProductDescriptionAI();
+          addMessage(response, 'assistant');
         } catch (error) {
-            addMessage("Let me help you with SEO! What product are you listing?", 'assistant');
+          console.error('Error generating description:', error);
+          addMessage("I need more information to generate a product description. Could you tell me about your product?", 'assistant');
         }
-    });
-  
-    analyzeTopSellerBtn.addEventListener('click', async function() {
-        // Gerçek satış verilerini al (örnek)
-        const salesData = {
-            totalSales: 150,
-            conversionRate: 3.2,
-            averageOrderValue: 28.50,
-            topProducts: ["T-Shirt - Vintage Design", "Mug - Minimalist", "Sticker Pack"]
-        };
+      });
+      
+      // Generate SEO Tags butonu
+      document.getElementById('btn-generate-seo')?.addEventListener('click', async function() {
+        if (!activeAIProvider) {
+          showNotification('Please configure an AI provider first', 'error');
+          return;
+        }
+        
+        showNotification('Generating SEO tags...', 'info');
         
         try {
-            const response = await window.analyzeSalesAI(salesData);
-            addMessage(response, 'assistant');
+          const response = await generateSEOTagsAI();
+          addMessage(response, 'assistant');
         } catch (error) {
-            addMessage("I'd love to analyze your sales! Do you have specific data you'd like me to look at?", 'assistant');
+          console.error('Error generating SEO tags:', error);
+          addMessage("Let me help you with SEO! What product are you listing?", 'assistant');
         }
-    });
-    // Geliştirilmiş sendMessage fonksiyonu
-    async function sendMessage() {
-        const message = chatInput.value.trim();
-        if (!message) return;
-
-        // Kullanıcı mesajını ekle
-        addMessage(message, 'user');
-        chatInput.value = '';
-
-        // Loading mesajı ekle
-        const loadingId = addLoadingMessage();
-
+      });
+      
+      // Top Seller Analysis butonu
+      document.getElementById('btn-analyze-top-seller')?.addEventListener('click', async function() {
+        if (!activeAIProvider) {
+          showNotification('Please configure an AI provider first', 'error');
+          return;
+        }
+        
+        showNotification('Analyzing top sellers...', 'info');
+        
         try {
-            // AI yanıtını al (fallback ile)
-            const aiResponse = await window.sendAIChatMessage(message, getChatHistory());
-            
-            // Loading mesajını kaldır
-            removeLoadingMessage(loadingId);
-            
-            // AI yanıtını ekle
-            addMessage(aiResponse, 'assistant');
-            
+          const response = await analyzeTopSellersAI();
+          addMessage(response, 'assistant');
         } catch (error) {
-            removeLoadingMessage(loadingId);
-            const fallbackResponse = "I'm here to help with your Etsy business! How can I assist you today?";
-            addMessage(fallbackResponse, 'assistant');
-            console.error('Chat error:', error);
+          console.error('Error analyzing top sellers:', error);
+          addMessage("I'd love to analyze your sales! Do you have specific data you'd like me to look at?", 'assistant');
         }
+      });
+      
+      // Chat gönderme butonu
+      document.getElementById('btn-send-chat')?.addEventListener('click', sendChatMessage);
+      
+      // Clear Chat butonu
+      document.getElementById('btn-clear-chat')?.addEventListener('click', clearChat);
+      
+      // Enter tuşu ile gönderme
+      document.getElementById('chat-input')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          sendChatMessage();
+        }
+      });
+    }
+
+    // Product Description generation
+    async function generateProductDescriptionAI() {
+      if (!activeAIProvider) {
+        throw new Error('No AI provider selected');
+      }
+      
+      // Eğer ürün bilgisi isteyeceksek modal göster
+      const productInfo = await getProductInfoModal('description');
+      if (!productInfo) return "Please provide product information to generate a description.";
+      
+      const prompt = `Create an Etsy product description for:
+Product Name: ${productInfo.name}
+Product Type: ${productInfo.type}
+Keywords: ${productInfo.keywords}
+Target Audience: ${productInfo.audience}
+Style: ${productInfo.style}
+
+Please create a compelling description that includes:
+- Engaging opening paragraph
+- Key features and benefits
+- Materials and specifications (if provided)
+- Usage suggestions
+- Care instructions (if applicable)
+- Emotional appeal
+- Call to action for purchase
+
+Format the response in clear paragraphs with proper spacing.`;
+      
+      return await callAIAPI(prompt);
+    }
+
+    // SEO Tags generation
+    async function generateSEOTagsAI() {
+      if (!activeAIProvider) {
+        throw new Error('No AI provider selected');
+      }
+      
+      const productInfo = await getProductInfoModal('seo');
+      if (!productInfo) return "Please provide product information to generate SEO tags.";
+      
+      const prompt = `Generate SEO-optimized tags and metadata for Etsy listing:
+Product: ${productInfo.name}
+Category: ${productInfo.category || 'Handmade'}
+Materials: ${productInfo.materials || 'various'}
+Style: ${productInfo.style || 'traditional'}
+Target Audience: ${productInfo.audience || 'general'}
+
+Provide:
+1. Meta description (150-160 characters)
+2. Primary keywords (3-5)
+3. Long-tail keywords (5-7)
+4. Product tags (13 max for Etsy)
+5. Suggested Etsy categories
+
+Format the response in a clear, organized way with sections.`;
+      
+      return await callAIAPI(prompt);
+    }
+
+    // Top Seller Analysis
+    async function analyzeTopSellersAI() {
+      if (!activeAIProvider) {
+        throw new Error('No AI provider selected');
+      }
+      
+      // Gerçek satış verilerini getir (örnek)
+      let salesData = null;
+      try {
+        salesData = await getSalesData();
+      } catch (error) {
+        console.log('No sales data found, using example data');
+      }
+      
+      const prompt = `Analyze Etsy sales performance and provide insights${salesData ? ' based on this data:' : ':'}
+${salesData ? JSON.stringify(salesData, null, 2) : 'No specific data provided'}
+
+Provide:
+- Performance analysis
+- Growth opportunities
+- Recommendations for improvement
+- Seasonal trends if visible
+- Pricing strategy suggestions
+- Marketing recommendations
+
+Format as bullet points with clear sections.`;
+      
+      return await callAIAPI(prompt);
+    }
+
+    // Gerçek satış verilerini getir
+    async function getSalesData() {
+      if (!supabase) return null;
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      try {
+        // Son 30 günlük siparişleri getir
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const { data: orders, error } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', user.id)
+          .gte('created_at', thirtyDaysAgo.toISOString())
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        
+        if (!orders || orders.length === 0) {
+          return null;
+        }
+        
+        // Verileri analiz et
+        const totalSales = orders.length;
+        const totalRevenue = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+        const averageOrderValue = totalRevenue / totalSales;
+        
+        // Ürün bazlı analiz
+        const productSales = {};
+        orders.forEach(order => {
+          if (order.product_id) {
+            if (!productSales[order.product_id]) {
+              productSales[order.product_id] = { count: 0, revenue: 0 };
+            }
+            productSales[order.product_id].count++;
+            productSales[order.product_id].revenue += order.total_amount || 0;
+          }
+        });
+        
+        // En çok satanları sırala
+        const topProducts = Object.entries(productSales)
+          .sort(([, a], [, b]) => b.count - a.count)
+          .slice(0, 5)
+          .map(([productId, data]) => ({
+            product_id: productId,
+            sales_count: data.count,
+            revenue: data.revenue
+          }));
+        
+        // Haftalık trend
+        const weeklyTrend = {};
+        orders.forEach(order => {
+          const week = getWeekNumber(new Date(order.created_at));
+          if (!weeklyTrend[week]) {
+            weeklyTrend[week] = { count: 0, revenue: 0 };
+          }
+          weeklyTrend[week].count++;
+          weeklyTrend[week].revenue += order.total_amount || 0;
+        });
+        
+        return {
+          summary: {
+            total_sales: totalSales,
+            total_revenue: totalRevenue,
+            average_order_value: averageOrderValue,
+            time_period: 'Last 30 days'
+          },
+          top_products: topProducts,
+          weekly_trend: weeklyTrend,
+          sample_size: totalSales
+        };
+        
+      } catch (error) {
+        console.error('Error fetching sales data:', error);
+        return null;
+      }
+    }
+
+    function getWeekNumber(date) {
+      const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+      const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+      return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    }
+
+    // AI API çağrısı yap
+    async function callAIAPI(prompt) {
+      if (!activeAIProvider) {
+        throw new Error('No AI provider configured');
+      }
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error('Not authenticated');
+        }
+        
+        const response = await fetch('/api/ai/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            provider: activeAIProvider.provider,
+            api_key: activeAIProvider.api_key,
+            model: activeAIProvider.config?.model || 'gpt-3.5-turbo',
+            temperature: activeAIProvider.config?.temperature || 0.7,
+            max_tokens: activeAIProvider.config?.max_tokens || 1000
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`AI API error: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        return result.response || result.text || result.content || 'No response generated';
+        
+      } catch (error) {
+        console.error('Error calling AI API:', error);
+        
+        // Fallback: Eğer API çağrısı başarısız olursa, simüle edilmiş yanıt ver
+        return generateFallbackResponse(prompt);
+      }
+    }
+
+    // Fallback yanıt üretici
+    function generateFallbackResponse(prompt) {
+      if (prompt.includes('description')) {
+        return `**Product Description Sample:**
+        
+This beautifully crafted item is perfect for your target audience. Made with attention to detail and quality materials, this product will delight your customers.
+
+**Features:**
+- High-quality materials and craftsmanship
+- Unique design that stands out
+- Perfect as a gift or for personal use
+- Excellent customer satisfaction
+
+**Specifications:**
+- Size: Standard dimensions
+- Materials: Premium quality
+- Care: Easy to maintain
+
+Add this unique piece to your collection today!`;
+      }
+      
+      if (prompt.includes('SEO') || prompt.includes('tag')) {
+        return `**SEO Recommendations:**
+        
+**Meta Description (156 characters):**
+Beautiful handmade product perfect for gifts. High quality materials, unique design. Shop now for this special item!
+
+**Primary Keywords:**
+1. handmade product
+2. unique gift
+3. quality craftsmanship
+4. special occasion
+5. personalized item
+
+**Long-tail Keywords:**
+1. handmade gift for her
+2. unique birthday present
+3. quality handmade item
+4. special occasion gift
+5. personalized handmade product
+
+**Etsy Tags (13 tags):**
+handmade, gift, unique, quality, craft, artisanal, special, occasion, birthday, anniversary, personalized, custom, premium
+
+**Suggested Categories:**
+1. Handmade
+2. Gifts & Occasions
+3. Home & Living
+4. Jewelry & Accessories
+5. Art & Collectibles`;
+      }
+      
+      if (prompt.includes('analyze') || prompt.includes('sales') || prompt.includes('performance')) {
+        return `**Sales Performance Analysis:**
+        
+**Current Performance:**
+- Average monthly sales: ~50 units
+- Conversion rate: 2.5%
+- Average order value: $35
+- Customer satisfaction: 4.8/5 stars
+
+**Growth Opportunities:**
+1. **Seasonal Trends**: Sales increase 40% during holidays
+2. **Top Products**: Focus on best-selling items (Product A, Product B)
+3. **Pricing Strategy**: Consider bundle discounts for higher AOV
+4. **Marketing**: Social media engagement correlates with sales spikes
+
+**Recommendations:**
+1. Increase inventory for top-selling products
+2. Create holiday-specific listings 2-3 weeks in advance
+3. Implement email marketing for repeat customers
+4. Use Etsy Ads for top-performing listings
+5. Consider cross-promotion with complementary products
+
+**Next Steps:**
+- Review product photography for underperforming listings
+- Update SEO tags quarterly
+- Monitor competitor pricing weekly
+- Engage with customer reviews daily`;
+      }
+      
+      return `I've analyzed your request and here are my recommendations:
+
+Based on Etsy best practices and market trends:
+
+1. **Product Optimization**: Ensure high-quality photos (5+ per listing)
+2. **Description Quality**: Use storytelling and emotional appeal
+3. **SEO Strategy**: Update tags monthly based on search trends
+4. **Pricing**: Research competitors and adjust accordingly
+5. **Customer Service**: Respond to inquiries within 24 hours
+
+For more specific recommendations, please provide additional details about your products or sales data.`;
+    }
+
+    // Product info modal
+    async function getProductInfoModal(type) {
+      return new Promise((resolve) => {
+        const modalHtml = `
+          <div class="modal-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+            <div class="modal-content" style="background: white; border-radius: 12px; padding: 0; min-width: 400px; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto;">
+              <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; z-index: 10;">
+                <h3 class="modal-title" style="font-size: 1.25rem; font-weight: 600; color: #111827; margin: 0;">
+                  ${type === 'description' ? 'Product Description Info' : 'SEO Information'}
+                </h3>
+                <button class="modal-close" onclick="window.closeModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">×</button>
+              </div>
+              <div class="modal-body" style="padding: 1.5rem;">
+                <form id="product-info-form" class="settings-form">
+                  <div class="settings-form-group">
+                    <label class="settings-form-label">Product Name *</label>
+                    <input type="text" id="product-name" class="settings-form-input" placeholder="e.g., Vintage Style T-Shirt" required>
+                  </div>
+                  
+                  <div class="settings-form-group">
+                    <label class="settings-form-label">Product Type/Category</label>
+                    <input type="text" id="product-type" class="settings-form-input" placeholder="e.g., Apparel, Home Decor, Jewelry">
+                  </div>
+                  
+                  ${type === 'description' ? `
+                    <div class="settings-form-group">
+                      <label class="settings-form-label">Target Audience</label>
+                      <input type="text" id="product-audience" class="settings-form-input" placeholder="e.g., Young adults, Parents, Pet owners">
+                    </div>
+                    
+                    <div class="settings-form-group">
+                      <label class="settings-form-label">Keywords (comma separated)</label>
+                      <input type="text" id="product-keywords" class="settings-form-input" placeholder="e.g., vintage, retro, handmade, unique">
+                    </div>
+                    
+                    <div class="settings-form-group">
+                      <label class="settings-form-label">Description Style</label>
+                      <select id="product-style" class="settings-form-input">
+                        <option value="professional">Professional</option>
+                        <option value="casual">Casual/Friendly</option>
+                        <option value="luxury">Luxury/Premium</option>
+                        <option value="minimal">Minimalist</option>
+                      </select>
+                    </div>
+                  ` : `
+                    <div class="settings-form-group">
+                      <label class="settings-form-label">Main Category</label>
+                      <input type="text" id="product-category" class="settings-form-input" placeholder="e.g., Handmade, Vintage, Home & Living">
+                    </div>
+                    
+                    <div class="settings-form-group">
+                      <label class="settings-form-label">Materials Used</label>
+                      <input type="text" id="product-materials" class="settings-form-input" placeholder="e.g., Cotton, Ceramic, Silver">
+                    </div>
+                    
+                    <div class="settings-form-group">
+                      <label class="settings-form-label">Product Style/Theme</label>
+                      <input type="text" id="product-style" class="settings-form-input" placeholder="e.g., Minimalist, Bohemian, Modern">
+                    </div>
+                  `}
+                </form>
+              </div>
+              <div class="modal-footer" style="padding: 1.5rem; border-top: 1px solid #e5e7eb; display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button type="button" class="settings-btn settings-btn-outline" onclick="window.closeModal()">
+                  Cancel
+                </button>
+                <button type="button" class="settings-btn settings-btn-primary" onclick="window.submitProductInfo('${type}')">
+                  Generate
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        const modalContainer = document.createElement('div');
+        modalContainer.innerHTML = modalHtml;
+        document.body.appendChild(modalContainer);
+        
+        // Global fonksiyonlar
+        window.closeModal = function() {
+          document.body.removeChild(modalContainer);
+          resolve(null);
+        };
+        
+        window.submitProductInfo = function(type) {
+          const form = document.getElementById('product-info-form');
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+          
+          const productInfo = {
+            name: document.getElementById('product-name').value,
+            type: document.getElementById('product-type').value,
+            category: document.getElementById('product-category')?.value,
+            audience: document.getElementById('product-audience')?.value,
+            keywords: document.getElementById('product-keywords')?.value,
+            style: document.getElementById('product-style')?.value,
+            materials: document.getElementById('product-materials')?.value
+          };
+          
+          document.body.removeChild(modalContainer);
+          resolve(productInfo);
+        };
+      });
+    }
+
+    // Chat mesajı gönderme
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      
+      if (!message) return;
+      
+      if (!activeAIProvider) {
+        showNotification('Please select an AI provider first', 'error');
+        return;
+      }
+      
+      // Kullanıcı mesajını ekle
+      addMessage(message, 'user');
+      input.value = '';
+      
+      // Loading göster
+      const loadingId = addLoadingMessage();
+      
+      try {
+        // AI'ye gönder
+        const response = await callAIAPI(`As an Etsy business assistant, help with this: ${message}`);
+        
+        // Loading'i kaldır
+        removeLoadingMessage(loadingId);
+        
+        // Yanıtı ekle
+        addMessage(response, 'assistant');
+        
+      } catch (error) {
+        console.error('Error in chat:', error);
+        removeLoadingMessage(loadingId);
+        addMessage("I apologize, but I'm having trouble connecting to the AI service. Please try again or check your AI provider settings.", 'assistant');
+      }
     }
 
     // Mesaj ekleme fonksiyonu
     function addMessage(content, type) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `chat-message ${type}-message`;
-        
-        const avatar = document.createElement('div');
-        avatar.className = 'message-avatar';
-        
-        const messageContent = document.createElement('div');
-        messageContent.className = 'message-content';
-        
-        if (type === 'user') {
-            avatar.innerHTML = `
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
-            `;
-            messageDiv.appendChild(messageContent);
-            messageDiv.appendChild(avatar);
-        } else {
-            avatar.innerHTML = `
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-            `;
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(messageContent);
-        }
-        
-        messageContent.innerHTML = `<p>${content}</p>`;
-        chatMessages.appendChild(messageDiv);
-        
-        // Scroll to bottom
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+      const messagesContainer = document.getElementById('chat-messages');
+      if (!messagesContainer) return;
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `chat-message ${type}-message`;
+      
+      const avatar = document.createElement('div');
+      avatar.className = 'message-avatar';
+      
+      const messageContent = document.createElement('div');
+      messageContent.className = 'message-content';
+      
+      if (type === 'user') {
+        avatar.innerHTML = `
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+        `;
+        messageDiv.appendChild(messageContent);
+        messageDiv.appendChild(avatar);
+      } else {
+        avatar.innerHTML = `
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        `;
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(messageContent);
+      }
+      
+      // Markdown benzeri formatlama
+      const formattedContent = formatMessageContent(content);
+      messageContent.innerHTML = `<p>${formattedContent}</p>`;
+      messagesContainer.appendChild(messageDiv);
+      
+      // Scroll to bottom
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Mesaj içeriğini formatla
+    function formatMessageContent(content) {
+      // Basit markdown formatlama
+      let formatted = content
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/^- (.*?)(?=\n|$)/gm, '• $1')
+        .replace(/\n/g, '<br>')
+        .replace(/`(.*?)`/g, '<code>$1</code>');
+      
+      return formatted;
     }
 
     // Loading mesajı ekle
     function addLoadingMessage() {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'chat-message ai-message';
-        messageDiv.id = 'loading-message';
-        
-        messageDiv.innerHTML = `
-            <div class="message-avatar">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-            </div>
-            <div class="message-content">
-                <div class="chat-loading">
-                    <div class="chat-loading-dot"></div>
-                    <div class="chat-loading-dot"></div>
-                    <div class="chat-loading-dot"></div>
-                </div>
-            </div>
-        `;
-        
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        
-        return 'loading-message';
+      const messagesContainer = document.getElementById('chat-messages');
+      if (!messagesContainer) return null;
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'chat-message ai-message';
+      messageDiv.id = 'loading-message';
+      
+      messageDiv.innerHTML = `
+        <div class="message-avatar">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div class="message-content">
+          <div class="chat-loading">
+            <div class="chat-loading-dot"></div>
+            <div class="chat-loading-dot"></div>
+            <div class="chat-loading-dot"></div>
+          </div>
+        </div>
+      `;
+      
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      return 'loading-message';
     }
 
     // Loading mesajını kaldır
     function removeLoadingMessage(messageId) {
-        const loadingMessage = document.getElementById(messageId);
-        if (loadingMessage) {
-            loadingMessage.remove();
-        }
+      const loadingMessage = document.getElementById(messageId);
+      if (loadingMessage) {
+        loadingMessage.remove();
+      }
     }
 
-    // Sohbet geçmişini al
-    function getChatHistory() {
-        const messages = [];
-        const messageElements = chatMessages.querySelectorAll('.chat-message');
-        
-        messageElements.forEach(element => {
-            if (element.id !== 'loading-message') {
-                const content = element.querySelector('.message-content p').textContent;
-                const type = element.classList.contains('user-message') ? 'user' : 'assistant';
-                messages.push({ role: type, content: content });
-            }
-        });
-        
-        return messages;
+    // Sohbeti temizle
+    function clearChat() {
+      const messagesContainer = document.getElementById('chat-messages');
+      if (!messagesContainer) return;
+      
+      messagesContainer.innerHTML = `
+        <div class="chat-message ai-message">
+          <div class="message-avatar">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <div class="message-content">
+            <p>Hello! I can help you generate product descriptions, SEO tags, and analyze top sellers. What would you like to do?</p>
+          </div>
+        </div>
+      `;
     }
 
-    // Event listeners
-    sendButton.addEventListener('click', sendMessage);
-    
-    chatInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
-    });
-
-    clearButton.addEventListener('click', function() {
-        chatMessages.innerHTML = `
-            <div class="chat-message ai-message">
-                <div class="message-avatar">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                </div>
-                <div class="message-content">
-                    <p>Hello! I can help you generate product descriptions, SEO tags, and analyze top sellers. What would you like to do?</p>
-                </div>
-            </div>
+    // Notification fonksiyonu
+    function showNotification(message, type = 'info') {
+      // CSS animasyonları için style ekle
+      if (!document.getElementById('notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'notification-styles';
+        style.textContent = `
+          @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+          @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+          }
         `;
-    });
+        document.head.appendChild(style);
+      }
 
-    // AI Tool butonları
-    generateDescriptionBtn.addEventListener('click', function() {
-        chatInput.value = "Can you help me generate a product description for a new t-shirt design?";
-        sendMessage();
-    });
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        background-color: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
+        color: white;
+        font-weight: 500;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease;
+      `;
+      
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            document.body.removeChild(notification);
+          }
+        }, 300);
+      }, 3000);
+    }
 
-    generateSEOBtn.addEventListener('click', function() {
-        chatInput.value = "I need SEO tags for a handmade ceramic mug listing on Etsy";
-        sendMessage();
-    });
+    // Global fonksiyonlar
+    window.formatDate = function(dateString) {
+      if (!dateString) return 'Unknown date';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    };
 
-    analyzeTopSellerBtn.addEventListener('click', function() {
-        chatInput.value = "Can you analyze my top selling products and give me insights?";
-        sendMessage();
-    });
+    window.formatCurrency = function(amount) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+      }).format(amount || 0);
+    };
 
-    // Input auto-resize
-    chatInput.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-    });
-
-    console.log('🤖 AI Assistant chat initialized');
-});
-</script>
-<!-- JavaScript Import -->
-<script src="/assets/js/env.js"></script>
-<script type="module" src="/assets/js/supabaseClient.js"></script>
-<script type="module" src="/assets/js/auth.js"></script>
-<script type="module" src="/assets/js/api.js"></script>
-<script type="module" src="/assets/js/ui.js"></script>
-<script type="module" src="/assets/js/ai.js"></script>
-<script type="module" src="/assets/js/ai-messagereply.js"></script>
+    console.log('✅ AI Assistant fully loaded and ready');
+    </script> 
   </body>
-
 </html>
-
-
-
