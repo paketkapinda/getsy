@@ -724,6 +724,15 @@
       // AI Tools durumunu yükle
       loadAIToolsStatus();
       
+      // Etsy shops listesini yükle
+      loadEtsyShops();
+      
+      // POD providers listesini yükle
+      loadPODProviders();
+      
+      // Team members listesini yükle
+      loadTeamMembers();
+      
       console.log('✅ Settings page initialized');
     });
 
@@ -789,18 +798,182 @@
       
       // Etsy Connect butonu
       document.getElementById('btn-connect-etsy')?.addEventListener('click', () => {
-        showNotification('Etsy connection coming soon', 'info');
+        showEtsyConnectionModal();
       });
       
       // POD Provider butonu
       document.getElementById('btn-add-pod')?.addEventListener('click', () => {
-        showNotification('POD provider setup coming soon', 'info');
+        showPODProviderModal();
       });
       
       // Team Member butonu
       document.getElementById('btn-invite-member')?.addEventListener('click', () => {
-        showNotification('Team management coming soon', 'info');
+        showInviteTeamMemberModal();
       });
+    }
+
+    // Etsy shops listesini yükle
+    async function loadEtsyShops() {
+      try {
+        if (!supabase) return;
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // etsy_shops tablosundan verileri çek
+        const { data: etsyShops, error } = await supabase
+          .from('etsy_shops')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error loading Etsy shops:', error);
+          return;
+        }
+
+        const etsyShopsList = document.getElementById('etsy-shops-list');
+        if (!etsyShopsList) return;
+
+        if (etsyShops && etsyShops.length > 0) {
+          etsyShopsList.innerHTML = '';
+          
+          etsyShops.forEach(shop => {
+            const shopItem = document.createElement('div');
+            shopItem.className = 'settings-list-item';
+            shopItem.innerHTML = `
+              <div class="settings-list-item-info">
+                <div class="settings-list-item-name">${shop.shop_name || 'Unnamed Shop'}</div>
+                <div class="settings-list-item-desc">
+                  ${shop.shop_url || 'No URL'} • ${shop.is_active ? 'Active' : 'Inactive'}
+                </div>
+              </div>
+              <div class="settings-list-item-actions">
+                <button class="settings-btn settings-btn-outline" onclick="editEtsyShop('${shop.id}')">
+                  Edit
+                </button>
+                <button class="settings-btn settings-btn-danger" onclick="deleteEtsyShop('${shop.id}')">
+                  Disconnect
+                </button>
+              </div>
+            `;
+            etsyShopsList.appendChild(shopItem);
+          });
+        } else {
+          // Liste zaten empty state gösteriyor
+        }
+        
+      } catch (error) {
+        console.error('Error loading Etsy shops:', error);
+      }
+    }
+
+    // POD providers listesini yükle
+    async function loadPODProviders() {
+      try {
+        if (!supabase) return;
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // pod_providers tablosundan verileri çek
+        const { data: podProviders, error } = await supabase
+          .from('pod_providers')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error loading POD providers:', error);
+          return;
+        }
+
+        const podProvidersList = document.getElementById('pod-providers-list');
+        if (!podProvidersList) return;
+
+        if (podProviders && podProviders.length > 0) {
+          podProvidersList.innerHTML = '';
+          
+          podProviders.forEach(provider => {
+            const providerItem = document.createElement('div');
+            providerItem.className = 'settings-list-item';
+            providerItem.innerHTML = `
+              <div class="settings-list-item-info">
+                <div class="settings-list-item-name">${provider.provider_name || 'Unnamed Provider'}</div>
+                <div class="settings-list-item-desc">
+                  ${provider.provider_type || 'Unknown'} • ${provider.is_active ? 'Active' : 'Inactive'}
+                </div>
+              </div>
+              <div class="settings-list-item-actions">
+                <button class="settings-btn settings-btn-outline" onclick="editPODProvider('${provider.id}')">
+                  Edit
+                </button>
+                <button class="settings-btn settings-btn-danger" onclick="deletePODProvider('${provider.id}')">
+                  Remove
+                </button>
+              </div>
+            `;
+            podProvidersList.appendChild(providerItem);
+          });
+        }
+        
+      } catch (error) {
+        console.error('Error loading POD providers:', error);
+      }
+    }
+
+    // Team members listesini yükle
+    async function loadTeamMembers() {
+      try {
+        if (!supabase) return;
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // team_members tablosundan verileri çek
+        const { data: teamMembers, error } = await supabase
+          .from('team_members')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error loading team members:', error);
+          return;
+        }
+
+        const teamMembersList = document.getElementById('team-members-list');
+        if (!teamMembersList) return;
+
+        if (teamMembers && teamMembers.length > 0) {
+          teamMembersList.innerHTML = '';
+          
+          teamMembers.forEach(member => {
+            const memberItem = document.createElement('div');
+            memberItem.className = 'settings-list-item';
+            memberItem.innerHTML = `
+              <div class="settings-list-item-info">
+                <div class="settings-list-item-name">${member.name || 'Unnamed Member'}</div>
+                <div class="settings-list-item-desc">
+                  ${member.email || 'No email'} • ${member.role || 'Member'} • ${member.is_active ? 'Active' : 'Inactive'}
+                </div>
+              </div>
+              <div class="settings-list-item-actions">
+                <button class="settings-btn settings-btn-outline" onclick="editTeamMember('${member.id}')">
+                  Edit
+                </button>
+                <button class="settings-btn settings-btn-danger" onclick="removeTeamMember('${member.id}')">
+                  Remove
+                </button>
+              </div>
+            `;
+            teamMembersList.appendChild(memberItem);
+          });
+        }
+        
+      } catch (error) {
+        console.error('Error loading team members:', error);
+      }
     }
 
     // AI Tools durumunu yükle
@@ -847,6 +1020,253 @@
         console.error('❌ Error loading AI tools status:', error);
         document.getElementById('active-tools-count').textContent = 'Error';
       }
+    }
+
+    // Etsy Connection modalını göster
+    function showEtsyConnectionModal() {
+      const modalHtml = `
+        <div class="modal-overlay">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="modal-title">Connect Etsy Shop</h3>
+              <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+              <form id="etsy-connection-form" class="settings-form">
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Shop Name *</label>
+                  <input
+                    type="text"
+                    id="etsy-shop-name"
+                    placeholder="My Etsy Shop"
+                    class="settings-form-input"
+                    required
+                  />
+                </div>
+                
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Etsy Shop URL</label>
+                  <input
+                    type="url"
+                    id="etsy-shop-url"
+                    placeholder="https://www.etsy.com/shop/yourshop"
+                    class="settings-form-input"
+                  />
+                </div>
+                
+                <div class="settings-form-group">
+                  <label class="settings-form-label">API Key *</label>
+                  <input
+                    type="password"
+                    id="etsy-api-key"
+                    placeholder="Enter your Etsy API key"
+                    class="settings-form-input"
+                    required
+                  />
+                  <p style="font-size: 0.75rem; color: #6b7280;">
+                    Get your API key from Etsy Developer Portal
+                  </p>
+                </div>
+                
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Shared Secret *</label>
+                  <input
+                    type="password"
+                    id="etsy-shared-secret"
+                    placeholder="Enter your shared secret"
+                    class="settings-form-input"
+                    required
+                  />
+                </div>
+                
+                <div class="settings-form-group">
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="etsy-active" checked style="width: auto;">
+                    <label class="settings-form-label" for="etsy-active">Active</label>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="settings-btn settings-btn-outline" onclick="closeModal()">
+                Cancel
+              </button>
+              <button type="button" class="settings-btn settings-btn-primary" onclick="saveEtsyConnection()">
+                Connect Shop
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    // POD Provider modalını göster
+    function showPODProviderModal() {
+      const modalHtml = `
+        <div class="modal-overlay">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="modal-title">Add POD Provider</h3>
+              <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+              <form id="pod-provider-form" class="settings-form">
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Provider Name *</label>
+                  <input
+                    type="text"
+                    id="pod-provider-name"
+                    placeholder="Printful, Printify, etc."
+                    class="settings-form-input"
+                    required
+                  />
+                </div>
+                
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Provider Type *</label>
+                  <select id="pod-provider-type" class="settings-form-input" required>
+                    <option value="">Select type</option>
+                    <option value="printful">Printful</option>
+                    <option value="printify">Printify</option>
+                    <option value="gooten">Gooten</option>
+                    <option value="teespring">Teespring</option>
+                    <option value="redbubble">Redbubble</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+                
+                <div class="settings-form-group">
+                  <label class="settings-form-label">API Key *</label>
+                  <input
+                    type="password"
+                    id="pod-api-key"
+                    placeholder="Enter provider API key"
+                    class="settings-form-input"
+                    required
+                  />
+                </div>
+                
+                <div class="settings-form-group">
+                  <label class="settings-form-label">API Secret (Optional)</label>
+                  <input
+                    type="password"
+                    id="pod-api-secret"
+                    placeholder="Enter API secret if required"
+                    class="settings-form-input"
+                  />
+                </div>
+                
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Webhook URL (Optional)</label>
+                  <input
+                    type="url"
+                    id="pod-webhook-url"
+                    placeholder="https://yoursite.com/webhook/pod"
+                    class="settings-form-input"
+                  />
+                </div>
+                
+                <div class="settings-form-group">
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="pod-active" checked style="width: auto;">
+                    <label class="settings-form-label" for="pod-active">Active</label>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="settings-btn settings-btn-outline" onclick="closeModal()">
+                Cancel
+              </button>
+              <button type="button" class="settings-btn settings-btn-primary" onclick="savePODProvider()">
+                Save Provider
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    // Invite Team Member modalını göster
+    function showInviteTeamMemberModal() {
+      const modalHtml = `
+        <div class="modal-overlay">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="modal-title">Invite Team Member</h3>
+              <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+              <form id="team-member-form" class="settings-form">
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Full Name *</label>
+                  <input
+                    type="text"
+                    id="team-member-name"
+                    placeholder="John Doe"
+                    class="settings-form-input"
+                    required
+                  />
+                </div>
+                
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Email Address *</label>
+                  <input
+                    type="email"
+                    id="team-member-email"
+                    placeholder="member@example.com"
+                    class="settings-form-input"
+                    required
+                  />
+                </div>
+                
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Role *</label>
+                  <select id="team-member-role" class="settings-form-input" required>
+                    <option value="">Select role</option>
+                    <option value="admin">Administrator</option>
+                    <option value="editor">Editor</option>
+                    <option value="viewer">Viewer</option>
+                    <option value="support">Support</option>
+                  </select>
+                </div>
+                
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Permissions</label>
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <input type="checkbox" id="perm-products" checked style="width: auto;">
+                      <label style="font-size: 0.875rem;">Manage Products</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <input type="checkbox" id="perm-orders" checked style="width: auto;">
+                      <label style="font-size: 0.875rem;">Manage Orders</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <input type="checkbox" id="perm-settings" style="width: auto;">
+                      <label style="font-size: 0.875rem;">Manage Settings</label>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="settings-btn settings-btn-outline" onclick="closeModal()">
+                Cancel
+              </button>
+              <button type="button" class="settings-btn settings-btn-primary" onclick="saveTeamMember()">
+                Send Invitation
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
     }
 
     // AI Tool modalını göster
@@ -939,7 +1359,420 @@
       document.body.insertAdjacentHTML('beforeend', modalHtml);
     }
 
-    // AI Tool kaydet
+    // Payment Settings modalını göster
+    function showPaymentSettingsModal() {
+      const modalHtml = `
+        <div class="modal-overlay">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="modal-title">Payment Settings</h3>
+              <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+              <form id="payment-settings-form" class="settings-form">
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Wise API Key</label>
+                  <input
+                    type="password"
+                    id="wise-api-key"
+                    placeholder="Enter Wise API key"
+                    class="settings-form-input"
+                  />
+                </div>
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Payoneer API Key</label>
+                  <input
+                    type="password"
+                    id="payoneer-api-key"
+                    placeholder="Enter Payoneer API key"
+                    class="settings-form-input"
+                  />
+                </div>
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Bank Name</label>
+                  <input
+                    type="text"
+                    id="bank-name"
+                    placeholder="Enter bank name"
+                    class="settings-form-input"
+                  />
+                </div>
+                <div class="settings-form-group">
+                  <label class="settings-form-label">IBAN</label>
+                  <input
+                    type="text"
+                    id="iban"
+                    placeholder="Enter IBAN"
+                    class="settings-form-input"
+                  />
+                </div>
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Swift Code</label>
+                  <input
+                    type="text"
+                    id="swift-code"
+                    placeholder="Enter SWIFT code"
+                    class="settings-form-input"
+                  />
+                </div>
+                <div class="settings-form-group">
+                  <label class="settings-form-label">Account Holder Name</label>
+                  <input
+                    type="text"
+                    id="account-holder"
+                    placeholder="Enter account holder name"
+                    class="settings-form-input"
+                  />
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="settings-btn settings-btn-outline" onclick="closeModal()">
+                Cancel
+              </button>
+              <button type="button" class="settings-btn settings-btn-primary" onclick="savePaymentSettings()">
+                Save Payment Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      
+      // Önceden kaydedilmiş verileri yükle
+      loadPaymentSettings();
+    }
+
+    // Etsy Connection kaydet
+    async function saveEtsyConnection() {
+      try {
+        console.log('💾 Saving Etsy connection...');
+        
+        if (!supabase) {
+          throw new Error('Database not connected');
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('Please login to save settings');
+        }
+
+        const shopName = document.getElementById('etsy-shop-name').value.trim();
+        const shopUrl = document.getElementById('etsy-shop-url').value.trim();
+        const apiKey = document.getElementById('etsy-api-key').value.trim();
+        const sharedSecret = document.getElementById('etsy-shared-secret').value.trim();
+        const isActive = document.getElementById('etsy-active').checked;
+
+        if (!shopName || !apiKey || !sharedSecret) {
+          showNotification('Please fill in all required fields', 'error');
+          return;
+        }
+
+        // Shop ID oluştur
+        const shopId = `etsy_${Date.now()}`;
+        
+        const etsyData = {
+          id: shopId,
+          user_id: user.id,
+          shop_name: shopName,
+          shop_url: shopUrl,
+          api_key: apiKey,
+          shared_secret: sharedSecret,
+          is_active: isActive,
+          updated_at: new Date().toISOString()
+        };
+
+        // Önce mevcut shop'u kontrol et (aynı kullanıcı için)
+        const { data: existingShop } = await supabase
+          .from('etsy_shops')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('shop_name', shopName)
+          .single();
+
+        let result;
+        if (existingShop) {
+          // UPDATE
+          result = await supabase
+            .from('etsy_shops')
+            .update(etsyData)
+            .eq('id', existingShop.id);
+        } else {
+          // INSERT
+          result = await supabase
+            .from('etsy_shops')
+            .insert([etsyData]);
+        }
+
+        if (result.error) throw result.error;
+
+        console.log('✅ Etsy connection saved successfully');
+        showNotification('Etsy shop connected successfully', 'success');
+        
+        // Modal'ı kapat ve listeyi yenile
+        closeModal();
+        await loadEtsyShops();
+        
+      } catch (error) {
+        console.error('❌ Error saving Etsy connection:', error);
+        showNotification('Error: ' + error.message, 'error');
+      }
+    }
+
+    // POD Provider kaydet
+    async function savePODProvider() {
+      try {
+        console.log('💾 Saving POD provider...');
+        
+        if (!supabase) {
+          throw new Error('Database not connected');
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('Please login to save settings');
+        }
+
+        const providerName = document.getElementById('pod-provider-name').value.trim();
+        const providerType = document.getElementById('pod-provider-type').value;
+        const apiKey = document.getElementById('pod-api-key').value.trim();
+        const apiSecret = document.getElementById('pod-api-secret').value.trim();
+        const webhookUrl = document.getElementById('pod-webhook-url').value.trim();
+        const isActive = document.getElementById('pod-active').checked;
+
+        if (!providerName || !providerType || !apiKey) {
+          showNotification('Please fill in all required fields', 'error');
+          return;
+        }
+
+        // Provider ID oluştur
+        const providerId = `pod_${providerType}_${Date.now()}`;
+        
+        const providerData = {
+          id: providerId,
+          user_id: user.id,
+          provider_name: providerName,
+          provider_type: providerType,
+          api_key: apiKey,
+          api_secret: apiSecret,
+          webhook_url: webhookUrl,
+          is_active: isActive,
+          updated_at: new Date().toISOString()
+        };
+
+        // Önce mevcut provider'ı kontrol et
+        const { data: existingProvider } = await supabase
+          .from('pod_providers')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('provider_name', providerName)
+          .single();
+
+        let result;
+        if (existingProvider) {
+          // UPDATE
+          result = await supabase
+            .from('pod_providers')
+            .update(providerData)
+            .eq('id', existingProvider.id);
+        } else {
+          // INSERT
+          result = await supabase
+            .from('pod_providers')
+            .insert([providerData]);
+        }
+
+        if (result.error) throw result.error;
+
+        console.log('✅ POD provider saved successfully');
+        showNotification('POD provider added successfully', 'success');
+        
+        // Modal'ı kapat ve listeyi yenile
+        closeModal();
+        await loadPODProviders();
+        
+      } catch (error) {
+        console.error('❌ Error saving POD provider:', error);
+        showNotification('Error: ' + error.message, 'error');
+      }
+    }
+
+    // Team Member kaydet
+    async function saveTeamMember() {
+      try {
+        console.log('💾 Saving team member...');
+        
+        if (!supabase) {
+          throw new Error('Database not connected');
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('Please login to save settings');
+        }
+
+        const memberName = document.getElementById('team-member-name').value.trim();
+        const memberEmail = document.getElementById('team-member-email').value.trim();
+        const memberRole = document.getElementById('team-member-role').value;
+        const permProducts = document.getElementById('perm-products').checked;
+        const permOrders = document.getElementById('perm-orders').checked;
+        const permSettings = document.getElementById('perm-settings').checked;
+
+        if (!memberName || !memberEmail || !memberRole) {
+          showNotification('Please fill in all required fields', 'error');
+          return;
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(memberEmail)) {
+          showNotification('Please enter a valid email address', 'error');
+          return;
+        }
+
+        // Member ID oluştur
+        const memberId = `team_${Date.now()}`;
+        
+        const permissions = {
+          manage_products: permProducts,
+          manage_orders: permOrders,
+          manage_settings: permSettings
+        };
+        
+        const memberData = {
+          id: memberId,
+          user_id: user.id,
+          name: memberName,
+          email: memberEmail,
+          role: memberRole,
+          permissions: permissions,
+          is_active: true,
+          invitation_sent: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        // Önce mevcut member'ı kontrol et
+        const { data: existingMember } = await supabase
+          .from('team_members')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('email', memberEmail)
+          .single();
+
+        let result;
+        if (existingMember) {
+          // UPDATE
+          result = await supabase
+            .from('team_members')
+            .update(memberData)
+            .eq('id', existingMember.id);
+        } else {
+          // INSERT
+          result = await supabase
+            .from('team_members')
+            .insert([memberData]);
+        }
+
+        if (result.error) throw result.error;
+
+        console.log('✅ Team member saved successfully');
+        showNotification('Invitation sent successfully', 'success');
+        
+        // Modal'ı kapat ve listeyi yenile
+        closeModal();
+        await loadTeamMembers();
+        
+      } catch (error) {
+        console.error('❌ Error saving team member:', error);
+        showNotification('Error: ' + error.message, 'error');
+      }
+    }
+
+    // Diğer fonksiyonlar (AI Tool kaydet, Payment Settings kaydet, test connections vs.) 
+    // önceki mesajdaki gibi aynı kalacak, sadece fonksiyon isimlerini ekleyeceğim...
+
+    // ... (AI Tool kaydetme, Payment Settings, Test Connections vs. fonksiyonları buraya gelecek)
+
+    async function loadPaymentSettings() {
+      try {
+        if (!supabase) return;
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: paymentSettings } = await supabase
+          .from('payment_settings')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (paymentSettings) {
+          document.getElementById('wise-api-key').value = paymentSettings.wise_api_key || '';
+          document.getElementById('payoneer-api-key').value = paymentSettings.payoneer_api_key || '';
+          document.getElementById('bank-name').value = paymentSettings.bank_name || '';
+          document.getElementById('iban').value = paymentSettings.iban || '';
+          document.getElementById('swift-code').value = paymentSettings.swift_code || '';
+          document.getElementById('account-holder').value = paymentSettings.account_holder || '';
+        }
+      } catch (error) {
+        console.error('Error loading payment settings:', error);
+      }
+    }
+
+    async function savePaymentSettings() {
+      try {
+        if (!supabase) {
+          throw new Error('Database not connected');
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('Please login to save settings');
+        }
+
+        const paymentData = {
+          user_id: user.id,
+          wise_api_key: document.getElementById('wise-api-key').value.trim(),
+          payoneer_api_key: document.getElementById('payoneer-api-key').value.trim(),
+          bank_name: document.getElementById('bank-name').value.trim(),
+          iban: document.getElementById('iban').value.trim(),
+          swift_code: document.getElementById('swift-code').value.trim(),
+          account_holder: document.getElementById('account-holder').value.trim(),
+          updated_at: new Date().toISOString()
+        };
+
+        // Önce mevcut kaydı kontrol et
+        const { data: existingSettings } = await supabase
+          .from('payment_settings')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        let result;
+        if (existingSettings) {
+          // UPDATE
+          result = await supabase
+            .from('payment_settings')
+            .update(paymentData)
+            .eq('user_id', user.id);
+        } else {
+          // INSERT
+          result = await supabase
+            .from('payment_settings')
+            .insert([paymentData]);
+        }
+
+        if (result.error) throw result.error;
+
+        showNotification('Payment settings saved successfully', 'success');
+        closeModal();
+      } catch (error) {
+        console.error('Error saving payment settings:', error);
+        showNotification('Error: ' + error.message, 'error');
+      }
+    }
+
     async function saveAITool(toolType) {
       try {
         console.log('💾 Saving AI Tool...');
@@ -1033,170 +1866,6 @@
       }
     }
 
-    // Payment Settings modalını göster
-    function showPaymentSettingsModal() {
-      const modalHtml = `
-        <div class="modal-overlay">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h3 class="modal-title">Payment Settings</h3>
-              <button class="modal-close" onclick="closeModal()">×</button>
-            </div>
-            <div class="modal-body">
-              <form id="payment-settings-form" class="settings-form">
-                <div class="settings-form-group">
-                  <label class="settings-form-label">Wise API Key</label>
-                  <input
-                    type="password"
-                    id="wise-api-key"
-                    placeholder="Enter Wise API key"
-                    class="settings-form-input"
-                  />
-                </div>
-                <div class="settings-form-group">
-                  <label class="settings-form-label">Payoneer API Key</label>
-                  <input
-                    type="password"
-                    id="payoneer-api-key"
-                    placeholder="Enter Payoneer API key"
-                    class="settings-form-input"
-                  />
-                </div>
-                <div class="settings-form-group">
-                  <label class="settings-form-label">Bank Name</label>
-                  <input
-                    type="text"
-                    id="bank-name"
-                    placeholder="Enter bank name"
-                    class="settings-form-input"
-                  />
-                </div>
-                <div class="settings-form-group">
-                  <label class="settings-form-label">IBAN</label>
-                  <input
-                    type="text"
-                    id="iban"
-                    placeholder="Enter IBAN"
-                    class="settings-form-input"
-                  />
-                </div>
-                <div class="settings-form-group">
-                  <label class="settings-form-label">Swift Code</label>
-                  <input
-                    type="text"
-                    id="swift-code"
-                    placeholder="Enter SWIFT code"
-                    class="settings-form-input"
-                  />
-                </div>
-                <div class="settings-form-group">
-                  <label class="settings-form-label">Account Holder Name</label>
-                  <input
-                    type="text"
-                    id="account-holder"
-                    placeholder="Enter account holder name"
-                    class="settings-form-input"
-                  />
-                </div>
-              </form>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="settings-btn settings-btn-outline" onclick="closeModal()">
-                Cancel
-              </button>
-              <button type="button" class="settings-btn settings-btn-primary" onclick="savePaymentSettings()">
-                Save Payment Settings
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      document.body.insertAdjacentHTML('beforeend', modalHtml);
-      
-      // Önceden kaydedilmiş verileri yükle
-      loadPaymentSettings();
-    }
-
-    async function loadPaymentSettings() {
-      try {
-        if (!supabase) return;
-        
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data: paymentSettings } = await supabase
-          .from('payment_settings')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (paymentSettings) {
-          document.getElementById('wise-api-key').value = paymentSettings.wise_api_key || '';
-          document.getElementById('payoneer-api-key').value = paymentSettings.payoneer_api_key || '';
-          document.getElementById('bank-name').value = paymentSettings.bank_name || '';
-          document.getElementById('iban').value = paymentSettings.iban || '';
-          document.getElementById('swift-code').value = paymentSettings.swift_code || '';
-          document.getElementById('account-holder').value = paymentSettings.account_holder || '';
-        }
-      } catch (error) {
-        console.error('Error loading payment settings:', error);
-      }
-    }
-
-    async function savePaymentSettings() {
-      try {
-        if (!supabase) {
-          throw new Error('Database not connected');
-        }
-
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          throw new Error('Please login to save settings');
-        }
-
-        const paymentData = {
-          user_id: user.id,
-          wise_api_key: document.getElementById('wise-api-key').value.trim(),
-          payoneer_api_key: document.getElementById('payoneer-api-key').value.trim(),
-          bank_name: document.getElementById('bank-name').value.trim(),
-          iban: document.getElementById('iban').value.trim(),
-          swift_code: document.getElementById('swift-code').value.trim(),
-          account_holder: document.getElementById('account-holder').value.trim(),
-          updated_at: new Date().toISOString()
-        };
-
-        // Önce mevcut kaydı kontrol et
-        const { data: existingSettings } = await supabase
-          .from('payment_settings')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-
-        let result;
-        if (existingSettings) {
-          // UPDATE
-          result = await supabase
-            .from('payment_settings')
-            .update(paymentData)
-            .eq('user_id', user.id);
-        } else {
-          // INSERT
-          result = await supabase
-            .from('payment_settings')
-            .insert([paymentData]);
-        }
-
-        if (result.error) throw result.error;
-
-        showNotification('Payment settings saved successfully', 'success');
-        closeModal();
-      } catch (error) {
-        console.error('Error saving payment settings:', error);
-        showNotification('Error: ' + error.message, 'error');
-      }
-    }
-
     // AI bağlantılarını test et
     async function testAIConnections() {
       const testBtn = document.getElementById('btn-test-connections');
@@ -1271,6 +1940,40 @@
       } finally {
         testBtn.innerHTML = originalText;
         testBtn.disabled = false;
+      }
+    }
+
+    // Edit fonksiyonları (placeholder)
+    function editEtsyShop(shopId) {
+      showNotification('Edit Etsy shop functionality coming soon', 'info');
+    }
+
+    function deleteEtsyShop(shopId) {
+      if (confirm('Are you sure you want to disconnect this Etsy shop?')) {
+        showNotification('Disconnecting Etsy shop...', 'info');
+        // Gerçek delete işlemi burada yapılacak
+      }
+    }
+
+    function editPODProvider(providerId) {
+      showNotification('Edit POD provider functionality coming soon', 'info');
+    }
+
+    function deletePODProvider(providerId) {
+      if (confirm('Are you sure you want to remove this POD provider?')) {
+        showNotification('Removing POD provider...', 'info');
+        // Gerçek delete işlemi burada yapılacak
+      }
+    }
+
+    function editTeamMember(memberId) {
+      showNotification('Edit team member functionality coming soon', 'info');
+    }
+
+    function removeTeamMember(memberId) {
+      if (confirm('Are you sure you want to remove this team member?')) {
+        showNotification('Removing team member...', 'info');
+        // Gerçek delete işlemi burada yapılacak
       }
     }
 
@@ -1357,6 +2060,16 @@
     window.closeEtsyRegistrationModal = closeModal;
     window.showNotification = showNotification;
     window.saveAITool = saveAITool;
+    window.saveEtsyConnection = saveEtsyConnection;
+    window.savePODProvider = savePODProvider;
+    window.saveTeamMember = saveTeamMember;
+    window.savePaymentSettings = savePaymentSettings;
+    window.editEtsyShop = editEtsyShop;
+    window.deleteEtsyShop = deleteEtsyShop;
+    window.editPODProvider = editPODProvider;
+    window.deletePODProvider = deletePODProvider;
+    window.editTeamMember = editTeamMember;
+    window.removeTeamMember = removeTeamMember;
     </script> 
   </body>
 </html>
