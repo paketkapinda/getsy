@@ -693,38 +693,128 @@
             </button>
           </div>
 
-          <!-- AI Design Tools - MANUEL OLARAK EKLENDİ -->
-          <div class="settings-card">
-            <div class="settings-card-header">
-              <div class="settings-card-icon">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                </svg>
-              </div>
-              <div>
-                <h3 class="settings-card-title">AI Design Tools</h3>
-                <p class="settings-card-subtitle">Configure AI tools for product design</p>
-              </div>
-            </div>
-            
-            <div class="settings-list">
-              <div class="settings-empty-state">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                </svg>
-                <div class="settings-empty-state-title">AI Tools Ready</div>
-                <div class="settings-empty-state-description">Configure OpenAI DALL-E, ChatGPT, and other AI tools</div>
-              </div>
-            </div>
-            
-            <button id="btn-ai-tools" class="settings-btn settings-btn-primary">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>
-              Configure AI Tools
-            </button>
-          </div>
+         <!-- settings.html dosyasında AI Design Tools bölümünü değiştirelim -->
+<div class="settings-card">
+  <div class="settings-card-header">
+    <div class="settings-card-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+      </svg>
+    </div>
+    <div>
+      <h3 class="settings-card-title">AI Design Tools</h3>
+      <p class="settings-card-subtitle">Configure AI tools for product design</p>
+    </div>
+  </div>
+  
+  <div class="settings-list">
+    <div id="ai-tools-status" style="padding: 1rem; background: #f8fafc; border-radius: 8px; margin-bottom: 1rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h4 style="margin: 0 0 0.25rem 0; font-size: 0.875rem; font-weight: 600;">AI Tools Status</h4>
+          <p style="margin: 0; font-size: 0.75rem; color: #6b7280;" id="active-tools-count">No active AI tools</p>
         </div>
+        <button id="btn-test-connections" class="settings-btn settings-btn-outline" style="font-size: 0.75rem;">
+          Test Connections
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <form id="form-ai-keys" class="settings-form">
+    <div class="settings-form-group">
+      <label class="settings-form-label">OpenAI API Key</label>
+      <input
+        type="password"
+        id="openai-api-key"
+        placeholder="Enter OpenAI API key"
+        class="settings-form-input"
+      />
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+        <input type="checkbox" id="openai-active" style="width: auto;">
+        <label for="openai-active" style="font-size: 0.75rem; color: #6b7280;">Active</label>
+      </div>
+    </div>
+    
+    <div class="settings-form-group">
+      <label class="settings-form-label">OpenRouter API Key</label>
+      <input
+        type="password"
+        id="openrouter-api-key"
+        placeholder="Enter OpenRouter API key"
+        class="settings-form-input"
+      />
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+        <input type="checkbox" id="openrouter-active" style="width: auto;">
+        <label for="openrouter-active" style="font-size: 0.75rem; color: #6b7280;">Active</label>
+      </div>
+    </div>
+    
+    <div class="settings-form-group">
+      <label class="settings-form-label">Anthropic API Key</label>
+      <input
+        type="password"
+        id="anthropic-api-key"
+        placeholder="Enter Anthropic API key"
+        class="settings-form-input"
+      />
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+        <input type="checkbox" id="anthropic-active" style="width: auto;">
+        <label for="anthropic-active" style="font-size: 0.75rem; color: #6b7280;">Active</label>
+      </div>
+    </div>
+    
+    <div class="settings-form-group">
+      <label class="settings-form-label">Stability AI API Key</label>
+      <input
+        type="password"
+        id="stability-api-key"
+        placeholder="Enter Stability AI API key"
+        class="settings-form-input"
+      />
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+        <input type="checkbox" id="stability-active" style="width: auto;">
+        <label for="stability-active" style="font-size: 0.75rem; color: #6b7280;">Active</label>
+      </div>
+    </div>
+    
+    <div class="settings-form-group">
+      <label class="settings-form-label">Midjourney API Key</label>
+      <input
+        type="password"
+        id="midjourney-api-key"
+        placeholder="Enter Midjourney API key"
+        class="settings-form-input"
+      />
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+        <input type="checkbox" id="midjourney-active" style="width: auto;">
+        <label for="midjourney-active" style="font-size: 0.75rem; color: #6b7280;">Active</label>
+      </div>
+    </div>
+    
+    <div class="settings-form-group">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <input type="checkbox" id="encrypt-keys" checked style="width: auto;">
+        <label class="settings-form-label" for="encrypt-keys">Encrypt API Keys</label>
+      </div>
+      <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
+        Encrypt your API keys for additional security
+      </p>
+    </div>
+    
+    <div style="display: flex; gap: 0.75rem;">
+      <button type="submit" class="settings-btn settings-btn-primary" style="flex: 1;">
+        Save AI Settings
+      </button>
+      <button type="button" id="btn-ai-tools" class="settings-btn settings-btn-outline">
+        Manage AI Tools
+      </button>
+    </div>
+  </form>
+</div>
+
+
+        
 
 </main>
 </div>
@@ -951,6 +1041,7 @@ async function testAIConnections() {
 </script> 
 </body>
 </html>
+
 
 
 
