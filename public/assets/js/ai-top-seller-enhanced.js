@@ -1,16 +1,7 @@
-// ai-top-seller-enhanced.js - DÜZELTİLMİŞ (ÇİFT FONKSİYON YOK)
+// ai-top-seller-enhanced.js
 import { supabase } from './supabaseClient.js';
 
-// Loading kontrol değişkeni
-let isAnalyzing = false;
-
-// Dashboard'dan ürün sayfasına yönlendirme için
-export function redirectToProductsWithAnalysis() {
-  showNotification('Redirecting to products for analysis...', 'info');
-  window.location.href = '/products.html?action=analyze_top_sellers';
-}
-
-// Eksik fonksiyonları ekleyelim
+// Eksik showNotification fonksiyonunu ekleyin
 function showNotification(message, type = 'info') {
   const notification = document.createElement('div');
   notification.style.cssText = `
@@ -24,6 +15,7 @@ function showNotification(message, type = 'info') {
     font-weight: 500;
     z-index: 9999;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideIn 0.3s ease;
   `;
   
   notification.textContent = message;
@@ -40,43 +32,33 @@ function showNotification(message, type = 'info') {
 }
 
 export async function analyzeTopSellersWithAnimation(shopId) {
-  // Eğer zaten analiz yapılıyorsa, tekrar başlatma
-  if (isAnalyzing) {
-    console.log('⚠️ Analysis already in progress');
-    return;
-  }
-  
   try {
-    isAnalyzing = true;
-    
     // Animasyonlu loading göster
     showAnalysisLoading();
     
     showNotification('🔍 Analyzing top sellers...', 'info');
     
+    const { data: { session } } = await supabase.auth.getSession();
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
       throw new Error('User not authenticated');
     }
     
-    // 1. Önce AI analizi yap
-    console.log('🤖 Performing AI analysis for user:', user.id);
+    // 1. Önce AI analizi yap (simüle edilmiş veri veya gerçek API)
     const analysisResult = await performTopSellerAnalysis(user.id, shopId);
     
     // 2. Sonuçları Supabase'e kaydet
-    console.log('💾 Saving analysis to database...');
     await saveAnalysisToDatabase(analysisResult, user.id);
     
-    // 3. Loading'i kapat
+    // 3. Loading'i kapat ve sonuçları göster
     hideAnalysisLoading();
+    
+    showNotification('✅ Top seller analysis completed!', 'success');
     
     // 4. Sonuçları göster
     showTopSellerAnalysisWithAnimation(analysisResult);
     
-    showNotification('✅ Top seller analysis completed!', 'success');
-    
-    isAnalyzing = false;
     return analysisResult;
     
   } catch (error) {
@@ -87,19 +69,156 @@ export async function analyzeTopSellersWithAnimation(shopId) {
     // Fallback: Mock veri göster
     const mockResult = generateMockAnalysis();
     showTopSellerAnalysisWithAnimation(mockResult);
-    
-    isAnalyzing = false;
     return mockResult;
   }
 }
 
-// SADECE BİR TANE showAnalysisLoading FONKSİYONU OLSUN
-function showAnalysisLoading() {
-  // Eğer zaten loading gösteriliyorsa, yeniden oluşturma
-  if (document.getElementById('analysis-loading')) {
-    return;
+async function performTopSellerAnalysis(userId, shopId) {
+  try {
+    // Burada gerçek AI analizi yapılacak
+    // Şimdilik mock data döndürelim
+    console.log('🤖 Performing AI analysis for user:', userId);
+    
+    // Mock AI analiz verisi
+    return {
+      analysis_id: 'analysis-' + Date.now(),
+      user_id: userId,
+      shop_id: shopId,
+      analysis_date: new Date().toISOString(),
+      trend_scores: [
+        {
+          product_id: 'prod-1',
+          listing_title: 'Personalized Coffee Mug',
+          trend_score: 92,
+          monthly_sales_estimate: 245,
+          competition_level: 'Medium',
+          price_range: '$15-25',
+          category: 'Home & Living',
+          seasonality: 'High (Year-round)'
+        },
+        {
+          product_id: 'prod-2',
+          listing_title: 'Minimalist T-Shirt Design',
+          trend_score: 88,
+          monthly_sales_estimate: 189,
+          competition_level: 'High',
+          price_range: '$20-30',
+          category: 'Apparel',
+          seasonality: 'Medium'
+        },
+        {
+          product_id: 'prod-3',
+          listing_title: 'Custom Pet Portrait',
+          trend_score: 85,
+          monthly_sales_estimate: 156,
+          competition_level: 'Low',
+          price_range: '$30-50',
+          category: 'Art & Collectibles',
+          seasonality: 'Low'
+        },
+        {
+          product_id: 'prod-4',
+          listing_title: 'Vintage Style Poster',
+          trend_score: 78,
+          monthly_sales_estimate: 134,
+          competition_level: 'Medium',
+          price_range: '$12-20',
+          category: 'Home Decor',
+          seasonality: 'High (Seasonal)'
+        },
+        {
+          product_id: 'prod-5',
+          listing_title: 'Personalized Keychain',
+          trend_score: 75,
+          monthly_sales_estimate: 98,
+          competition_level: 'Very High',
+          price_range: '$8-15',
+          category: 'Accessories',
+          seasonality: 'Year-round'
+        }
+      ],
+      forecasts: {
+        'prod-1': { month_1: 260, month_2: 275, month_3: 290 },
+        'prod-2': { month_1: 200, month_2: 210, month_3: 220 },
+        'prod-3': { month_1: 165, month_2: 175, month_3: 185 },
+        'prod-4': { month_1: 140, month_2: 150, month_3: 160 },
+        'prod-5': { month_1: 105, month_2: 110, month_3: 115 }
+      },
+      insights: {
+        best_category: 'Home & Living',
+        best_price_range: '$15-30',
+        recommended_tags: ['personalized', 'custom', 'gift', 'unique', 'handmade'],
+        seasonal_trends: 'Q4 (Oct-Dec) shows 40% increase in sales',
+        growth_opportunities: ['Bundle products', 'Expand to related categories', 'Improve product photography']
+      }
+    };
+    
+  } catch (error) {
+    console.error('AI analysis failed:', error);
+    throw error;
   }
-  
+}
+
+async function saveAnalysisToDatabase(analysis, userId) {
+  try {
+    console.log('💾 Saving analysis to database...');
+    
+    // Top Seller Analysis tablosuna ana analiz kaydı
+    const { data: analysisRecord, error: analysisError } = await supabase
+      .from('top_seller_analysis')
+      .insert({
+        user_id: userId,
+        analysis_date: new Date().toISOString(),
+        trend_scores: analysis.trend_scores,
+        forecasts: analysis.forecasts,
+        insights: analysis.insights,
+        metadata: {
+          shop_id: analysis.shop_id,
+          total_products: analysis.trend_scores.length,
+          average_trend_score: analysis.trend_scores.reduce((sum, item) => sum + item.trend_score, 0) / analysis.trend_scores.length
+        }
+      })
+      .select()
+      .single();
+
+    if (analysisError) throw analysisError;
+    
+    console.log('✅ Analysis saved with ID:', analysisRecord.id);
+    
+    // Her bir ürün için ayrı kayıt (opsiyonel)
+    for (const product of analysis.trend_scores) {
+      const { error: productError } = await supabase
+        .from('top_seller_analysis')
+        .insert({
+          user_id: userId,
+          product_id: product.product_id,
+          listing_title: product.listing_title,
+          trend_score: product.trend_score,
+          monthly_sales_estimate: product.monthly_sales_estimate,
+          forecast_3month: analysis.forecasts[product.product_id],
+          analysis_date: new Date().toISOString(),
+          metadata: {
+            competition_level: product.competition_level,
+            price_range: product.price_range,
+            category: product.category,
+            seasonality: product.seasonality
+          }
+        });
+        
+      if (productError) {
+        console.warn('⚠️ Could not save individual product:', productError.message);
+      }
+    }
+    
+    return analysisRecord;
+    
+  } catch (error) {
+    console.error('❌ Error saving to database:', error);
+    throw error;
+  }
+}
+
+function showAnalysisLoading() {
   const loadingHTML = `
     <div class="analysis-loading-overlay" id="analysis-loading">
       <div class="analysis-loading-content">
@@ -144,7 +263,6 @@ function showAnalysisLoading() {
   }, 800);
 }
 
-// SADECE BİR TANE hideAnalysisLoading FONKSİYONU OLSUN
 function hideAnalysisLoading() {
   const loading = document.getElementById('analysis-loading');
   if (loading) {
@@ -155,142 +273,15 @@ function hideAnalysisLoading() {
   }
 }
 
-// saveAnalysisToDatabase fonksiyonunu düzelt (tek insert yapsın)
-async function saveAnalysisToDatabase(analysis, userId) {
-  try {
-    // Tüm analizi tek bir JSON olarak kaydet
-    const record = {
-      user_id: userId,
-      trend_scores: analysis.trend_scores,
-      forecast_3month: analysis.forecasts,
-      insights: analysis.insights,
-      metadata: {
-        shop_id: analysis.shop_id,
-        analysis_id: analysis.analysis_id,
-        total_products: analysis.trend_scores.length
-      },
-      analysis_date: new Date().toISOString()
-    };
-    
-    const { data, error } = await supabase
-      .from('top_seller_analysis')
-      .insert(record)
-      .select()
-      .single(); // Sadece bir kayıt döndür
-    
-    if (error) {
-      console.warn('⚠️ Database warning:', error.message);
-      return null;
-    }
-    
-    console.log('✅ Analysis saved with ID:', data.id);
-    return data;
-    
-  } catch (error) {
-    console.error('❌ Error saving to database:', error.message);
-    return null;
-  }
-}
-
-// performTopSellerAnalysis fonksiyonu EKSİK - ekleyelim
-async function performTopSellerAnalysis(userId, shopId) {
-  try {
-    // GERÇEK VERİ ÇEKME - etsy_market_data tablosundan
-    const { data: marketData, error } = await supabase
-      .from('etsy_market_data')
-      .select('*')
-      .order('trend_score', { ascending: false })
-      .limit(8);
-    
-    if (error) throw error;
-    
-    if (marketData && marketData.length > 0) {
-      // Etsy market data varsa onu kullan
-      return {
-        analysis_id: 'real-analysis-' + Date.now(),
-        user_id: userId,
-        shop_id: shopId,
-        trend_scores: marketData.map(item => ({
-          product_id: item.id,
-          listing_title: item.product_title,
-          trend_score: item.trend_score,
-          monthly_sales_estimate: item.monthly_sales || 100,
-          category: item.category,
-          price_range: item.price_range,
-          competition_level: item.competition_level,
-          seasonality: item.seasonality
-        })),
-        forecasts: marketData.reduce((acc, item) => {
-          acc[item.id] = {
-            month_1: Math.round((item.monthly_sales || 100) * 1.1),
-            month_2: Math.round((item.monthly_sales || 100) * 1.2),
-            month_3: Math.round((item.monthly_sales || 100) * 1.3)
-          };
-          return acc;
-        }, {}),
-        insights: {
-          best_category: marketData[0]?.category || 'Various',
-          best_price_range: marketData[0]?.price_range || '$15-30',
-          seasonal_trends: 'Based on real market data',
-          data_source: 'etsy_market_data'
-        }
-      };
-    }
-    
-    // Eğer etsy_market_data yoksa, mock data döndür
-    return generateMockAnalysis();
-    
-  } catch (error) {
-    console.error('Error fetching real data:', error);
-    // Hata durumunda mock data döndür
-    return generateMockAnalysis();
-  }
-}
-
 function generateMockAnalysis() {
   return {
     analysis_id: 'mock-analysis-' + Date.now(),
     trend_scores: [
-      { 
-        product_id: 'mock-1', 
-        listing_title: 'Best Selling Mug', 
-        trend_score: 92, 
-        monthly_sales_estimate: 250,
-        category: 'Home & Living',
-        price_range: '$15-25'
-      },
-      { 
-        product_id: 'mock-2', 
-        listing_title: 'Popular T-Shirt', 
-        trend_score: 88, 
-        monthly_sales_estimate: 180,
-        category: 'Apparel',
-        price_range: '$20-30'
-      },
-      { 
-        product_id: 'mock-3', 
-        listing_title: 'Custom Poster', 
-        trend_score: 85, 
-        monthly_sales_estimate: 150,
-        category: 'Home Decor',
-        price_range: '$12-20'
-      },
-      { 
-        product_id: 'mock-4', 
-        listing_title: 'Personalized Gift', 
-        trend_score: 78, 
-        monthly_sales_estimate: 120,
-        category: 'Gifts',
-        price_range: '$10-18'
-      },
-      { 
-        product_id: 'mock-5', 
-        listing_title: 'Minimalist Art', 
-        trend_score: 75, 
-        monthly_sales_estimate: 95,
-        category: 'Art',
-        price_range: '$25-40'
-      }
+      { product_id: 'mock-1', listing_title: 'Best Selling Mug', trend_score: 92, monthly_sales_estimate: 250 },
+      { product_id: 'mock-2', listing_title: 'Popular T-Shirt', trend_score: 88, monthly_sales_estimate: 180 },
+      { product_id: 'mock-3', listing_title: 'Custom Poster', trend_score: 85, monthly_sales_estimate: 150 },
+      { product_id: 'mock-4', listing_title: 'Personalized Gift', trend_score: 78, monthly_sales_estimate: 120 },
+      { product_id: 'mock-5', listing_title: 'Minimalist Art', trend_score: 75, monthly_sales_estimate: 95 }
     ],
     forecasts: {
       'mock-1': { month_1: 265, month_2: 280, month_3: 295 },
@@ -302,24 +293,19 @@ function generateMockAnalysis() {
     insights: {
       best_category: 'Home Decor',
       best_price_range: '$20-35',
-      seasonal_trends: 'Peak sales in November-December',
-      data_source: 'mock_data'
+      seasonal_trends: 'Peak sales in November-December'
     }
   };
 }
 
 function showTopSellerAnalysisWithAnimation(analysis) {
-  // Eski modal'ı temizle
-  const oldModal = document.getElementById('analysis-modal');
-  if (oldModal) oldModal.remove();
-  
   const modalHTML = `
     <div class="modal-overlay analysis-result-modal" id="analysis-modal">
       <div class="modal-content" style="max-width: 1000px; background: white; border-radius: 12px; overflow: hidden;">
         <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #fef7f0, #fef3f2);">
           <div>
             <h3 class="modal-title" style="font-size: 1.5rem; font-weight: 600; color: #111827; margin: 0;">🎯 Top Seller Analysis</h3>
-            <p style="color: #6b7280; margin: 0.5rem 0 0 0;">${analysis.insights?.data_source === 'etsy_market_data' ? 'Real market data analysis' : 'AI-powered market insights'}</p>
+            <p style="color: #6b7280; margin: 0.5rem 0 0 0;">AI-powered market insights for your Etsy shop</p>
           </div>
           <div style="display: flex; align-items: center; gap: 1rem;">
             <span class="analysis-badge" style="background: linear-gradient(135deg, #ea580c, #c2410c); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">AI Powered</span>
@@ -351,7 +337,7 @@ function showTopSellerAnalysisWithAnimation(analysis) {
               ${analysis.trend_scores.map((product, index) => `
                 <div class="trend-product-card animated-card" style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; min-width: 280px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); animation-delay: ${index * 0.1}s; opacity: 0; transform: translateY(30px); transition: all 0.6s ease;">
                   <div class="product-header" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                    <div class="trend-score" style="color: white; padding: 0.5rem 1rem; border-radius: 20px; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; ${getTrendScoreStyle(product.trend_score)}">
+                    <div class="trend-score ${getTrendScoreClass(product.trend_score)}" style="color: white; padding: 0.5rem 1rem; border-radius: 20px; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; ${getTrendScoreStyle(product.trend_score)}">
                       <span class="score">${product.trend_score}%</span>
                       <div class="trend-indicator">
                         ${product.trend_score >= 80 ? '🚀' : product.trend_score >= 60 ? '📈' : '📊'}
@@ -442,20 +428,16 @@ function showTopSellerAnalysisWithAnimation(analysis) {
                 <div style="font-weight: 600; color: #374151;">${analysis.insights.seasonal_trends}</div>
               </div>
               ` : ''}
-              <div>
-                <div style="font-size: 0.875rem; color: #6b7280;">Data Source</div>
-                <div style="font-weight: 600; color: #374151;">${analysis.insights.data_source || 'AI Analysis'}</div>
-              </div>
             </div>
           </div>
           ` : ''}
           
           <div class="analysis-actions" style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e5e7eb;">
             <button class="btn btn-outline" onclick="exportAnalysis()" style="padding: 0.75rem 1.5rem; border: 1px solid #d1d5db; border-radius: 8px; background: white; color: #374151; cursor: pointer;">
-              📊 Export Data
+              📊 Export Analysis
             </button>
             <button class="btn btn-primary" onclick="generateMultipleProducts()" style="padding: 0.75rem 1.5rem; border-radius: 8px; background: linear-gradient(135deg, #ea580c, #c2410c); color: white; border: none; font-weight: 600; cursor: pointer;">
-              🚀 Create Products
+              🚀 Generate All Top Products
             </button>
           </div>
         </div>
@@ -484,13 +466,8 @@ function showTopSellerAnalysisWithAnimation(analysis) {
     }
   };
 
-  window.createSimilarProduct = (productId) => {
-    showNotification('Creating similar product...', 'info');
-    window.location.href = `/products.html?action=create_similar&product_id=${productId}`;
-  };
-
   window.generateProductFromTrend = (productId) => {
-    showNotification('Creating product from trend...', 'info');
+    showNotification('Redirecting to product creation...', 'info');
     window.location.href = `/products.html?action=create_from_trend&product_id=${productId}`;
   };
 
@@ -500,9 +477,15 @@ function showTopSellerAnalysisWithAnimation(analysis) {
   };
 
   window.generateMultipleProducts = () => {
-    showNotification('Creating multiple products...', 'info');
+    showNotification('Generating multiple products from trends...', 'info');
     // Batch product generation
   };
+}
+
+function getTrendScoreClass(score) {
+  if (score >= 80) return 'trend-high';
+  if (score >= 60) return 'trend-medium';
+  return 'trend-low';
 }
 
 function getTrendScoreStyle(score) {
