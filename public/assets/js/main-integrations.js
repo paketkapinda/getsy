@@ -3,33 +3,58 @@ import { analyzeTopSellersWithAnimation } from './ai-top-seller-enhanced.js';
 import { loadDashboardPayments } from './dashboard-payments.js';
 import { loadRecentActivities } from './dashboard-activities.js';
 
-// Dashboard'da tüm entegrasyonları başlat
+// main-integrations.js - DÜZELTİLMİŞ VERSİYON
+
+// Sadece gerekli import'lar
+let analyzeTopSellersWithAnimation;
+
+// DOM yüklendiğinde
 document.addEventListener('DOMContentLoaded', function() {
-  // Payments verilerini yükle
-  loadDashboardPayments();
-  
-  // Recent activities yükle
-  loadRecentActivities();
-  
-  // AI Top Seller butonu
+  // Butona event listener ekle (bir kere)
   const analyzeBtn = document.getElementById('btn-analyze-top-seller');
   if (analyzeBtn) {
-    analyzeBtn.addEventListener('click', () => {
-      analyzeTopSellersWithAnimation('current_shop');
+    // Mevcut event listener'ları kaldır
+    analyzeBtn.replaceWith(analyzeBtn.cloneNode(true));
+    
+    // Yeni event listener ekle
+    document.getElementById('btn-analyze-top-seller').addEventListener('click', async function() {
+      console.log('🎯 Analyze button clicked');
+      
+      // Butonu disable et (çoklu tıklamayı önle)
+      this.disabled = true;
+      this.innerHTML = '<span>Analyzing...</span>';
+      
+      try {
+        // Dinamik import
+        const module = await import('./ai-top-seller-enhanced.js');
+        analyzeTopSellersWithAnimation = module.analyzeTopSellersWithAnimation;
+        
+        // Analizi başlat
+        await analyzeTopSellersWithAnimation('current_shop');
+      } catch (error) {
+        console.error('Error:', error);
+        showNotification('Analysis failed: ' + error.message, 'error');
+      } finally {
+        // Butonu tekrar aktif et
+        this.disabled = false;
+        this.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>Analyze Top Sellers';
+      }
     });
   }
   
-  // AI Assistant kartlarına event listener'lar ekle
-  const aiCards = document.querySelectorAll('.ai-tool-card');
-  aiCards.forEach(card => {
-    card.addEventListener('click', function() {
+  // AI kartlarına basit yönlendirme
+  document.querySelectorAll('.ai-tool-card').forEach(card => {
+    card.addEventListener('click', function(e) {
       const cardId = this.id;
-      handleAICardClick(cardId);
+      if (cardId !== 'btn-analyze-top-seller') {
+        e.preventDefault();
+        window.location.href = '/products.html';
+      }
     });
   });
 });
 
-// Eksik fonksiyonları ekleyin
+// Basit notification fonksiyonu
 function showNotification(message, type = 'info') {
   const notification = document.createElement('div');
   notification.style.cssText = `
@@ -43,59 +68,20 @@ function showNotification(message, type = 'info') {
     font-weight: 500;
     z-index: 9999;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    animation: slideIn 0.3s ease;
   `;
-  
-  // Animasyon için style ekle
-  if (!document.getElementById('notification-styles')) {
-    const style = document.createElement('style');
-    style.id = 'notification-styles';
-    style.textContent = `
-      @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
-  }
   
   notification.textContent = message;
   document.body.appendChild(notification);
   
   setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease';
+    notification.style.opacity = '0';
     setTimeout(() => {
       if (notification.parentNode) {
         document.body.removeChild(notification);
       }
-    }, 300);
+    }, 500);
   }, 3000);
 }
-function handleAICardClick(cardId) {
-  switch(cardId) {
-    case 'btn-generate-description':
-      showNotification('Redirecting to product creation...', 'info');
-      window.location.href = '/products.html?action=generate_description';
-      break;
-      
-    case 'btn-generate-seo':
-      showNotification('Redirecting to product creation...', 'info');
-      window.location.href = '/products.html?action=generate_seo';
-      break;
-      
-    case 'btn-analyze-top-seller':
-      analyzeTopSellersWithAnimation('current_shop');
-      break;
-      
-    default:
-      showNotification('AI feature coming soon!', 'info');
-  }
-}
 
-// Global fonksiyonlar
-window.analyzeTopSellersWithAnimation = analyzeTopSellersWithAnimation;
-window.showProductContentGenerator = showProductContentGenerator;
+// Global'e ata
+window.showNotification = showNotification;
