@@ -80,7 +80,7 @@ serve(async (req) => {
 
     // Encrypt and store tokens
     const { error: insertError } = await supabaseClient
-      .from('etsy_accounts')
+      .from('etsy_shops')
       .upsert({
         user_id: user.id,
         shop_id: tokenData.shop_id,
@@ -103,5 +103,6 @@ serve(async (req) => {
     );
   }
 });
+
 
 
