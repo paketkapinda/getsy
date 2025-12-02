@@ -66,7 +66,7 @@ serve(async (req) => {
 
     // Real mode: fetch from Etsy, analyze with AI
     const { data: etsyAccount } = await supabaseClient
-      .from('etsy_accounts')
+      .from('etsy_shops')
       .select('*')
       .eq('user_id', user.id)
       .eq('shop_id', shop_id)
@@ -148,5 +148,6 @@ serve(async (req) => {
     );
   }
 });
+
 
 
