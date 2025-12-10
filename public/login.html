@@ -414,67 +414,77 @@
           </div>
 
           <!-- Sign Up Form -->
-          <div class="tab-content" id="signup-tab">
-            <form id="signup-form">
-              <div class="form-group">
-                <label class="form-label" for="signup-fullname">Full Name</label>
-                <input
-                  id="signup-fullname"
-                  name="fullname"
-                  type="text"
-                  required
-                  placeholder="Enter your full name"
-                  class="form-input"
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="signup-email">Email Address</label>
-                <input
-                  id="signup-email"
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="Enter your email"
-                  class="form-input"
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="signup-password">Password</label>
-                <input
-                  id="signup-password"
-                  name="password"
-                  type="password"
-                  required
-                  minlength="6"
-                  placeholder="Create a password"
-                  class="form-input"
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="signup-confirm-password">Confirm Password</label>
-                <input
-                  id="signup-confirm-password"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  minlength="6"
-                  placeholder="Confirm your password"
-                  class="form-input"
-                />
-              </div>
-              <button
-                type="submit"
-                class="btn btn-primary"
-              >
-                Create Account
-              </button>
-            </form>
+          <!-- Sign Up Form -->
+<div class="tab-content" id="signup-tab">
+    <form id="signup-form">
+        <!-- Mevcut alanlar -->
+        <div class="form-group">
+            <label class="form-label" for="signup-fullname">Full Name</label>
+            <input
+                id="signup-fullname"
+                name="fullname"
+                type="text"
+                required
+                placeholder="Enter your full name"
+                class="form-input"
+            />
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="signup-email">Email Address</label>
+            <input
+                id="signup-email"
+                name="email"
+                type="email"
+                required
+                placeholder="Enter your email"
+                class="form-input"
+            />
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="signup-password">Password</label>
+            <input
+                id="signup-password"
+                name="password"
+                type="password"
+                required
+                minlength="6"
+                placeholder="Create a password"
+                class="form-input"
+            />
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="signup-confirm-password">Confirm Password</label>
+            <input
+                id="signup-confirm-password"
+                name="confirmPassword"
+                type="password"
+                required
+                minlength="6"
+                placeholder="Confirm your password"
+                class="form-input"
+            />
+        </div>
+        
+        <!-- Referans kodu alanı (otomatik doldurulacak) -->
+        <input
+            type="hidden"
+            id="referral-code"
+            name="referralCode"
+            value=""
+        />
+        
+        <button
+            type="submit"
+            class="btn btn-primary"
+        >
+            Create Account
+        </button>
+    </form>
 
-            <div class="auth-switch">
-              <p>Already have an account? <a href="#" id="switch-to-login">Sign in</a></p>
-            </div>
-          </div>
-
+    <div class="auth-switch">
+        <p>Already have an account? <a href="#" id="switch-to-login">Sign in</a></p>
+    </div>
+</div>
           <!-- Message Container -->
           <div id="message-container"></div>
         </div>
@@ -640,55 +650,67 @@
           });
 
           // Sign Up Form
-          const signupForm = document.querySelector('#signup-form');
-          signupForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const fullName = document.querySelector('#signup-fullname').value.trim();
-            const email = document.querySelector('#signup-email').value.trim();
-            const password = document.querySelector('#signup-password').value;
-            const confirmPassword = document.querySelector('#signup-confirm-password').value;
-            
-            if (password !== confirmPassword) {
-              showMessage('Passwords do not match', 'error');
-              return;
-            }
-            
-            const submitBtn = signupForm.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<div class="loading-spinner"></div>';
-            
-            try {
-              const { data, error } = await supabase.auth.signUp({ 
-                email, 
-                password,
-                options: {
-                  data: {
+const signupForm = document.querySelector('#signup-form');
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const fullName = document.querySelector('#signup-fullname').value.trim();
+    const email = document.querySelector('#signup-email').value.trim();
+    const password = document.querySelector('#signup-password').value;
+    const confirmPassword = document.querySelector('#signup-confirm-password').value;
+    const referralCode = getReferralCodeFromURL();
+    
+    if (password !== confirmPassword) {
+        showMessage('Passwords do not match', 'error');
+        return;
+    }
+    
+    const submitBtn = signupForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="loading-spinner"></div>';
+    
+    try {
+        // 1. Kullanıcıyı oluştur
+        const { data: authData, error: authError } = await supabase.auth.signUp({ 
+            email, 
+            password,
+            options: {
+                data: {
                     full_name: fullName
-                  }
                 }
-              });
-              
-              if (error) {
-                showMessage(error.message, 'error');
-              } else {
-                showMessage('Account created successfully! Please check your email for verification.', 'success');
-                signupForm.reset();
-                // Switch to login tab after successful signup
-                setTimeout(() => {
-                  switchTab('login');
-                }, 3000);
-              }
-            } catch (error) {
-              showMessage('An error occurred. Please try again.', 'error');
-            } finally {
-              submitBtn.disabled = false;
-              submitBtn.textContent = originalText;
             }
-          });
-
+        });
+        
+        if (authError) {
+            showMessage(authError.message, 'error');
+            return;
+        }
+        
+        // 2. Profili oluştur (referans kodunu dahil ederek)
+        const profile = await createProfileWithReferral(authData.user, referralCode);
+        
+        showMessage('Account created successfully! Please check your email for verification.', 'success');
+        signupForm.reset();
+        
+        // 3. Referans bonusu mesajı göster
+        if (referralCode) {
+            showMessage(`You've been referred by a friend! $8.70 bonus has been credited to their account.`, 'success');
+        }
+        
+        // 4. Login tab'ine geç
+        setTimeout(() => {
+            switchTab('login');
+        }, 3000);
+        
+    } catch (error) {
+        showMessage('An error occurred. Please try again.', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }
+});
           // Forgot Password Form
           const forgotPasswordForm = document.querySelector('#forgot-password-form');
           forgotPasswordForm.addEventListener('submit', async (e) => {
