@@ -1287,11 +1287,13 @@
     </div>
   </div>
 
-  <script>
+   <script>
     // Supabase bağlantısı
-    const supabaseUrl = "https://pywffpqbbrjfcpzigepa.supabase.co"; // Supabase proje URL'nizi buraya ekleyin
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5d2ZmcHFiYnJqZmNwemlnZXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxOTEzNDIsImV4cCI6MjA3OTc2NzM0Mn0.ivqA2wj3nS20i8AcKZSec_paQ99qqcw6YaeTZeVV2vo"; // Supabase anon key'inizi buraya ekleyin
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl = "https://pywffpqbbrjfcpzigepa.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5d2ZmcHFiYnJqZmNwemlnZXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxOTEzNDIsImV4cCI6MjA3OTc2NzM0Mn0.ivqA2wj3nS20i8AcKZSec_paQ99qqcw6YaeTZeVV2vo";
+    
+    // window.supabase kullanın veya farklı bir değişken adı kullanın
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     // Language switching
     function switchLanguage(lang) {
@@ -1334,7 +1336,7 @@
     async function openDetailModal(partnerId) {
       try {
         // Partner detaylarını Supabase'den çek
-        const { data: partner, error } = await supabase
+        const { data: partner, error } = await supabaseClient
           .from('partners')
           .select('*')
           .eq('id', partnerId)
@@ -1416,7 +1418,7 @@
 
       try {
         // Supabase'e başvuruyu kaydet
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('partner_applications')
           .insert([
             {
@@ -1461,7 +1463,7 @@
         const container = document.getElementById('partnersContainer');
         container.innerHTML = '<div class="loading-partners" data-lang="tr">Partnerler yükleniyor...</div><div class="loading-partners" data-lang="en" style="display: none;">Loading partners...</div>';
 
-        const { data: partners, error } = await supabase
+        const { data: partners, error } = await supabaseClient
           .from('partners')
           .select('*')
           .eq('active', true)
@@ -1552,5 +1554,3 @@
       }
     }
   </script>
-</body>
-</html>
