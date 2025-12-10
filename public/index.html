@@ -1,1034 +1,1556 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Etsy AI POD – Start Your Print-on-Demand Business</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/assets/css/styles.css" />
-
- <style>
-/* styles.css - Matesy.co Tarzı Minimal Tasarım */
-:root {
-  --primary-orange: #ea580c;
-  --primary-orange-dark: #c2410c;
-  --primary-orange-light: #fdba74;
-  --secondary-red: #dc2626;
-  --accent-amber: #f59e0b;
-  --gray-50: #fafafa;
-  --gray-100: #f4f4f5;
-  --gray-200: #e4e4e7;
-  --gray-300: #d4d4d8;
-  --gray-400: #a1a1aa;
-  --gray-500: #71717a;
-  --gray-600: #52525b;
-  --gray-700: #3f3f46;
-  --gray-800: #27272a;
-  --gray-900: #18181b;
-  --text-dark: #18181b;
-  --text-light: #71717a;
-}
-
-/* Reset ve Base Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: var(--text-dark);
-  line-height: 1.6;
-  font-size: 16px;
-}
-
-/* Container */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-  line-height: 1.2;
-  color: var(--text-dark);
-}
-
-h1 {
-  font-size: 3.5rem;
-  font-weight: 700;
-}
-
-h2 {
-  font-size: 2.5rem;
-}
-
-h3 {
-  font-size: 1.5rem;
-}
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 14px;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
-  color: white;
-  box-shadow: 0 1px 3px rgba(234, 88, 12, 0.2);
-}
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
-}
-
-.btn-secondary {
-  background: white;
-  color: var(--text-dark);
-  border: 1px solid var(--gray-300);
-}
-
-.btn-secondary:hover {
-  border-color: var(--primary-orange);
-  color: var(--primary-orange);
-}
-
-/* Header */
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--gray-200);
-  z-index: 1000;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 70px;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 600;
-  font-size: 18px;
-  color: var(--text-dark);
-}
-
-.logo-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-icon svg {
-  width: 16px;
-  height: 16px;
-  color: white;
-}
-
-.nav {
-  display: flex;
-  gap: 32px;
-}
-
-.nav a {
-  color: var(--gray-600);
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.nav a:hover {
-  color: var(--primary-orange);
-}
-
-/* Hero Section */
-.hero {
-  padding: 140px 0 80px;
-  background: linear-gradient(135deg, #fef7f0 0%, #fef2f2 100%);
-}
-
-.hero-content {
-  text-align: center;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.hero h1 {
-  margin-bottom: 24px;
-  background: linear-gradient(135deg, var(--text-dark), var(--primary-orange));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero p {
-  font-size: 20px;
-  color: var(--gray-600);
-  margin-bottom: 40px;
-  line-height: 1.6;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-bottom: 60px;
-}
-
-/* Social Proof */
-.social-proof {
-  margin-bottom: 80px;
-}
-
-.social-proof p {
-  color: var(--gray-500);
-  font-size: 14px;
-  margin-bottom: 20px;
-}
-
-.stats {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-}
-
-.stat {
-  text-align: center;
-}
-
-.stat-number {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--text-dark);
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: var(--gray-500);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Dashboard Preview */
-.dashboard-preview {
-  background: white;
-  border-radius: 16px;
-  border: 1px solid var(--gray-200);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-}
-
-.dashboard-placeholder {
-  height: 400px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dashboard-content {
-  text-align: center;
-  padding: 40px;
-}
-
-.dashboard-icon {
-  width: 64px;
-  height: 64px;
-  background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-}
-
-.dashboard-icon svg {
-  width: 24px;
-  height: 24px;
-  color: white;
-}
-
-/* Features Section */
-.features {
-  padding: 100px 0;
-  background: white;
-}
-
-.section-header {
-  text-align: center;
-  max-width: 600px;
-  margin: 0 auto 60px;
-}
-
-.section-header h2 {
-  margin-bottom: 16px;
-}
-
-.section-header p {
-  color: var(--gray-600);
-  font-size: 18px;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 32px;
-  margin-bottom: 60px;
-}
-
-.feature-card {
-  padding: 32px;
-  border: 1px solid var(--gray-200);
-  border-radius: 12px;
-  transition: all 0.2s ease;
-}
-
-.feature-card:hover {
-  border-color: var(--primary-orange);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-}
-
-.feature-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.feature-icon.orange { background: #fef3f2; }
-.feature-icon.red { background: #fef2f2; }
-.feature-icon.amber { background: #fffbeb; }
-.feature-icon.emerald { background: #f0fdf4; }
-.feature-icon.purple { background: #faf5ff; }
-.feature-icon.blue { background: #eff6ff; }
-
-.feature-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.feature-icon.orange svg { color: #ea580c; }
-.feature-icon.red svg { color: #dc2626; }
-.feature-icon.amber svg { color: #d97706; }
-.feature-icon.emerald svg { color: #059669; }
-.feature-icon.purple svg { color: #7c3aed; }
-.feature-icon.blue svg { color: #2563eb; }
-
-.feature-card h3 {
-  margin-bottom: 12px;
-}
-
-.feature-card p {
-  color: var(--gray-600);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 32px;
-  text-align: center;
-}
-
-.stat-item {
-  padding: 24px;
-}
-
-.stat-item .number {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--text-dark);
-  margin-bottom: 8px;
-}
-
-.stat-item .label {
-  color: var(--gray-500);
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* How It Works */
-.how-it-works {
-  padding: 100px 0;
-  background: var(--gray-50);
-}
-
-.steps-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 32px;
-}
-
-.step {
-  text-align: center;
-  padding: 32px;
-}
-
-.step-number {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 24px;
-  color: white;
-  font-weight: 600;
-  font-size: 18px;
-}
-
-.step h3 {
-  margin-bottom: 12px;
-}
-
-.step p {
-  color: var(--gray-600);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-/* Comparison Section */
-.comparison {
-  padding: 100px 0;
-  background: white;
-}
-
-.comparison-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 32px;
-}
-
-.comparison-card {
-  padding: 40px;
-  border-radius: 16px;
-}
-
-.comparison-card.problems {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-}
-
-.comparison-card.solutions {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-}
-
-.comparison-card h3 {
-  margin-bottom: 24px;
-  font-size: 24px;
-}
-
-.comparison-list {
-  list-style: none;
-}
-
-.comparison-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 16px;
-  font-size: 14px;
-}
-
-.comparison-list li:last-child {
-  margin-bottom: 0;
-}
-
-.comparison-list .icon {
-  margin-top: 2px;
-  flex-shrink: 0;
-}
-
-/* Pricing Section */
-.pricing {
-  padding: 100px 0;
-  background: var(--gray-50);
-}
-
-.pricing-card {
-  background: white;
-  border: 1px solid var(--gray-200);
-  border-radius: 16px;
-  padding: 40px;
-  max-width: 400px;
-  margin: 0 auto;
-  position: relative;
-  overflow: hidden;
-}
-
-.pricing-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: var(--primary-orange);
-  color: white;
-  padding: 8px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  border-bottom-left-radius: 8px;
-}
-
-.pricing-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.pricing-price {
-  margin-bottom: 16px;
-}
-
-.pricing-price .amount {
-  font-size: 48px;
-  font-weight: 700;
-  color: var(--text-dark);
-}
-
-.pricing-price .period {
-  color: var(--gray-500);
-  font-size: 16px;
-}
-
-.pricing-features {
-  list-style: none;
-  margin-bottom: 32px;
-}
-
-.pricing-features li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-  font-size: 14px;
-  color: var(--gray-600);
-}
-
-.pricing-features li:last-child {
-  margin-bottom: 0;
-}
-
-.pricing-features .check {
-  color: #059669;
-  flex-shrink: 0;
-}
-
-/* CTA Section */
-.cta {
-  padding: 100px 0;
-  background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
-  color: white;
-  text-align: center;
-}
-
-.cta h2 {
-  color: white;
-  margin-bottom: 16px;
-}
-
-.cta p {
-  font-size: 18px;
-  margin-bottom: 32px;
-  opacity: 0.9;
-}
-
-.cta-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-}
-
-/* Footer */
-.footer {
-  background: var(--gray-900);
-  color: var(--gray-400);
-  padding: 60px 0 40px;
-}
-
-.footer-content {
-  text-align: center;
-}
-
-.footer-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  color: white;
-  font-weight: 600;
-  font-size: 18px;
-}
-
-.footer-logo-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.footer-logo-icon svg {
-  width: 16px;
-  height: 16px;
-  color: white;
-}
-
-.footer p {
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
-.footer-disclaimer {
-  border-top: 1px solid var(--gray-800);
-  margin-top: 40px;
-  padding-top: 32px;
-  font-size: 12px;
-  color: var(--gray-500);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .container {
-    padding: 0 16px;
-  }
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PartnerShop — Tek Üyelik, Tüm Platformlara Erişim</title>
   
-  h1 {
-    font-size: 2.5rem;
-  }
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  h2 {
-    font-size: 2rem;
-  }
-  
-  .hero-actions,
-  .cta-actions {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .nav {
-    display: none;
-  }
-  
-  .stats {
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .features-grid,
-  .steps-grid,
-  .comparison-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
+  <style>
+    /* Base Styles from index.html */
+    :root {
+      --primary-orange: #ea580c;
+      --primary-orange-dark: #c2410c;
+      --primary-orange-light: #fdba74;
+      --secondary-red: #dc2626;
+      --accent-amber: #f59e0b;
+      --gray-50: #fafafa;
+      --gray-100: #f4f4f5;
+      --gray-200: #e4e4e7;
+      --gray-300: #d4d4d8;
+      --gray-400: #a1a1aa;
+      --gray-500: #71717a;
+      --gray-600: #52525b;
+      --gray-700: #3f3f46;
+      --gray-800: #27272a;
+      --gray-900: #18181b;
+      --text-dark: #18181b;
+      --text-light: #71717a;
+    }
 
-  </head>
-  
-  <body>
-    <!-- Header -->
-    <header class="header">
-      <div class="container">
-        <div class="header-content">
-          <div class="logo">
-            <div class="logo-icon">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>
-            </div>
-            Etsy AI POD
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-dark);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: 600;
+      line-height: 1.2;
+      color: var(--text-dark);
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: 2.5rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
+      color: white;
+      box-shadow: 0 1px 3px rgba(234, 88, 12, 0.2);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--text-dark);
+      border: 1px solid var(--gray-300);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary-orange);
+      color: var(--primary-orange);
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--gray-200);
+      z-index: 1000;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 70px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--text-dark);
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon svg {
+      width: 16px;
+      height: 16px;
+      color: white;
+    }
+
+    .nav {
+      display: flex;
+      gap: 32px;
+    }
+
+    .nav a {
+      color: var(--gray-600);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .nav a:hover {
+      color: var(--primary-orange);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 140px 0 80px;
+      background: linear-gradient(135deg, #fef7f0 0%, #fef2f2 100%);
+    }
+
+    .hero-content {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .hero h1 {
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, var(--text-dark), var(--primary-orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 20px;
+      color: var(--gray-600);
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 60px;
+    }
+
+    /* Social Proof */
+    .social-proof {
+      margin-bottom: 80px;
+    }
+
+    .social-proof p {
+      color: var(--gray-500);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+      margin-bottom: 60px;
+    }
+
+    .feature-card {
+      padding: 32px;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .feature-card:hover {
+      border-color: var(--primary-orange);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .feature-icon.orange { background: #fef3f2; }
+    .feature-icon.orange svg { color: #ea580c; }
+
+    /* Section Header */
+    .section-header {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 60px;
+    }
+
+    .section-header h2 {
+      margin-bottom: 16px;
+    }
+
+    .section-header p {
+      color: var(--gray-600);
+      font-size: 18px;
+    }
+
+    /* Membership Cards */
+    .membership-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 32px;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .membership-cards {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .membership-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 16px;
+      padding: 40px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .membership-card:hover {
+      border-color: var(--primary-orange);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(234, 88, 12, 0.1);
+    }
+
+    .membership-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: var(--primary-orange);
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      border-bottom-left-radius: 8px;
+    }
+
+    .membership-header {
+      margin-bottom: 32px;
+    }
+
+    .membership-price {
+      margin-bottom: 16px;
+    }
+
+    .membership-price .amount {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .membership-price .period {
+      color: var(--gray-500);
+      font-size: 16px;
+    }
+
+    .membership-features {
+      list-style: none;
+      margin-bottom: 32px;
+    }
+
+    .membership-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: var(--gray-600);
+    }
+
+    .membership-features li:last-child {
+      margin-bottom: 0;
+    }
+
+    .membership-features .check {
+      color: #059669;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* How It Works */
+    .how-it-works-section {
+      background: var(--gray-50);
+      padding: 100px 0;
+    }
+
+    .process-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 32px;
+      margin-top: 40px;
+    }
+
+    .process-step {
+      text-align: center;
+      padding: 32px;
+      background: white;
+      border-radius: 12px;
+      border: 1px solid var(--gray-200);
+    }
+
+    .step-number {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      color: white;
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    /* CTA Section */
+    .cta {
+      padding: 100px 0;
+      background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
+      color: white;
+      text-align: center;
+    }
+
+    .cta h2 {
+      color: white;
+      margin-bottom: 16px;
+    }
+
+    .cta p {
+      font-size: 18px;
+      margin-bottom: 32px;
+      opacity: 0.9;
+    }
+
+    .cta-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--gray-900);
+      color: var(--gray-400);
+      padding: 60px 0 40px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .footer-column h4 {
+      color: white;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    .footer-column ul {
+      list-style: none;
+    }
+
+    .footer-column ul li {
+      margin-bottom: 10px;
+    }
+
+    .footer-column ul li a {
+      color: var(--gray-400);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-column ul li a:hover {
+      color: white;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      padding-top: 40px;
+      border-top: 1px solid var(--gray-800);
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      color: white;
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .footer-logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .footer-logo-icon svg {
+      width: 16px;
+      height: 16px;
+      color: white;
+    }
+
+    /* Language Switcher */
+    .language-switcher {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .lang-btn {
+      background: none;
+      border: 1px solid var(--gray-300);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--gray-600);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .lang-btn.active {
+      background: var(--primary-orange);
+      color: white;
+      border-color: var(--primary-orange);
+    }
+
+    .lang-btn:hover:not(.active) {
+      border-color: var(--primary-orange);
+      color: var(--primary-orange);
+    }
+
+    /* Process Flow Section */
+    .process-flow {
+      background: var(--gray-50);
+      padding: 100px 0;
+    }
+
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    .flow-step {
+      text-align: center;
+      padding: 24px;
+      background: white;
+      border-radius: 12px;
+      border: 1px solid var(--gray-200);
+    }
+
+    .flow-step h4 {
+      margin-bottom: 8px;
+      color: var(--primary-orange);
+    }
+
+    /* Partner Cards */
+    .partner-cards-section {
+      padding: 100px 0;
+      background: white;
+    }
+
+    .partner-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    .partner-card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid var(--gray-200);
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .partner-card:hover {
+      border-color: var(--primary-orange);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(234, 88, 12, 0.1);
+    }
+
+    .partner-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .partner-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
+    }
+
+    .partner-icon svg {
+      width: 20px;
+      height: 20px;
+      color: white;
+    }
+
+    /* Referral Section */
+    .referral-card {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border: 1px solid #bbf7d0;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 16px;
+      }
+      
+      h1 {
+        font-size: 2.5rem;
+      }
+      
+      h2 {
+        font-size: 2rem;
+      }
+      
+      .hero-actions,
+      .cta-actions {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .nav {
+        display: none;
+      }
+      
+      .stats {
+        flex-direction: column;
+        gap: 20px;
+      }
+      
+      .features-grid,
+      .process-grid,
+      .membership-cards,
+      .partner-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .flow-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1001;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 40px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      position: relative;
+    }
+
+    .close {
+      position: absolute;
+      right: 24px;
+      top: 24px;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--gray-500);
+    }
+
+    .close:hover {
+      color: var(--text-dark);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--gray-300);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary-orange);
+    }
+
+    /* Comparison Section */
+    .comparison-section {
+      padding: 100px 0;
+      background: linear-gradient(135deg, #fef7f0 0%, #fef2f2 100%);
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 32px;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .comparison-card {
+      padding: 40px;
+      border-radius: 16px;
+      background: white;
+      border: 1px solid var(--gray-200);
+    }
+
+    .comparison-card.traditional {
+      border-color: #fecaca;
+    }
+
+    .comparison-card.partnershop {
+      border-color: #bbf7d0;
+    }
+
+    .comparison-list {
+      list-style: none;
+      margin-top: 20px;
+    }
+
+    .comparison-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    .comparison-list .icon {
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Savings Highlight */
+    .savings-highlight {
+      text-align: center;
+      padding: 60px 0;
+      background: linear-gradient(135deg, var(--primary-orange), var(--secondary-red));
+      color: white;
+    }
+
+    .savings-amount {
+      font-size: 64px;
+      font-weight: 700;
+      margin: 20px 0;
+    }
+
+    .savings-label {
+      font-size: 20px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
           </div>
-          
-          <nav class="nav">
-            <a href="#features">Features</a>
-            <a href="#how-it-works">How It Works</a>
-            <a href="#pricing">Pricing</a>
-          </nav>
-          
-          <a href="/login.html" class="btn btn-primary">Start Now</a>
-        </div>
-      </div>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="container">
-        <div class="hero-content">
-          <h1>Start Your Etsy POD Business in Minutes</h1>
-          <p>AI-powered designs, automated mockups, and seamless Etsy integration. Only 2% commission. No monthly fees.</p>
-          
-          <div class="hero-actions">
-            <a href="/login.html" class="btn btn-primary">Start Free Trial</a>
-            <a href="#how-it-works" class="btn btn-secondary">See How It Works</a>
-          </div>
-          
-          <div class="social-proof">
-            <p>Trusted by 1,000+ Etsy Sellers</p>
-            <div class="stats">
-              <div class="stat">
-                <div class="stat-number">$2M+</div>
-                <div class="stat-label">In Sales</div>
-              </div>
-              <div class="stat">
-                <div class="stat-number">50K+</div>
-                <div class="stat-label">Products Listed</div>
-              </div>
-              <div class="stat">
-                <div class="stat-number">4.9★</div>
-                <div class="stat-label">Average Rating</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="dashboard-preview">
-            <div class="dashboard-placeholder">
-              <div class="dashboard-content">
-                <div class="dashboard-icon">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                  </svg>
-                </div>
-                <h3>AI-Powered Dashboard</h3>
-                <p>Real-time analytics and automated product management</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Features -->
-    <section id="features" class="features">
-      <div class="container">
-        <div class="section-header">
-          <h2>Everything You Need to Succeed</h2>
-          <p>From product research to automated fulfillment - we handle the hard work so you can focus on growing your business.</p>
+          PartnerShop
         </div>
         
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon orange">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-              </svg>
-            </div>
-            <h3>Smart Product Research</h3>
-            <p>AI analyzes top-performing Etsy listings to identify profitable niches and trending designs.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon red">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
-              </svg>
-            </div>
-            <h3>AI Design Generation</h3>
-            <p>Create unique, on-trend designs in seconds with our advanced AI technology.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon amber">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-              </svg>
-            </div>
-            <h3>Professional Mockups</h3>
-            <p>Studio-quality mockups for 50+ products. No design skills required.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon emerald">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
-            </div>
-            <h3>Automated Listings</h3>
-            <p>Generate 100+ SEO-optimized listings with one click. Titles, descriptions, and tags included.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon purple">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>
-            </div>
-            <h3>No Design Skills Needed</h3>
-            <p>Our AI handles everything from design creation to mockup generation automatically.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon blue">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-              </svg>
-            </div>
-            <h3>SEO-Optimized Content</h3>
-            <p>AI-generated titles, descriptions, and tags that rank higher on Etsy search.</p>
-          </div>
+        <nav class="nav">
+          <a href="#how-it-works">Nasıl Çalışır?</a>
+          <a href="#membership">Üyelik Paketi</a>
+          <a href="#partners">Partnerler</a>
+          <a href="#referral">Arkadaşını Davet Et</a>
+        </nav>
+        
+        <div class="language-switcher">
+          <button class="lang-btn active" onclick="switchLanguage('tr')">TR</button>
+          <button class="lang-btn" onclick="switchLanguage('en')">EN</button>
         </div>
         
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="number">10x</div>
-            <div class="label">Faster Listing Creation</div>
-          </div>
-          <div class="stat-item">
-            <div class="number">50+</div>
-            <div class="label">Product Categories</div>
-          </div>
-          <div class="stat-item">
-            <div class="number">2%</div>
-            <div class="label">Commission Only</div>
-          </div>
-          <div class="stat-item">
-            <div class="number">24/7</div>
-            <div class="label">AI Assistant</div>
-          </div>
-        </div>
+        <a href="/login.html" class="btn btn-primary">Hemen Başla</a>
       </div>
-    </section>
+    </div>
+  </header>
 
-    <!-- How It Works -->
-    <section id="how-it-works" class="how-it-works">
-      <div class="container">
-        <div class="section-header">
-          <h2>How It Works in 4 Simple Steps</h2>
-          <p>Go from idea to selling on Etsy in under 30 minutes with our automated workflow.</p>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1 data-lang="tr">Tek Üyelik — Tüm Operasyonlar Merkezden</h1>
+        <h1 data-lang="en" style="display: none;">One Membership — All Operations Centrally Managed</h1>
+        
+        <p data-lang="tr">Etsy, Amazon gibi platformlarda satış için sana özel tasarımlı POD Baskılı ürünler platformda yayınlanır, Sen sadece gelen siparişleri takip eder POD baskı firmasına ödemeyi yaparsın, siparişin otomatik baskıya alınır ve kargo ile müşterine teslim edilir, Ekstra platformlara kayıt ücreti, reklam ücreti, Yapay Zeka araçlarına para ödemezsin, Yüksek satış trend olan ürünleri analiz ediyor, ürünlerinizi satış'a hazır duruma getiriyoruz.</p>
+        <p data-lang="en" style="display: none;">Custom designed POD printed products for sales on platforms like Etsy, Amazon are published on the platform. You just track incoming orders and pay the POD printing company. Your order is automatically sent to printing and delivered to your customer via cargo. You don't pay extra platform registration fees, advertising fees, or AI tool costs. We analyze high-sales trending products and prepare your products for sale.</p>
+        
+        <div class="hero-actions">
+          <a href="/login.html" class="btn btn-primary" data-lang="tr">Ücretsiz Deneme Başlat</a>
+          <a href="/login.html" class="btn btn-primary" data-lang="en" style="display: none;">Start Free Trial</a>
+          <a href="#how-it-works" class="btn btn-secondary" data-lang="tr">Nasıl Çalışır?</a>
+          <a href="#how-it-works" class="btn btn-secondary" data-lang="en" style="display: none;">How It Works?</a>
         </div>
         
-        <div class="steps-grid">
-          <div class="step">
-            <div class="step-number">1</div>
-            <h3>Analyze & Research</h3>
-            <p>Paste any Etsy shop URL. Our AI analyzes bestsellers and buyer preferences.</p>
-          </div>
-          
-          <div class="step">
-            <div class="step-number">2</div>
-            <h3>Generate Designs</h3>
-            <p>AI creates unique design variations inspired by top-performing listings.</p>
-          </div>
-          
-          <div class="step">
-            <div class="step-number">3</div>
-            <h3>Create Mockups</h3>
-            <p>Automatically generate professional product mockups for 50+ products.</p>
-          </div>
-          
-          <div class="step">
-            <div class="step-number">4</div>
-            <h3>Publish & Sell</h3>
-            <p>One-click publishing to your Etsy store with optimized SEO content.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Comparison -->
-    <section class="comparison">
-      <div class="container">
-        <div class="section-header">
-          <h2>Stop Guessing, Start Growing</h2>
-          <p>Traditional POD methods vs. our AI-powered platform</p>
-        </div>
-        
-        <div class="comparison-grid">
-          <div class="comparison-card problems">
-            <h3>The Old Way</h3>
-            <ul class="comparison-list">
-              <li>
-                <span class="icon">✗</span>
-                <span>Hours spent guessing what might sell</span>
-              </li>
-              <li>
-                <span class="icon">✗</span>
-                <span>Limited by design skills or budget</span>
-              </li>
-              <li>
-                <span class="icon">✗</span>
-                <span>Time-consuming Photoshop work</span>
-              </li>
-              <li>
-                <span class="icon">✗</span>
-                <span>Trial and error with keywords</span>
-              </li>
-              <li>
-                <span class="icon">✗</span>
-                <span>Months to build a substantial catalog</span>
-              </li>
-            </ul>
-          </div>
-          
-          <div class="comparison-card solutions">
-            <h3>Our AI Solution</h3>
-            <ul class="comparison-list">
-              <li>
-                <span class="icon">✓</span>
-                <span>AI identifies proven bestsellers instantly</span>
-              </li>
-              <li>
-                <span class="icon">✓</span>
-                <span>100+ designs in minutes, no skills needed</span>
-              </li>
-              <li>
-                <span class="icon">✓</span>
-                <span>Professional mockups in one click</span>
-              </li>
-              <li>
-                <span class="icon">✓</span>
-                <span>AI-optimized titles and descriptions</span>
-              </li>
-              <li>
-                <span class="icon">✓</span>
-                <span>100+ listings created simultaneously</span>
-              </li>
-            </ul>
+        <div class="social-proof">
+          <p data-lang="tr">400+ Üye | 2M+ USD Satış | 24/7 Destek</p>
+          <p data-lang="en" style="display: none;">400+ Members | 2M+ USD Sales | 24/7 Support</p>
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-number">400+</div>
+              <div class="stat-label" data-lang="tr">Aktif Üye</div>
+              <div class="stat-label" data-lang="en" style="display: none;">Active Members</div>
+            </div>
+            <div class="stat">
+              <div class="stat-number">$2M+</div>
+              <div class="stat-label" data-lang="tr">Toplam Satış</div>
+              <div class="stat-label" data-lang="en" style="display: none;">Total Sales</div>
+            </div>
+            <div class="stat">
+              <div class="stat-number">24/7</div>
+              <div class="stat-label" data-lang="tr">Destek</div>
+              <div class="stat-label" data-lang="en" style="display: none;">Support</div>
+            </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Pricing -->
-    <section id="pricing" class="pricing">
-      <div class="container">
-        <div class="section-header">
-          <h2>Simple, Fair Pricing</h2>
-          <p>Only pay when you make sales. No monthly fees, no hidden costs, no risk.</p>
-        </div>
-        
-        <div class="pricing-card">
-          <div class="pricing-badge">Most Popular</div>
-          <div class="pricing-header">
-            <h3>Pay Per Sale</h3>
-            <div class="pricing-price">
-              <span class="amount">2%</span>
-              <span class="period">commission</span>
-            </div>
-            <p>Only pay when you make a sale. Perfect for beginners and scaling businesses.</p>
-          </div>
-          
-          <ul class="pricing-features">
+  <!-- Savings Highlight -->
+  <section class="savings-highlight">
+    <div class="container">
+      <h2 data-lang="tr">Aylık Ortalama 500$ Tasarruf</h2>
+      <h2 data-lang="en" style="display: none;">Average Monthly Savings of $500</h2>
+      <div class="savings-amount">$500+</div>
+      <p class="savings-label" data-lang="tr">Platform ücretleri, AI araçları, reklam maliyetleri ortadan kalkar</p>
+      <p class="savings-label" data-lang="en" style="display: none;">Platform fees, AI tools, advertising costs eliminated</p>
+    </div>
+  </section>
+
+  <!-- Comparison Section -->
+  <section class="comparison-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 data-lang="tr">Geleneksel Yöntem vs PartnerShop</h2>
+        <h2 data-lang="en" style="display: none;">Traditional Method vs PartnerShop</h2>
+        <p data-lang="tr">Neden daha fazla ödemeyesiniz? İşte size maliyet karşılaştırması</p>
+        <p data-lang="en" style="display: none;">Why pay more? Here's the cost comparison for you</p>
+      </div>
+      
+      <div class="comparison-grid">
+        <div class="comparison-card traditional">
+          <h3 data-lang="tr">Bireysel Çaba ile</h3>
+          <h3 data-lang="en" style="display: none;">With Individual Effort</h3>
+          <ul class="comparison-list">
             <li>
-              <svg class="check" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              Unlimited Store Analysis
+              <span class="icon">✗</span>
+              <span data-lang="tr">Etsy/Amazon platform ücretleri: 50-200$/ay</span>
+              <span data-lang="en" style="display: none;">Etsy/Amazon platform fees: $50-200/month</span>
             </li>
             <li>
-              <svg class="check" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              Unlimited AI Design Generation
+              <span class="icon">✗</span>
+              <span data-lang="tr">AI tasarım araçları: 30-100$/ay</span>
+              <span data-lang="en" style="display: none;">AI design tools: $30-100/month</span>
             </li>
             <li>
-              <svg class="check" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              Unlimited Product Mockups
+              <span class="icon">✗</span>
+              <span data-lang="tr">Reklam bütçesi: 100-500$/ay</span>
+              <span data-lang="en" style="display: none;">Advertising budget: $100-500/month</span>
             </li>
             <li>
-              <svg class="check" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              Unlimited SEO Content
+              <span class="icon">✗</span>
+              <span data-lang="tr">Ürün araştırma araçları: 50-150$/ay</span>
+              <span data-lang="en" style="display: none;">Product research tools: $50-150/month</span>
             </li>
             <li>
-              <svg class="check" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              Multi-POD Provider Support
-            </li>
-            <li>
-              <svg class="check" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              Automated Order Fulfillment
+              <span class="icon">✗</span>
+              <span data-lang="tr">Toplam: 230-950$/ay ek maliyet</span>
+              <span data-lang="en" style="display: none;">Total: $230-950/month extra cost</span>
             </li>
           </ul>
-          
-          <a href="/login.html" class="btn btn-primary" style="width: 100%;">Start Free Trial</a>
-          <p style="text-align: center; color: var(--gray-500); font-size: 12px; margin-top: 12px;">No credit card required • 14-day free trial</p>
+        </div>
+        
+        <div class="comparison-card partnershop">
+          <h3 data-lang="tr">PartnerShop ile</h3>
+          <h3 data-lang="en" style="display: none;">With PartnerShop</h3>
+          <ul class="comparison-list">
+            <li>
+              <span class="icon">✓</span>
+              <span data-lang="tr">Tek üyelik: 29$/ay (tüm araçlar dahil)</span>
+              <span data-lang="en" style="display: none;">Single membership: $29/month (all tools included)</span>
+            </li>
+            <li>
+              <span class="icon">✓</span>
+              <span data-lang="tr">AI tasarım araçları: ÜCRETSİZ</span>
+              <span data-lang="en" style="display: none;">AI design tools: FREE</span>
+            </li>
+            <li>
+              <span class="icon">✓</span>
+              <span data-lang="tr">Trend ürün analizi: ÜCRETSİZ</span>
+              <span data-lang="en" style="display: none;">Trend product analysis: FREE</span>
+            </li>
+            <li>
+              <span class="icon">✓</span>
+              <span data-lang="tr">Reklam optimizasyonu: ÜCRETSİZ</span>
+              <span data-lang="en" style="display: none;">Advertising optimization: FREE</span>
+            </li>
+            <li>
+              <span class="icon">✓</span>
+              <span data-lang="tr">Toplam tasarruf: 200-900$/ay</span>
+              <span data-lang="en" style="display: none;">Total savings: $200-900/month</span>
+            </li>
+          </ul>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- CTA -->
-    <section class="cta">
-      <div class="container">
-        <h2>Ready to Launch Your Etsy Empire?</h2>
-        <p>Join thousands of sellers who've automated their POD business and are making real money on Etsy.</p>
-        <div class="cta-actions">
-          <a href="/login.html" class="btn" style="background: white; color: var(--primary-orange);">Start Free Trial</a>
-          <a href="#how-it-works" class="btn" style="background: transparent; color: white; border: 1px solid white;">Learn More</a>
+  <!-- How It Works -->
+  <section id="how-it-works" class="how-it-works-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 data-lang="tr">Tüm Operasyonlar Merkezden Yönetilir</h2>
+        <h2 data-lang="en" style="display: none;">All Operations Centrally Managed</h2>
+        <p data-lang="tr">Siz sadece ürün kategorinizi seçin, gerisini biz hallederiz</p>
+        <p data-lang="en" style="display: none;">You just choose your product category, we handle the rest</p>
+      </div>
+      
+      <div class="process-grid">
+        <div class="process-step">
+          <div class="step-number">1</div>
+          <h3 data-lang="tr">Ürün Kategorisi Seç</h3>
+          <h3 data-lang="en" style="display: none;">Choose Product Category</h3>
+          <p data-lang="tr">Sadece hangi kategoride satış yapmak istediğinizi seçin</p>
+          <p data-lang="en" style="display: none;">Just choose which category you want to sell in</p>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">2</div>
+          <h3 data-lang="tr">AI Otomatik Hazırlık</h3>
+          <h3 data-lang="en" style="display: none;">AI Automatic Preparation</h3>
+          <p data-lang="tr">AI, trend ürünleri analiz eder, tasarım, mockup ve içerik oluşturur</p>
+          <p data-lang="en" style="display: none;">AI analyzes trending products, creates design, mockup and content</p>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">3</div>
+          <h3 data-lang="tr">Platformlara Otomatik Yayınla</h3>
+          <h3 data-lang="en" style="display: none;">Auto-Publish to Platforms</h3>
+          <p data-lang="tr">Ürünler otomatik olarak Etsy/Amazon hesabınıza yüklenir</p>
+          <p data-lang="en" style="display: none;">Products are automatically uploaded to your Etsy/Amazon account</p>
+        </div>
+        
+        <div class="process-step">
+          <div class="step-number">4</div>
+          <h3 data-lang="tr">Sipariş Takibi & Ödeme</h3>
+          <h3 data-lang="en" style="display: none;">Order Tracking & Payment</h3>
+          <p data-lang="tr">Sipariş geldiğinde POD'a ödeme yap, sistem otomatik takip eder</p>
+          <p data-lang="en" style="display: none;">When order comes, pay POD, system automatically tracks</p>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-logo">
-            <div class="footer-logo-icon">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>
+   <!-- Membership -->
+  <section id="membership" class="pricing" style="background: white;">
+    <div class="container">
+      <div class="section-header">
+        <h2 data-lang="tr">Üyelik Paketi</h2>
+        <h2 data-lang="en" style="display: none;">Membership Package</h2>
+        <p data-lang="tr">Paketi Kullanmak İçin:</p>
+        <p data-lang="en" style="display: none;">To Use the Package:</p>
+      </div>
+      
+      <div class="membership-cards">
+        <div class="membership-card">
+          <div class="membership-badge" data-lang="tr">En Popüler</div>
+          <div class="membership-badge" data-lang="en" style="display: none;">Most Popular</div>
+          <div class="membership-header">
+            <h3 data-lang="tr">Tek Üyelik, Her Şey Dahil</h3>
+            <h3 data-lang="en" style="display: none;">Single Membership, All Inclusive</h3>
+            <div class="membership-price">
+              <span class="amount">29 USD</span>
+              <span class="period" data-lang="tr">/ Ay</span>
+              <span class="period" data-lang="en" style="display: none">/ Month</span>
             </div>
-            Etsy AI POD
+            <div style="margin-top: 16px;">
+              <span style="background: #fef3f2; color: #ea580c; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 14px;">
+                %2 Komisyon
+              </span>
+            </div>
           </div>
-          <p>The Fastest Way to Start Your ETSY Print On Demand Business</p>
-          <p>AI-generated designs, automated mockups, and instant Etsy listings.</p>
           
-          <div class="footer-disclaimer">
-            <p>The term 'Etsy' is a trademark of Etsy, Inc. This application uses the Etsy API but is not endorsed or certified by Etsy.</p>
-            <p style="margin-top: 8px;">© 2024 Etsy AI POD. All rights reserved.</p>
+          <div style="margin-bottom: 24px;">
+            <h4 data-lang="tr" style="margin-bottom: 16px; color: var(--gray-700);">Özellikler:</h4>
+            <h4 data-lang="en" style="margin-bottom: 16px; color: var(--gray-700); display: none;">Features:</h4>
+            
+            <div style="margin-bottom: 20px;">
+              <h5 data-lang="tr" style="color: var(--primary-orange); margin-bottom: 8px;">Sadece ürün kategorinizi seçin</h5>
+              <h5 data-lang="en" style="color: var(--primary-orange); margin-bottom: 8px; display: none;">Just select your product category</h5>
+              <p data-lang="tr" style="font-size: 14px; color: var(--gray-600);">Ürün seçimi, tasarım, mockup ve içerik panelinize yüklenir</p>
+              <p data-lang="en" style="font-size: 14px; color: var(--gray-600); display: none;">Product selection, design, mockup and content are loaded to your panel</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <h5 data-lang="tr" style="color: var(--primary-orange); margin-bottom: 8px;">Tek Etsy/Amazon hesabı üzerinden yayınlanır</h5>
+              <h5 data-lang="en" style="color: var(--primary-orange); margin-bottom: 8px; display: none;">Published through single Etsy/Amazon account</h5>
+              <p data-lang="tr" style="font-size: 14px; color: var(--gray-600);">Tüm platformlar tek hesaptan yönetilir</p>
+              <p data-lang="en" style="font-size: 14px; color: var(--gray-600); display: none;">All platforms managed from single account</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <h5 data-lang="tr" style="color: var(--primary-orange); margin-bottom: 8px;">Merkezi Operasyon Yönetimi</h5>
+              <h5 data-lang="en" style="color: var(--primary-orange); margin-bottom: 8px; display: none;">Central Operations Management</h5>
+              <p data-lang="tr" style="font-size: 14px; color: var(--gray-600);">Siparişler POD merkezinde üretilir ve müşteriye gönderilir</p>
+              <p data-lang="en" style="font-size: 14px; color: var(--gray-600); display: none;">Orders are produced at POD center and shipped to customer</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <h5 data-lang="tr" style="color: var(--primary-orange); margin-bottom: 8px;">Otomatik Gelir Transferi</h5>
+              <h5 data-lang="en" style="color: var(--primary-orange); margin-bottom: 8px; display: none;">Automatic Revenue Transfer</h5>
+              <p data-lang="tr" style="font-size: 14px; color: var(--gray-600);">Gelir: %2 komisyon + POD/kargo sonrası bakiye → Payoneer hesabına aynı gün transfer</p>
+              <p data-lang="en" style="font-size: 14px; color: var(--gray-600); display: none;">Revenue: 2% commission + balance after POD/shipping → Same day transfer to Payoneer account</p>
+            </div>
+            
+            <div>
+              <h5 data-lang="tr" style="color: var(--primary-orange); margin-bottom: 8px;">Tam Kontrol Paneli</h5>
+              <h5 data-lang="en" style="color: var(--primary-orange); margin-bottom: 8px; display: none;">Full Control Panel</h5>
+              <p data-lang="tr" style="font-size: 14px; color: var(--gray-600);">Panelden tüm siparişleri takip edebilirsiniz, operasyonel süreçler merkezden yönetilir</p>
+              <p data-lang="en" style="font-size: 14px; color: var(--gray-600); display: none;">Track all orders from panel, operational processes are centrally managed</p>
+            </div>
           </div>
+          
+          <a href="/login.html" class="btn btn-primary" style="width: 100%;" data-lang="tr">Hemen Başla</a>
+          <a href="/login.html" class="btn btn-primary" style="width: 100%; display: none;" data-lang="en">Get Started Now</a>
+          <p style="text-align: center; color: var(--gray-500); font-size: 12px; margin-top: 12px;" data-lang="tr">İlk 14 gün ücretsiz • Kredi kartı gerekmez</p>
+          <p style="text-align: center; color: var(--gray-500); font-size: 12px; margin-top: 12px; display: none;" data-lang="en">First 14 days free • No credit card required</p>
+        </div>
+
+        <div class="membership-card">
+          <div class="membership-header">
+            <h3 data-lang="tr">Arkadaşını Davet Et</h3>
+            <h3 data-lang="en" style="display: none;">Invite Friends</h3>
+            <div class="membership-price">
+              <span class="amount">%30</span>
+              <span class="period" data-lang="tr">kazanç</span>
+              <span class="period" data-lang="en" style="display: none">earnings</span>
+            </div>
+            <p data-lang="tr" style="color: var(--gray-600); margin-top: 12px;">Referans bağlantını paylaş, her başvurudan kazan</p>
+            <p data-lang="en" style="color: var(--gray-600); margin-top: 12px; display: none;">Share your referral link, earn from every application</p>
+          </div>
+          
+          <div style="margin-bottom: 24px;">
+            <h4 data-lang="tr" style="margin-bottom: 16px; color: var(--gray-700);">Nasıl Çalışır:</h4>
+            <h4 data-lang="en" style="margin-bottom: 16px; color: var(--gray-700); display: none;">How It Works:</h4>
+            
+            <div style="margin-bottom: 20px;">
+              <h5 data-lang="tr" style="color: #059669; margin-bottom: 8px;">%30 Kazanç Sadece Yeni Üye Kayıtlarında</h5>
+              <h5 data-lang="en" style="color: #059669; margin-bottom: 8px; display: none;">30% Earnings Only for New Member Registrations</h5>
+              <p data-lang="tr" style="font-size: 14px; color: var(--gray-600);">Her yeni üye kaydı için %30 komisyon kazanırsınız</p>
+              <p data-lang="en" style="font-size: 14px; color: var(--gray-600); display: none;">You earn 30% commission for each new member registration</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <h5 data-lang="tr" style="color: #059669; margin-bottom: 8px;">Kişisel Paylaşım Linki</h5>
+              <h5 data-lang="en" style="color: #059669; margin-bottom: 8px; display: none;">Personal Sharing Link</h5>
+              <p data-lang="tr" style="font-size: 14px; color: var(--gray-600);">Üye, kendi sosyal medya veya paylaşım linki üzerinden davet edebilir</p>
+              <p data-lang="en" style="font-size: 14px; color: var(--gray-600); display: none;">Member can invite through their social media or sharing links</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <h5 data-lang="tr" style="color: #059669; margin-bottom: 8px;">Anında Ödeme</h5>
+              <h5 data-lang="en" style="color: #059669; margin-bottom: 8px; display: none;">Instant Payment</h5>
+              <p data-lang="tr" style="font-size: 14px; color: var(--gray-600);">Davet edilen kişi abone olduğunda kazanç anında Payoneer veya banka hesabına aktarılır</p>
+              <p data-lang="en" style="font-size: 14px; color: var(--gray-600); display: none;">When invited person subscribes, earnings are instantly transferred to Payoneer or bank account</p>
+            </div>
+            
+            <div>
+              <h5 data-lang="tr" style="color: #059669; margin-bottom: 8px;">Sadece Yeni Üyeler İçin</h5>
+              <h5 data-lang="en" style="color: #059669; margin-bottom: 8px; display: none;">Only for New Members</h5>
+              <p data-lang="tr" style="font-size: 14px; color: var(--gray-600);">Bu kampanya sadece yeni üye kayıtları için geçerlidir</p>
+              <p data-lang="en" style="font-size: 14px; color: var(--gray-600); display: none;">This campaign is valid only for new member registrations</p>
+            </div>
+          </div>
+          
+          <a href="/login.html" class="btn btn-primary" style="width: 100%;" data-lang="tr">Referans Linki Al</a>
+          <a href="/login.html" class="btn btn-primary" style="width: 100%; display: none;" data-lang="en">Get Referral Link</a>
+          <p style="text-align: center; color: var(--gray-500); font-size: 12px; margin-top: 12px;" data-lang="tr">Her davet için %30 kazanç garantili</p>
+          <p style="text-align: center; color: var(--gray-500); font-size: 12px; margin-top: 12px; display: none;" data-lang="en">30% earnings guaranteed for each invitation</p>
         </div>
       </div>
-    </footer>
-  </body>
+    </div>
+  </section>
+
+  <!-- Partners Section -->
+  <section id="partners" class="partner-cards-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 data-lang="tr">Partner Kartları</h2>
+        <h2 data-lang="en" style="display: none;">Partner Cards</h2>
+        <p data-lang="tr">Supabase veritabanından otomatik çekilmektedir</p>
+        <p data-lang="en" style="display: none;">Automatically fetched from Supabase database</p>
+      </div>
+      
+      <div id="partnersContainer" class="partner-cards">
+        <!-- Partner kartları buraya JavaScript ile yüklenecek -->
+        <div class="loading-partners" data-lang="tr">Partnerler yükleniyor...</div>
+        <div class="loading-partners" data-lang="en" style="display: none;">Loading partners...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Referral Section -->
+  <section id="referral" class="referral-card container">
+    <h3 data-lang="tr">Arkadaşını Davet Et %30 Kazan</h3>
+    <h3 data-lang="en" style="display: none;">Invite Friends Earn 30%</h3>
+    <p data-lang="tr" style="margin-bottom: 20px;">%30 kazanç sadece yeni üye kayıtlarında ödenir. Üye, kendi sosyal medya veya paylaşım linki üzerinden davet edebilir. Davet edilen kişi abone olduğunda kazanç anında Payoneer veya banka hesabına aktarılır. Sadece yeni üye için geçerlidir.</p>
+    <p data-lang="en" style="margin-bottom: 20px; display: none;">30% earnings are paid only for new member registrations. Members can invite through their social media or sharing links. When the invited person subscribes, earnings are instantly transferred to Payoneer or bank account. Valid only for new members.</p>
+    <button class="btn btn-primary" onclick="openApplyModal()" data-lang="tr">Referans Linki Al</button>
+    <button class="btn btn-primary" onclick="openApplyModal()" data-lang="en" style="display: none;">Get Referral Link</button>
+  </section>
+
+  <!-- CTA (aynı) -->
+  <section class="cta">
+    <div class="container">
+      <h2 data-lang="tr">PartnerShop ile Kazanmaya Başla</h2>
+      <h2 data-lang="en" style="display: none;">Start Earning with PartnerShop</h2>
+      <p data-lang="tr">İlk 14 gün ücretsiz deneyin, %2 komisyonla satış yapın</p>
+      <p data-lang="en" style="display: none;">Try free for first 14 days, sell with 2% commission</p>
+      <div class="cta-actions">
+        <a href="/login.html" class="btn" style="background: white; color: var(--primary-orange);" data-lang="tr">Ücretsiz Deneme Başlat</a>
+        <a href="/login.html" class="btn" style="background: white; color: var(--primary-orange); display: none;" data-lang="en">Start Free Trial</a>
+        <a href="#how-it-works" class="btn" style="background: transparent; color: white; border: 1px solid white;" data-lang="tr">Daha Fazla Bilgi</a>
+        <a href="#how-it-works" class="btn" style="background: transparent; color: white; border: 1px solid white; display: none;" data-lang="en">Learn More</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-column">
+          <h4 data-lang="tr">Hakkımızda</h4>
+          <h4 data-lang="en" style="display: none;">About Us</h4>
+          <p data-lang="tr">PartnerShop, e-ticaret, POD, finans ve ödeme sistemlerini tek platformda birleştiren global bir çözümdür.</p>
+          <p data-lang="en" style="display: none;">PartnerShop is a global solution that combines e-commerce, POD, finance and payment systems on a single platform.</p>
+        </div>
+        
+        <div class="footer-column">
+          <h4 data-lang="tr">SSS</h4>
+          <h4 data-lang="en" style="display: none;">FAQ</h4>
+          <ul>
+            <li><a href="#" data-lang="tr">Nasıl başlarım?</a><a href="#" data-lang="en" style="display: none;">How do I start?</a></li>
+            <li><a href="#" data-lang="tr">Ödemeler nasıl yapılır?</a><a href="#" data-lang="en" style="display: none;">How are payments made?</a></li>
+            <li><a href="#" data-lang="tr">Komisyon oranları nedir?</a><a href="#" data-lang="en" style="display: none;">What are commission rates?</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-column">
+          <h4 data-lang="tr">Destek / İletişim</h4>
+          <h4 data-lang="en" style="display: none;">Support / Contact</h4>
+          <ul>
+            <li><a href="mailto:destek@partnershop.com">destek@partnershop.com</a></li>
+            <li><a href="#" data-lang="tr">Canlı Destek</a><a href="#" data-lang="en" style="display: none;">Live Support</a></li>
+            <li><a href="#" data-lang="tr">Yardım Merkezi</a><a href="#" data-lang="en" style="display: none;">Help Center</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-column">
+          <h4 data-lang="tr">Kullanım Şartları / Gizlilik</h4>
+          <h4 data-lang="en" style="display: none;">Terms of Use / Privacy</h4>
+          <ul>
+            <li><a href="#" data-lang="tr">Kullanım Şartları</a><a href="#" data-lang="en" style="display: none;">Terms of Use</a></li>
+            <li><a href="#" data-lang="tr">Gizlilik Politikası</a><a href="#" data-lang="en" style="display: none;">Privacy Policy</a></li>
+            <li><a href="#" data-lang="tr">Çerez Politikası</a><a href="#" data-lang="en" style="display: none;">Cookie Policy</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-column">
+          <h4 data-lang="tr">Ortaklarımız / Entegrasyonlar</h4>
+          <h4 data-lang="en" style="display: none;">Our Partners / Integrations</h4>
+          <ul>
+            <li>Etsy</li>
+            <li>Amazon</li>
+            <li>Printful</li>
+            <li>Wise</li>
+            <li>Payoneer</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <div class="footer-logo">
+          <div class="footer-logo-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          PartnerShop
+        </div>
+        <p>© 2024 PartnerShop. Tüm hakları saklıdır. All partner trademarks are the property of their respective owners.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Apply Modal -->
+  <div id="applyModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('applyModal')">&times;</span>
+      <h3 id="applyModalTitle" data-lang="tr">Partner Başvuru Formu</h3>
+      <h3 id="applyModalTitleEn" data-lang="en" style="display: none;">Partner Application Form</h3>
+      <form id="applicationForm" onsubmit="submitApplication(event)">
+        <input type="hidden" id="modalPartnerId">
+        <input type="hidden" id="modalPartnerLink">
+        <input type="hidden" id="modalPartnerName">
+        
+        <div class="form-group">
+          <label data-lang="tr">Telefon Numarası *</label>
+          <label data-lang="en" style="display: none;">Phone Number *</label>
+          <input type="tel" id="phone" placeholder="+90 5XX XXX XX XX" required>
+        </div>
+        
+        <div class="form-group">
+          <label data-lang="tr">Referans Kodu</label>
+          <label data-lang="en" style="display: none;">Referral Code</label>
+          <input type="text" id="referralCode" placeholder="REF12345">
+          <small data-lang="tr" style="color: var(--gray-500); font-size: 12px; display: block; margin-top: 4px;">URL'den veya localStorage'dan otomatik doldurulur</small>
+          <small data-lang="en" style="color: var(--gray-500); font-size: 12px; display: none; margin-top: 4px;">Automatically filled from URL or localStorage</small>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;" data-lang="tr">Kayıt Ol</button>
+        <button type="submit" class="btn btn-primary" style="width: 100%; display: none;" data-lang="en">Register</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div id="detailModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('detailModal')">&times;</span>
+      <h3 id="detailTitle"></h3>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <script>
+    // Supabase bağlantısı
+    const supabaseUrl = 'YOUR_SUPABASE_URL'; // Supabase proje URL'nizi buraya ekleyin
+    const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'; // Supabase anon key'inizi buraya ekleyin
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Language switching
+    function switchLanguage(lang) {
+      // Update buttons
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent === lang.toUpperCase()) {
+          btn.classList.add('active');
+        }
+      });
+
+      // Show/hide content based on language
+      document.querySelectorAll(`[data-lang="tr"]`).forEach(el => {
+        el.style.display = lang === 'tr' ? '' : 'none';
+      });
+      
+      document.querySelectorAll(`[data-lang="en"]`).forEach(el => {
+        el.style.display = lang === 'en' ? '' : 'none';
+      });
+    }
+
+    // Modal functions
+    let currentPartner = null;
+
+    async function openApplyModal(partnerId = null, partnerLink = null, partnerName = null) {
+      if (partnerId) {
+        currentPartner = { id: partnerId, link: partnerLink, name: partnerName };
+        document.getElementById('modalPartnerId').value = partnerId;
+        document.getElementById('modalPartnerLink').value = partnerLink;
+        document.getElementById('modalPartnerName').value = partnerName;
+        
+        // Modal başlığını güncelle
+        document.getElementById('applyModalTitle').textContent = partnerName + ' Başvuru Formu';
+        document.getElementById('applyModalTitleEn').textContent = partnerName + ' Application Form';
+      }
+      
+      document.getElementById('applyModal').style.display = 'block';
+    }
+
+    async function openDetailModal(partnerId) {
+      try {
+        // Partner detaylarını Supabase'den çek
+        const { data: partner, error } = await supabase
+          .from('partners')
+          .select('*')
+          .eq('id', partnerId)
+          .single();
+
+        if (error) throw error;
+
+        const currentLang = document.querySelector('.lang-btn.active').textContent.toLowerCase();
+        
+        let content = '';
+        if (currentLang === 'tr') {
+          content = `
+            <h4>Detaylar</h4>
+            <p>${partner.long_description || partner.short_description}</p>
+            
+            <h4 style="margin-top: 20px;">Gereksinimler</h4>
+            <p>${partner.requirements}</p>
+            
+            <h4 style="margin-top: 20px;">Süreç</h4>
+            <p>${partner.process}</p>
+            
+            <h4 style="margin-top: 20px;">Komisyon Oranı</h4>
+            <p>${partner.commission_rate}</p>
+            
+            <h4 style="margin-top: 20px;">Avantajlar</h4>
+            <ul style="margin-left: 20px;">
+              ${JSON.parse(partner.benefits || '[]').map(benefit => `<li>${benefit}</li>`).join('')}
+            </ul>
+          `;
+        } else {
+          content = `
+            <h4>Details</h4>
+            <p>${partner.long_description || partner.short_description}</p>
+            
+            <h4 style="margin-top: 20px;">Requirements</h4>
+            <p>${partner.requirements}</p>
+            
+            <h4 style="margin-top: 20px;">Process</h4>
+            <p>${partner.process}</p>
+            
+            <h4 style="margin-top: 20px;">Commission Rate</h4>
+            <p>${partner.commission_rate}</p>
+            
+            <h4 style="margin-top: 20px;">Benefits</h4>
+            <ul style="margin-left: 20px;">
+              ${JSON.parse(partner.benefits || '[]').map(benefit => `<li>${benefit}</li>`).join('')}
+            </ul>
+          `;
+        }
+
+        document.getElementById('detailTitle').textContent = partner.name + ' Detayları';
+        document.getElementById('detailContent').innerHTML = content;
+        document.getElementById('detailModal').style.display = 'block';
+      } catch (error) {
+        console.error('Error loading partner details:', error);
+        alert('Partner detayları yüklenirken bir hata oluştu.');
+      }
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    // Form submission
+    async function submitApplication(event) {
+      event.preventDefault();
+      
+      const phone = document.getElementById('phone').value;
+      const referralCode = document.getElementById('referralCode').value;
+      const partnerId = document.getElementById('modalPartnerId').value;
+      const partnerLink = document.getElementById('modalPartnerLink').value;
+      const partnerName = document.getElementById('modalPartnerName').value;
+
+      if (!phone) {
+        const currentLang = document.querySelector('.lang-btn.active').textContent.toLowerCase();
+        alert(currentLang === 'tr' ? 'Lütfen telefon numarasını giriniz.' : 'Please enter phone number.');
+        return;
+      }
+
+      try {
+        // Supabase'e başvuruyu kaydet
+        const { data, error } = await supabase
+          .from('partner_applications')
+          .insert([
+            {
+              partner_id: partnerId,
+              referral_code: referralCode || 'DIRECT',
+              phone: phone,
+              status: 'pending',
+              source_page: window.location.href,
+              ip_address: await getIPAddress()
+            }
+          ])
+          .select();
+
+        if (error) throw error;
+
+        // Başarı mesajı göster
+        const currentLang = document.querySelector('.lang-btn.active').textContent.toLowerCase();
+        if (currentLang === 'tr') {
+          alert('Başvurunuz başarıyla gönderildi! Partner sayfasına yönlendiriliyorsunuz.');
+        } else {
+          alert('Your application has been submitted successfully! Redirecting to partner page.');
+        }
+        
+        // Partner sayfasına yönlendir
+        setTimeout(() => {
+          window.open(partnerLink, '_blank');
+        }, 1000);
+        
+        closeModal('applyModal');
+        document.getElementById('applicationForm').reset();
+        
+      } catch (error) {
+        console.error('Application error:', error);
+        const currentLang = document.querySelector('.lang-btn.active').textContent.toLowerCase();
+        alert(currentLang === 'tr' ? 'Başvuru gönderilirken bir hata oluştu.' : 'An error occurred while submitting the application.');
+      }
+    }
+
+    // Partner kartlarını yükle
+    async function loadPartners() {
+      try {
+        const container = document.getElementById('partnersContainer');
+        container.innerHTML = '<div class="loading-partners" data-lang="tr">Partnerler yükleniyor...</div><div class="loading-partners" data-lang="en" style="display: none;">Loading partners...</div>';
+
+        const { data: partners, error } = await supabase
+          .from('partners')
+          .select('*')
+          .eq('active', true)
+          .order('sort_order', { ascending: true });
+
+        if (error) throw error;
+
+        container.innerHTML = '';
+        
+        partners.forEach(partner => {
+          const card = document.createElement('div');
+          card.className = 'partner-card';
+          
+          const benefits = JSON.parse(partner.benefits || '[]');
+          const firstBenefit = benefits[0] || '';
+          
+          card.innerHTML = `
+            <div class="partner-header">
+              ${partner.logo_url ? `<img src="${partner.logo_url}" alt="${partner.name}" style="width: 40px; height: 40px; border-radius: 8px;">` : 
+                `<div class="partner-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                </div>`}
+              <div>
+                <h3>${partner.name}</h3>
+                <span style="font-size: 12px; color: var(--gray-500);">${partner.category}</span>
+              </div>
+            </div>
+            <p style="margin-bottom: 16px;">${partner.short_description}</p>
+            <div style="margin-bottom: 16px;">
+              <span style="background: #fef3f2; color: #ea580c; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                ${partner.commission_rate}
+              </span>
+            </div>
+            <div style="margin-top: 16px;">
+              <button class="btn btn-secondary" onclick="openDetailModal(${partner.id})" style="margin-right: 8px;" data-lang="tr">Detay Göster</button>
+              <button class="btn btn-secondary" onclick="openDetailModal(${partner.id})" style="margin-right: 8px; display: none;" data-lang="en">Details</button>
+              <button class="btn btn-primary" onclick="openApplyModal(${partner.id}, '${partner.affiliate_link}', '${partner.name}')" data-lang="tr">Başvur</button>
+              <button class="btn btn-primary" onclick="openApplyModal(${partner.id}, '${partner.affiliate_link}', '${partner.name}')" data-lang="en" style="display: none;">Apply</button>
+            </div>
+          `;
+          
+          container.appendChild(card);
+        });
+
+      } catch (error) {
+        console.error('Error loading partners:', error);
+        const container = document.getElementById('partnersContainer');
+        container.innerHTML = '<div class="error-loading" data-lang="tr">Partnerler yüklenirken bir hata oluştu.</div><div class="error-loading" data-lang="en" style="display: none;">Error loading partners.</div>';
+      }
+    }
+
+    // IP adresi al
+    async function getIPAddress() {
+      try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+      } catch {
+        return 'unknown';
+      }
+    }
+
+    // Check for referral code in URL
+    document.addEventListener('DOMContentLoaded', function() {
+      // Referral kodu kontrolü
+      const urlParams = new URLSearchParams(window.location.search);
+      const refCode = urlParams.get('ref');
+      if (refCode) {
+        document.getElementById('referralCode').value = refCode;
+        localStorage.setItem('partner_ref_code', refCode);
+      } else {
+        const storedCode = localStorage.getItem('partner_ref_code');
+        if (storedCode) {
+          document.getElementById('referralCode').value = storedCode;
+        }
+      }
+
+      // Partnerleri yükle
+      loadPartners();
+    });
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+      }
+    }
+  </script>
+</body>
 </html>
