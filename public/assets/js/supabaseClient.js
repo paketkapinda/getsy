@@ -56,7 +56,38 @@ export function getReferralCodeFromURL() {
     return urlParams.get('ref') || null;
 }
 
-// Referans kaydı oluşturma fonksiyonu
+// Kullanıcının profilini kontrol et veya oluştur
+export async function getOrCreateUserProfile(user, referralCode = null) {
+    try {
+        // Önce kullanıcının profilini kontrol et
+        const { data: existingProfile, error: fetchError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();  // maybeSingle: eğer kayıt yoksa null döner
+        
+        if (fetchError) {
+            console.error('Profil kontrol hatası:', fetchError);
+            throw fetchError;
+        }
+        
+        // Eğer profil zaten varsa, mevcut profili döndür
+        if (existingProfile) {
+            console.log('Profil zaten mevcut:', existingProfile.id);
+            return existingProfile;
+        }
+        
+        // Eğer profil yoksa, yeni profil oluştur
+        console.log('Yeni profil oluşturuluyor...');
+        return await createProfileWithReferral(user, referralCode);
+        
+    } catch (error) {
+        console.error('Profil kontrol/oluşturma hatası:', error);
+        throw error;
+    }
+}
+
+// Referans kaydı oluşturma fonksiyonu (YENİ PROFİL İÇİN)
 export async function createProfileWithReferral(user, referralCode = null) {
     try {
         let referredBy = null;
@@ -71,6 +102,7 @@ export async function createProfileWithReferral(user, referralCode = null) {
             
             if (!refError && referrer) {
                 referredBy = referrer.id;
+                console.log(`Referans bulundu: ${referrer.id} yeni kullanıcıyı refer etti`);
             }
         }
         
@@ -95,63 +127,80 @@ export async function createProfileWithReferral(user, referralCode = null) {
             }
         }
         
-        // Kullanıcı profili oluştur
+        // Kullanıcı profili oluştur - UPSERT kullan (INSERT veya UPDATE)
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .insert([
-                {
-                    id: user.id,
-                    email: user.email,
-                    full_name: user.user_metadata?.full_name || '',
-                    referral_code: uniqueReferralCode,
-                    referred_by: referredBy,
-                    referral_balance: 0,
-                    total_referrals: 0,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                }
-            ])
+            .upsert({
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || '',
+                referral_code: uniqueReferralCode,
+                referred_by: referredBy,
+                referral_balance: 0,
+                total_referrals: 0,
+                role: 'admin',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'id', // Eğer id zaten varsa, update yap
+                ignoreDuplicates: false
+            })
             .select()
             .single();
         
         if (profileError) {
-            console.error('Profile creation error:', profileError);
+            console.error('Profil oluşturma hatası:', profileError);
             throw profileError;
         }
         
+        console.log('Profil başarıyla oluşturuldu:', profile.id);
+        
         // Eğer referans varsa, referans veren kullanıcının bakiyesini güncelle
         if (referredBy) {
-            // Referans bonusu: 29 USD'nin %30'u = 8.7 USD
-            const referralBonus = 8.70;
-            
-            // Önce referans verenin mevcut bakiyesini al
-            const { data: referrerData } = await supabase
-                .from('profiles')
-                .select('referral_balance, total_referrals')
-                .eq('id', referredBy)
-                .single();
-            
-            if (referrerData) {
-                // Bakiyeyi güncelle
-                const { error: updateError } = await supabase
-                    .from('profiles')
-                    .update({
-                        referral_balance: (parseFloat(referrerData.referral_balance) || 0) + referralBonus,
-                        total_referrals: (parseInt(referrerData.total_referrals) || 0) + 1,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', referredBy);
-                
-                if (updateError) {
-                    console.error('Referans bonusu güncellenemedi:', updateError);
-                }
-            }
+            await addReferralBonus(referredBy);
         }
         
         return profile;
     } catch (error) {
         console.error('Profil oluşturma hatası:', error);
         throw error;
+    }
+}
+
+// Referans bonusu ekleme fonksiyonu
+async function addReferralBonus(referrerId) {
+    try {
+        // Referans bonusu: 29 USD'nin %30'u = 8.7 USD
+        const referralBonus = 8.70;
+        
+        console.log(`Referans bonusu ekleniyor: $${referralBonus} kullanıcı ${referrerId}'ye`);
+        
+        // Önce referans verenin mevcut bakiyesini al
+        const { data: referrerData } = await supabase
+            .from('profiles')
+            .select('referral_balance, total_referrals')
+            .eq('id', referrerId)
+            .single();
+        
+        if (referrerData) {
+            // Bakiyeyi güncelle
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({
+                    referral_balance: (parseFloat(referrerData.referral_balance) || 0) + referralBonus,
+                    total_referrals: (parseInt(referrerData.total_referrals) || 0) + 1,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', referrerId);
+            
+            if (updateError) {
+                console.error('Referans bonusu güncellenemedi:', updateError);
+            } else {
+                console.log(`Referans bonusu başarıyla eklendi: ${referrerId}`);
+            }
+        }
+    } catch (error) {
+        console.error('Referans bonusu ekleme hatası:', error);
     }
 }
 
