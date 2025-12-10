@@ -49,60 +49,55 @@ export function generateReferralCode(length = 8) {
     return result;
 }
 
+// Referans kodunu oluştur (artık UUID kullanıyoruz)
+export function getReferralCode(userId) {
+    if (!userId) return null;
+    
+    // UUID'yi kısaltılmış ve URL-safe hale getir
+    // Örnek: "3daf728d-ac33-4e8e-b8c7-5287b3c6fa93" -> "3daf728d"
+    const shortId = userId.split('-')[0];
+    return shortId.toLowerCase();
+}
+
 // URL'den referral code çıkarma fonksiyonu
 export function getReferralCodeFromURL() {
     if (typeof window === 'undefined') return null;
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('ref') || null;
+    const refCode = urlParams.get('ref');
+    
+    if (!refCode) return null;
+    
+    // Referans kodunu tam UUID'ye çevir
+    // Kullanıcı ID formatına uygun hale getir
+    return refCode.toLowerCase();
 }
 
-// Referans kaydı oluşturma fonksiyonu
+// Referans kaydı oluşturma fonksiyonu (güncellendi)
 export async function createProfileWithReferral(user, referralCode = null) {
     try {
         let referredBy = null;
         
         // Eğer referral code varsa, referans veren kullanıcıyı bul
         if (referralCode) {
-            const { data: referrer, error: refError } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('referral_code', referralCode)
-                .single();
+            // Referans kodunu UUID formatına çevir
+            const fullUserId = await findUserByReferralCode(referralCode);
             
-            if (!refError && referrer) {
-                referredBy = referrer.id;
+            if (fullUserId) {
+                referredBy = fullUserId;
+                console.log(`Referans bulundu: ${referredBy} yeni kullanıcıyı refer etti`);
             }
         }
         
-        // Kullanıcı için unique referral code oluştur
-        let uniqueReferralCode = generateReferralCode();
-        let isUnique = false;
-        let attempts = 0;
+        // Kullanıcı profili oluştur - UUID'yi referral code olarak kullan
+        const userReferralCode = getReferralCode(user.id);
         
-        // Benzersiz bir kod oluşturana kadar dene (max 5 deneme)
-        while (!isUnique && attempts < 5) {
-            const { data: existing } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('referral_code', uniqueReferralCode)
-                .maybeSingle();
-            
-            if (!existing) {
-                isUnique = true;
-            } else {
-                uniqueReferralCode = generateReferralCode();
-                attempts++;
-            }
-        }
-        
-        // Kullanıcı profili oluştur - UPSERT kullan (INSERT veya UPDATE)
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .upsert({
                 id: user.id,
                 email: user.email,
                 full_name: user.user_metadata?.full_name || '',
-                referral_code: uniqueReferralCode,
+                referral_code: userReferralCode, // Kısaltılmış UUID
                 referred_by: referredBy,
                 referral_balance: 0,
                 total_referrals: 0,
@@ -110,7 +105,7 @@ export async function createProfileWithReferral(user, referralCode = null) {
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             }, {
-                onConflict: 'id', // Eğer id zaten varsa, update yap
+                onConflict: 'id',
                 ignoreDuplicates: false
             })
             .select()
@@ -121,7 +116,7 @@ export async function createProfileWithReferral(user, referralCode = null) {
             throw profileError;
         }
         
-        console.log('Profil başarıyla oluşturuldu:', profile.id);
+        console.log('Profil başarıyla oluşturuldu. Referral code:', userReferralCode);
         
         // Eğer referans varsa, referans veren kullanıcının bakiyesini güncelle
         if (referredBy) {
@@ -134,6 +129,83 @@ export async function createProfileWithReferral(user, referralCode = null) {
         throw error;
     }
 }
+
+// Referans kodu ile kullanıcı bul
+async function findUserByReferralCode(referralCode) {
+    try {
+        // Tüm kullanıcıları getir ve referral_code'u kısaltılmış UUID olanları bul
+        const { data: users, error } = await supabase
+            .from('profiles')
+            .select('id, referral_code');
+        
+        if (error) throw error;
+        
+        // Her kullanıcı için referral_code'u kontrol et
+        for (const user of users) {
+            if (user.referral_code === referralCode.toLowerCase()) {
+                return user.id;
+            }
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Find user by referral code error:', error);
+        return null;
+    }
+}
+
+// Kullanıcının referral bilgilerini getir (güncellendi)
+export async function getUserReferralInfo(userId) {
+    try {
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('referral_code, referral_balance, total_referrals, full_name')
+            .eq('id', userId)
+            .single();
+        
+        if (error) {
+            // Eğer kayıt yoksa, referral_code oluştur
+            console.log('Profile not found, creating referral code...');
+            const referralCode = getReferralCode(userId);
+            return {
+                referral_code: referralCode,
+                referral_balance: 0,
+                total_referrals: 0,
+                full_name: ''
+            };
+        }
+        
+        // Eğer referral_code yoksa, oluştur
+        if (!profile.referral_code) {
+            const referralCode = getReferralCode(userId);
+            
+            // Database'i güncelle
+            await supabase
+                .from('profiles')
+                .update({
+                    referral_code: referralCode,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', userId);
+            
+            profile.referral_code = referralCode;
+        }
+        
+        return profile;
+    } catch (error) {
+        console.error('Referral info get error:', error);
+        
+        // Hata durumunda da referral code oluştur
+        const referralCode = getReferralCode(userId);
+        return {
+            referral_code: referralCode,
+            referral_balance: 0,
+            total_referrals: 0,
+            full_name: ''
+        };
+    }
+}
+
 
 // Referans bonusu ekleme fonksiyonu
 async function addReferralBonus(referrerId) {
@@ -401,3 +473,4 @@ document.addEventListener('DOMContentLoaded', function() {
     setupModal(); // Modal setup'ını ekledik
   }
 });
+
