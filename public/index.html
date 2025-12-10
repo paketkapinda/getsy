@@ -1369,72 +1369,105 @@
     }
 
     async function openDetailModal(partnerId) {
-      try {
-        if (!supabase) {
-          throw new Error('Supabase bağlantısı kurulamadı');
-        }
-
-        // Partner detaylarını Supabase'den çek
-        const { data: partner, error } = await supabase
-          .from('partners')
-          .select('*')
-          .eq('id', partnerId)
-          .single();
-
-        if (error) throw error;
-
-        const currentLang = document.querySelector('.lang-btn.active').textContent.toLowerCase();
-        
-        let content = '';
-        if (currentLang === 'tr') {
-          content = `
-            <h4>Detaylar</h4>
-            <p>${partner.long_description || partner.short_description}</p>
-            
-            <h4 style="margin-top: 20px;">Gereksinimler</h4>
-            <p>${partner.requirements}</p>
-            
-            <h4 style="margin-top: 20px;">Süreç</h4>
-            <p>${partner.process}</p>
-            
-            <h4 style="margin-top: 20px;">Komisyon Oranı</h4>
-            <p>${partner.commission_rate}</p>
-            
-            <h4 style="margin-top: 20px;">Avantajlar</h4>
-            <ul style="margin-left: 20px;">
-              ${JSON.parse(partner.benefits || '[]').map(benefit => `<li>${benefit}</li>`).join('')}
-            </ul>
-          `;
-        } else {
-          content = `
-            <h4>Details</h4>
-            <p>${partner.long_description || partner.short_description}</p>
-            
-            <h4 style="margin-top: 20px;">Requirements</h4>
-            <p>${partner.requirements}</p>
-            
-            <h4 style="margin-top: 20px;">Process</h4>
-            <p>${partner.process}</p>
-            
-            <h4 style="margin-top: 20px;">Commission Rate</h4>
-            <p>${partner.commission_rate}</p>
-            
-            <h4 style="margin-top: 20px;">Benefits</h4>
-            <ul style="margin-left: 20px;">
-              ${JSON.parse(partner.benefits || '[]').map(benefit => `<li>${benefit}</li>`).join('')}
-            </ul>
-          `;
-        }
-
-        document.getElementById('detailTitle').textContent = partner.name + ' Detayları';
-        document.getElementById('detailContent').innerHTML = content;
-        document.getElementById('detailModal').style.display = 'block';
-      } catch (error) {
-        console.error('Error loading partner details:', error);
-        alert('Partner detayları yüklenirken bir hata oluştu.');
-      }
+  try {
+    if (!supabase) {
+      throw new Error('Supabase bağlantısı kurulamadı');
     }
 
+    // Partner detaylarını Supabase'den çek
+    const { data: partner, error } = await supabase
+      .from('partners')
+      .select('*')
+      .eq('id', partnerId)
+      .single();
+
+    if (error) throw error;
+
+    const currentLang = document.querySelector('.lang-btn.active').textContent.toLowerCase();
+    
+    // Benefits alanını güvenli bir şekilde parse et
+    let benefits = [];
+    try {
+      if (partner.benefits) {
+        // Önce string olup olmadığını kontrol et
+        if (typeof partner.benefits === 'string') {
+          benefits = JSON.parse(partner.benefits);
+        } else if (Array.isArray(partner.benefits)) {
+          benefits = partner.benefits;
+        }
+      }
+    } catch (jsonError) {
+      console.warn('Benefits parse hatası:', jsonError);
+      // Eğer JSON parse edilemezse, string olarak işle
+      if (typeof partner.benefits === 'string') {
+        benefits = [partner.benefits];
+      }
+    }
+    
+    let content = '';
+    if (currentLang === 'tr') {
+      content = `
+        <div class="partner-detail-content">
+          <h4>Detaylar</h4>
+          <p>${partner.long_description || partner.short_description || 'Açıklama bulunmuyor.'}</p>
+          
+          <h4 style="margin-top: 20px;">Gereksinimler</h4>
+          <p>${partner.requirements || 'Belirtilmemiş.'}</p>
+          
+          <h4 style="margin-top: 20px;">Süreç</h4>
+          <p>${partner.process || 'Belirtilmemiş.'}</p>
+          
+          <h4 style="margin-top: 20px;">Komisyon Oranı</h4>
+          <p>${partner.commission_rate || 'Belirtilmemiş.'}</p>
+      `;
+      
+      if (benefits.length > 0) {
+        content += `
+          <h4 style="margin-top: 20px;">Avantajlar</h4>
+          <ul style="margin-left: 20px; margin-bottom: 20px;">
+            ${benefits.map(benefit => `<li>${benefit}</li>`).join('')}
+          </ul>
+        `;
+      }
+      
+      content += `</div>`;
+    } else {
+      content = `
+        <div class="partner-detail-content">
+          <h4>Details</h4>
+          <p>${partner.long_description || partner.short_description || 'No description available.'}</p>
+          
+          <h4 style="margin-top: 20px;">Requirements</h4>
+          <p>${partner.requirements || 'Not specified.'}</p>
+          
+          <h4 style="margin-top: 20px;">Process</h4>
+          <p>${partner.process || 'Not specified.'}</p>
+          
+          <h4 style="margin-top: 20px;">Commission Rate</h4>
+          <p>${partner.commission_rate || 'Not specified.'}</p>
+      `;
+      
+      if (benefits.length > 0) {
+        content += `
+          <h4 style="margin-top: 20px;">Benefits</h4>
+          <ul style="margin-left: 20px; margin-bottom: 20px;">
+            ${benefits.map(benefit => `<li>${benefit}</li>`).join('')}
+          </ul>
+        `;
+      }
+      
+      content += `</div>`;
+    }
+
+    document.getElementById('detailTitle').textContent = partner.name + (currentLang === 'tr' ? ' Detayları' : ' Details');
+    document.getElementById('detailContent').innerHTML = content;
+    document.getElementById('detailModal').style.display = 'block';
+  } catch (error) {
+    console.error('Error loading partner details:', error);
+    const currentLang = document.querySelector('.lang-btn.active').textContent.toLowerCase();
+    alert(currentLang === 'tr' ? 'Partner detayları yüklenirken bir hata oluştu.' : 'Error loading partner details.');
+  }
+}
     function closeModal(modalId) {
       document.getElementById(modalId).style.display = 'none';
     }
@@ -1500,77 +1533,108 @@
       }
     }
 
-    // Partner kartlarını yükle
-    async function loadPartners() {
-      try {
-        const container = document.getElementById('partnersContainer');
-        container.innerHTML = '<div class="loading-partners" data-lang="tr">Partnerler yükleniyor...</div><div class="loading-partners" data-lang="en" style="display: none;">Loading partners...</div>';
-
-        if (!supabase) {
-          throw new Error('Supabase bağlantısı kurulamadı');
-        }
-
-        const { data: partners, error } = await supabase
-          .from('partners')
-          .select('*')
-          .eq('active', true)
-          .order('sort_order', { ascending: true });
-
-        if (error) throw error;
-
-        container.innerHTML = '';
-        
-        if (!partners || partners.length === 0) {
-          container.innerHTML = '<div class="no-partners" data-lang="tr">Henüz partner eklenmemiş.</div><div class="no-partners" data-lang="en" style="display: none;">No partners added yet.</div>';
-          return;
-        }
-        
-        partners.forEach(partner => {
-          const card = document.createElement('div');
-          card.className = 'partner-card';
-          
-          // Güvenli string işleme
-          const safeName = partner.name.replace(/'/g, "\\'");
-          const safeAffiliateLink = (partner.affiliate_link || '').replace(/'/g, "\\'");
-          
-          card.innerHTML = `
-            <div class="partner-header">
-              ${partner.logo_url ? `<img src="${partner.logo_url}" alt="${partner.name}" style="width: 40px; height: 40px; border-radius: 8px;">` : 
-                `<div class="partner-icon">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                  </svg>
-                </div>`}
-              <div>
-                <h3>${partner.name}</h3>
-                <span style="font-size: 12px; color: var(--gray-500);">${partner.category || ''}</span>
-              </div>
-            </div>
-            <p style="margin-bottom: 16px;">${partner.short_description || ''}</p>
-            <div style="margin-bottom: 16px;">
-              <span style="background: #fef3f2; color: #ea580c; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">
-                ${partner.commission_rate || ''}
-              </span>
-            </div>
-            <div style="margin-top: 16px;">
-              <button class="btn btn-secondary" onclick="openDetailModal(${partner.id})" style="margin-right: 8px;" data-lang="tr">Detay Göster</button>
-              <button class="btn btn-secondary" onclick="openDetailModal(${partner.id})" style="margin-right: 8px; display: none;" data-lang="en">Details</button>
-              <button class="btn btn-primary" onclick="openApplyModal(${partner.id}, '${safeAffiliateLink}', '${safeName}')" data-lang="tr">Başvur</button>
-              <button class="btn btn-primary" onclick="openApplyModal(${partner.id}, '${safeAffiliateLink}', '${safeName}')" data-lang="en" style="display: none;">Apply</button>
-            </div>
-          `;
-          
-          container.appendChild(card);
-        });
-
-      } catch (error) {
-        console.error('Error loading partners:', error);
-        const container = document.getElementById('partnersContainer');
-        container.innerHTML = '<div class="error-loading" data-lang="tr">Partnerler yüklenirken bir hata oluştu.</div><div class="error-loading" data-lang="en" style="display: none;">Error loading partners.</div>';
-      }
+async function openDetailModal(partnerId) {
+  try {
+    if (!supabase) {
+      throw new Error('Supabase bağlantısı kurulamadı');
     }
 
-    // IP adresi al
+    // Partner detaylarını Supabase'den çek
+    const { data: partner, error } = await supabase
+      .from('partners')
+      .select('*')
+      .eq('id', partnerId)
+      .single();
+
+    if (error) throw error;
+
+    const currentLang = document.querySelector('.lang-btn.active').textContent.toLowerCase();
+    
+    // Benefits alanını güvenli bir şekilde parse et
+    let benefits = [];
+    try {
+      if (partner.benefits) {
+        // Önce string olup olmadığını kontrol et
+        if (typeof partner.benefits === 'string') {
+          benefits = JSON.parse(partner.benefits);
+        } else if (Array.isArray(partner.benefits)) {
+          benefits = partner.benefits;
+        }
+      }
+    } catch (jsonError) {
+      console.warn('Benefits parse hatası:', jsonError);
+      // Eğer JSON parse edilemezse, string olarak işle
+      if (typeof partner.benefits === 'string') {
+        benefits = [partner.benefits];
+      }
+    }
+    
+    let content = '';
+    if (currentLang === 'tr') {
+      content = `
+        <div class="partner-detail-content">
+          <h4>Detaylar</h4>
+          <p>${partner.long_description || partner.short_description || 'Açıklama bulunmuyor.'}</p>
+          
+          <h4 style="margin-top: 20px;">Gereksinimler</h4>
+          <p>${partner.requirements || 'Belirtilmemiş.'}</p>
+          
+          <h4 style="margin-top: 20px;">Süreç</h4>
+          <p>${partner.process || 'Belirtilmemiş.'}</p>
+          
+          <h4 style="margin-top: 20px;">Komisyon Oranı</h4>
+          <p>${partner.commission_rate || 'Belirtilmemiş.'}</p>
+      `;
+      
+      if (benefits.length > 0) {
+        content += `
+          <h4 style="margin-top: 20px;">Avantajlar</h4>
+          <ul style="margin-left: 20px; margin-bottom: 20px;">
+            ${benefits.map(benefit => `<li>${benefit}</li>`).join('')}
+          </ul>
+        `;
+      }
+      
+      content += `</div>`;
+    } else {
+      content = `
+        <div class="partner-detail-content">
+          <h4>Details</h4>
+          <p>${partner.long_description || partner.short_description || 'No description available.'}</p>
+          
+          <h4 style="margin-top: 20px;">Requirements</h4>
+          <p>${partner.requirements || 'Not specified.'}</p>
+          
+          <h4 style="margin-top: 20px;">Process</h4>
+          <p>${partner.process || 'Not specified.'}</p>
+          
+          <h4 style="margin-top: 20px;">Commission Rate</h4>
+          <p>${partner.commission_rate || 'Not specified.'}</p>
+      `;
+      
+      if (benefits.length > 0) {
+        content += `
+          <h4 style="margin-top: 20px;">Benefits</h4>
+          <ul style="margin-left: 20px; margin-bottom: 20px;">
+            ${benefits.map(benefit => `<li>${benefit}</li>`).join('')}
+          </ul>
+        `;
+      }
+      
+      content += `</div>`;
+    }
+
+    document.getElementById('detailTitle').textContent = partner.name + (currentLang === 'tr' ? ' Detayları' : ' Details');
+    document.getElementById('detailContent').innerHTML = content;
+    document.getElementById('detailModal').style.display = 'block';
+  } catch (error) {
+    console.error('Error loading partner details:', error);
+    const currentLang = document.querySelector('.lang-btn.active').textContent.toLowerCase();
+    alert(currentLang === 'tr' ? 'Partner detayları yüklenirken bir hata oluştu.' : 'Error loading partner details.');
+  }
+}   
+   
+   // IP adresi al
     async function getIPAddress() {
       try {
         const response = await fetch('https://api.ipify.org?format=json');
