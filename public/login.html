@@ -610,7 +610,7 @@
 
   // Import supabase ve referans fonksiyonları
   import('/assets/js/supabaseClient.js')
-    .then(({ supabase, getReferralCodeFromURL, createProfileWithReferral, showNotification }) => {
+  .then(({ supabase, getReferralCodeFromURL, getOrCreateUserProfile, showNotification }) => {
       console.log('✅ Supabase client yüklendi');
       
       // Referans kodunu URL'den al
