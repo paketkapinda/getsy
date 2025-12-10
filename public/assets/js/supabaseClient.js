@@ -56,38 +56,7 @@ export function getReferralCodeFromURL() {
     return urlParams.get('ref') || null;
 }
 
-// Kullanıcının profilini kontrol et veya oluştur
-export async function getOrCreateUserProfile(user, referralCode = null) {
-    try {
-        // Önce kullanıcının profilini kontrol et
-        const { data: existingProfile, error: fetchError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .maybeSingle();  // maybeSingle: eğer kayıt yoksa null döner
-        
-        if (fetchError) {
-            console.error('Profil kontrol hatası:', fetchError);
-            throw fetchError;
-        }
-        
-        // Eğer profil zaten varsa, mevcut profili döndür
-        if (existingProfile) {
-            console.log('Profil zaten mevcut:', existingProfile.id);
-            return existingProfile;
-        }
-        
-        // Eğer profil yoksa, yeni profil oluştur
-        console.log('Yeni profil oluşturuluyor...');
-        return await createProfileWithReferral(user, referralCode);
-        
-    } catch (error) {
-        console.error('Profil kontrol/oluşturma hatası:', error);
-        throw error;
-    }
-}
-
-// Referans kaydı oluşturma fonksiyonu (YENİ PROFİL İÇİN)
+// Referans kaydı oluşturma fonksiyonu
 export async function createProfileWithReferral(user, referralCode = null) {
     try {
         let referredBy = null;
@@ -102,7 +71,6 @@ export async function createProfileWithReferral(user, referralCode = null) {
             
             if (!refError && referrer) {
                 referredBy = referrer.id;
-                console.log(`Referans bulundu: ${referrer.id} yeni kullanıcıyı refer etti`);
             }
         }
         
@@ -221,13 +189,30 @@ export async function getUserReferralInfo(userId) {
     }
 }
 
+// Referans geçmişini getir
+export async function getReferralHistory(userId) {
+    try {
+        const { data: referrals, error } = await supabase
+            .from('profiles')
+            .select('id, email, full_name, created_at')
+            .eq('referred_by', userId)
+            .order('created_at', { ascending: false })
+            .limit(10);
+        
+        if (error) throw error;
+        return referrals || [];
+    } catch (error) {
+        console.error('Referral history error:', error);
+        return [];
+    }
+}
+
 // ==================== UTILITY FUNCTIONS ====================
 
 // Bildirim gösterme fonksiyonu
 export function showNotification(message, type = 'info') {
     if (typeof document === 'undefined') return;
     
-    // Notification container oluştur veya bul
     let container = document.getElementById('notification-container');
     if (!container) {
         container = document.createElement('div');
@@ -239,7 +224,6 @@ export function showNotification(message, type = 'info') {
         document.body.appendChild(container);
     }
     
-    // Notification elementi oluştur
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.style.cssText = `
@@ -254,7 +238,6 @@ export function showNotification(message, type = 'info') {
         animation: slideIn 0.3s ease-out;
     `;
     
-    // Renkleri ayarla
     if (type === 'success') {
         notification.style.background = 'linear-gradient(135deg, #10b981, #059669)';
     } else if (type === 'error') {
@@ -268,7 +251,6 @@ export function showNotification(message, type = 'info') {
     notification.textContent = message;
     container.appendChild(notification);
     
-    // Otomatik kaldır
     setTimeout(() => {
         if (notification.parentNode) {
             notification.style.animation = 'slideOut 0.3s ease-in';
@@ -280,7 +262,6 @@ export function showNotification(message, type = 'info') {
         }
     }, 3000);
     
-    // Animasyon CSS'i ekle
     if (!document.getElementById('notification-styles')) {
         const style = document.createElement('style');
         style.id = 'notification-styles';
