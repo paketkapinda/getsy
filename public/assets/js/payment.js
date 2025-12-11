@@ -682,3 +682,14 @@ function showNotification(message, type = 'info') {
         }
     }, 5000);
 }
+// payment.js dosyasının en sonuna ekleyin:
+
+// Global fonksiyon tanımları
+window.syncAllPayments = syncEtsyPayments;
+window.processAllPayouts = processAllPayouts;
+window.searchPayments = searchPayments;
+window.filterPaymentsByDate = filterPaymentsByDate;
+window.exportPaymentsToCSV = exportPaymentsToCSV;
+window.viewPaymentDetails = viewPaymentDetails;
+window.processPayment = processPayment;
+window.loadPayments = loadPayments;
