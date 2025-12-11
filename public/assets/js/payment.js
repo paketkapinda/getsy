@@ -315,10 +315,12 @@ function displayPayments(payments) {
     const table = document.getElementById('paymentsTable');
     if (!table) return;
     
+    const tbody = table.querySelector('tbody') || table;
+    
     if (!payments || payments.length === 0) {
-        table.innerHTML = `
+        tbody.innerHTML = `
             <tr>
-                <td colspan="10" class="text-center py-12">
+                <td colspan="7" class="text-center py-12">
                     <div class="text-gray-500">
                         <i class="fas fa-receipt text-4xl mb-4"></i>
                         <p class="text-lg">Henüz ödeme kaydı bulunmuyor</p>
@@ -333,85 +335,68 @@ function displayPayments(payments) {
     let html = '';
     payments.forEach(payment => {
         const order = payment.orders || {};
-        const producer = payment.profiles || {};
         
         html += `
-            <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-money-bill-wave text-blue-600"></i>
-                        </div>
-                        <div class="ml-4">
-                            <div class="text-sm font-medium text-gray-900">
-                                ${order.order_number || payment.id.substring(0, 8)}
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                ${formatDate(payment.created_at)}
-                            </div>
-                        </div>
-                    </div>
+            <tr>
+                <td class="payment-date">
+                    ${formatDate(payment.created_at)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${order.customer_name || 'Müşteri'}</div>
-                    <div class="text-sm text-gray-500">${order.customer_email || ''}</div>
+                <td>
+                    <span class="order-id">${order.order_number || payment.id.substring(0, 8)}</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${producer.full_name || 'Üretici'}</div>
-                    <div class="text-sm text-gray-500">${producer.email || ''}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="amount">
                     $${parseFloat(payment.amount).toFixed(2)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    $${parseFloat(payment.producer_cost).toFixed(2)}
+                <td>
+                    <div class="fees-breakdown">
+                        <div>Prod: $${parseFloat(payment.producer_cost).toFixed(2)}</div>
+                        <div>Platform: $${parseFloat(payment.platform_fee).toFixed(2)}</div>
+                        <div>Gateway: $${parseFloat(payment.payment_gateway_fee || 0).toFixed(2)}</div>
+                    </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    $${parseFloat(payment.platform_fee).toFixed(2)}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="payout positive">
                     $${parseFloat(payment.net_payout).toFixed(2)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(payment.status)}">
+                <td>
+                    <span class="payment-status ${getStatusClass(payment.status)}">
                         ${getStatusText(payment.status)}
                     </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${payment.settlement_date ? formatDate(payment.settlement_date) : 'Bekliyor'}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button onclick="viewPaymentDetails('${payment.id}')" 
-                            class="text-blue-600 hover:text-blue-900 mr-3">
-                        <i class="fas fa-eye"></i>
+                <td class="payment-actions">
+                    <button class="btn btn-sm btn-outline" onclick="viewPaymentDetails('${payment.id}')">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="12" height="12">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
                     </button>
                     ${payment.status === 'pending' ? `
-                        <button onclick="processPayment('${payment.id}')" 
-                                class="text-green-600 hover:text-green-900">
-                            <i class="fas fa-check"></i>
-                        </button>
+                    <button class="btn btn-sm btn-primary" onclick="processPayment('${payment.id}')">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="12" height="12">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </button>
                     ` : ''}
                 </td>
             </tr>
         `;
     });
     
-    table.innerHTML = html;
+    tbody.innerHTML = html;
 }
 
 function updateStats() {
     if (!allPayments || allPayments.length === 0) {
-        document.getElementById('totalRevenue').textContent = '$0';
-        document.getElementById('totalPayout').textContent = '$0';
+        document.getElementById('totalRevenue').textContent = '$0.00';
+        document.getElementById('totalPayout').textContent = '$0.00';
         document.getElementById('pendingPayments').textContent = '0';
-        document.getElementById('avgPayout').textContent = '$0';
+        document.getElementById('avgPayout').textContent = '$0.00';
         return;
     }
     
     const totalRevenue = allPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
     const totalPayout = allPayments.reduce((sum, p) => sum + parseFloat(p.net_payout || 0), 0);
     const pendingCount = allPayments.filter(p => p.status === 'pending').length;
-    const avgPayout = totalPayout / allPayments.length;
+    const avgPayout = allPayments.length > 0 ? totalPayout / allPayments.length : 0;
     
     document.getElementById('totalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
     document.getElementById('totalPayout').textContent = `$${totalPayout.toFixed(2)}`;
@@ -420,15 +405,15 @@ function updateStats() {
 }
 
 function filterPaymentsByStatus(status) {
-    const rows = document.querySelectorAll('#paymentsTable tr');
+    const rows = document.querySelectorAll('#paymentsTable tbody tr');
     
     rows.forEach(row => {
-        if (row.cells.length < 8) return; // Header veya boş row
+        if (row.cells.length < 7) return;
         
         if (status === 'all') {
             row.style.display = '';
         } else {
-            const statusCell = row.cells[7];
+            const statusCell = row.cells[5];
             if (statusCell) {
                 const statusSpan = statusCell.querySelector('span');
                 if (statusSpan) {
@@ -440,44 +425,35 @@ function filterPaymentsByStatus(status) {
     });
 }
 
-function filterPaymentsByDate(range) {
-    const rows = document.querySelectorAll('#paymentsTable tr');
-    const now = new Date();
+// GÜNCELLENMİŞ: filterPaymentsByDate fonksiyonu
+function filterPaymentsByDate(dateValue) {
+    if (!dateValue) {
+        // Tüm ödemeleri göster
+        const rows = document.querySelectorAll('#paymentsTable tbody tr');
+        rows.forEach(row => row.style.display = '');
+        return;
+    }
+    
+    const selectedDate = new Date(dateValue);
+    const rows = document.querySelectorAll('#paymentsTable tbody tr');
     
     rows.forEach(row => {
-        if (row.cells.length < 8) return;
+        if (row.cells.length < 7) return;
         
-        const dateCell = row.cells[0].querySelector('.text-sm.text-gray-500');
+        const dateCell = row.cells[0];
         if (dateCell) {
             const dateText = dateCell.textContent.trim();
-            const paymentDate = parseDate(dateText);
-            
-            let show = true;
-            switch (range) {
-                case 'today':
-                    show = isSameDay(paymentDate, now);
-                    break;
-                case 'week':
-                    const weekAgo = new Date(now);
-                    weekAgo.setDate(now.getDate() - 7);
-                    show = paymentDate >= weekAgo;
-                    break;
-                case 'month':
-                    const monthAgo = new Date(now);
-                    monthAgo.setMonth(now.getMonth() - 1);
-                    show = paymentDate >= monthAgo;
-                    break;
-                default:
-                    show = true;
+            if (dateText) {
+                const paymentDate = parseDate(dateText);
+                const isSameDay = paymentDate.toDateString() === selectedDate.toDateString();
+                row.style.display = isSameDay ? '' : 'none';
             }
-            
-            row.style.display = show ? '' : 'none';
         }
     });
 }
 
 function searchPayments(query) {
-    const rows = document.querySelectorAll('#paymentsTable tr');
+    const rows = document.querySelectorAll('#paymentsTable tbody tr');
     const searchTerm = query.toLowerCase().trim();
     
     rows.forEach(row => {
@@ -503,30 +479,30 @@ function updateActiveFilterButton(activeBtn) {
 // Yardımcı fonksiyonlar
 function getStatusClass(status) {
     const classMap = {
-        'completed': 'bg-green-100 text-green-800',
-        'pending': 'bg-yellow-100 text-yellow-800',
-        'failed': 'bg-red-100 text-red-800',
-        'refunded': 'bg-purple-100 text-purple-800'
+        'completed': 'status-completed',
+        'pending': 'status-pending',
+        'failed': 'status-failed',
+        'refunded': 'status-processing'
     };
-    return classMap[status] || 'bg-gray-100 text-gray-800';
+    return classMap[status] || 'status-pending';
 }
 
 function getStatusText(status) {
     const textMap = {
-        'completed': 'Tamamlandı',
-        'pending': 'Bekliyor',
-        'failed': 'Başarısız',
-        'refunded': 'İade Edildi'
+        'completed': 'Completed',
+        'pending': 'Pending',
+        'failed': 'Failed',
+        'refunded': 'Refunded'
     };
     return textMap[status] || status;
 }
 
 function getStatusFromText(text) {
     const reverseMap = {
-        'tamamlandı': 'completed',
-        'bekliyor': 'pending',
-        'başarısız': 'failed',
-        'iade edildi': 'refunded'
+        'completed': 'completed',
+        'pending': 'pending',
+        'failed': 'failed',
+        'refunded': 'refunded'
     };
     return reverseMap[text.toLowerCase()] || text;
 }
@@ -534,12 +510,10 @@ function getStatusFromText(text) {
 function formatDate(dateString) {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('tr-TR', {
+    return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        day: 'numeric'
     });
 }
 
@@ -596,7 +570,7 @@ window.exportPaymentsToCSV = async function() {
             return;
         }
         
-        const headers = ['Ödeme ID', 'Sipariş No', 'Müşteri', 'Tutar ($)', 'Net Ödeme ($)', 'Durum', 'Tarih'];
+        const headers = ['Payment ID', 'Order No', 'Customer', 'Amount ($)', 'Net Payout ($)', 'Status', 'Date'];
         const rows = allPayments.map(p => [
             p.id.substring(0, 8),
             p.orders?.order_number || '',
@@ -613,22 +587,22 @@ window.exportPaymentsToCSV = async function() {
         const url = URL.createObjectURL(blob);
         
         link.setAttribute('href', url);
-        link.setAttribute('download', `odemeler_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', `payments_${new Date().toISOString().split('T')[0]}.csv`);
         link.style.visibility = 'hidden';
         
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        showNotification(`${allPayments.length} ödeme CSV olarak indirildi.`, 'success');
+        showNotification(`${allPayments.length} payments exported as CSV.`, 'success');
         
     } catch (error) {
-        showNotification('Dışa aktarma sırasında hata oluştu: ' + error.message, 'error');
+        showNotification('Export error: ' + error.message, 'error');
     }
 };
 
 // Loading ve notification fonksiyonları
-function showLoading(message = 'Yükleniyor...') {
+function showLoading(message = 'Loading...') {
     let loadingEl = document.getElementById('loadingOverlay');
     if (!loadingEl) {
         loadingEl = document.createElement('div');
@@ -682,16 +656,12 @@ function showNotification(message, type = 'info') {
         }
     }, 5000);
 }
-// payment.js dosyasının en sonuna ekleyin:
 
-// payment.js dosyasının sonuna ekleyin veya mevcut fonksiyonları güncelleyin
-
-// Global fonksiyonları tanımla
-window.syncAllPayments = syncEtsyPayments; // syncEtsyPayments fonksiyonunu global yap
-
+// GLOBAL FONKSİYON TANIMLARI - EN SONA EKLEYİN
+window.syncAllPayments = syncEtsyPayments;
 window.processAllPayouts = async function() {
     if (!allPayments || allPayments.length === 0) {
-        showNotification('İşlenecek ödeme bulunamadı.', 'warning');
+        showNotification('No payments to process.', 'warning');
         return;
     }
     
@@ -699,15 +669,15 @@ window.processAllPayouts = async function() {
         const pendingPayments = allPayments.filter(p => p.status === 'pending');
         
         if (pendingPayments.length === 0) {
-            showNotification('Bekleyen ödeme bulunamadı.', 'info');
+            showNotification('No pending payments found.', 'info');
             return;
         }
         
-        if (!confirm(`${pendingPayments.length} bekleyen ödemeyi işlemek istediğinize emin misiniz?`)) {
+        if (!confirm(`Process ${pendingPayments.length} pending payments?`)) {
             return;
         }
         
-        showLoading(`${pendingPayments.length} ödeme işleniyor...`);
+        showLoading(`Processing ${pendingPayments.length} payments...`);
         
         let processedCount = 0;
         let errorCount = 0;
@@ -726,60 +696,23 @@ window.processAllPayouts = async function() {
                 processedCount++;
                 
             } catch (error) {
-                console.error(`Ödeme ${payment.id} işlenirken hata:`, error);
+                console.error(`Error processing payment ${payment.id}:`, error);
                 errorCount++;
             }
         }
         
         if (processedCount > 0) {
-            showNotification(`${processedCount} ödeme başarıyla işlendi. ${errorCount > 0 ? `${errorCount} ödemede hata oluştu.` : ''}`, 
+            showNotification(`${processedCount} payments processed successfully. ${errorCount > 0 ? `${errorCount} payments failed.` : ''}`, 
                            errorCount > 0 ? 'warning' : 'success');
-            await loadPayments(); // Sayfayı yenile
+            await loadPayments();
         }
         
     } catch (error) {
-        showNotification('Toplu ödeme işleme sırasında hata oluştu: ' + error.message, 'error');
+        showNotification('Error processing payments: ' + error.message, 'error');
     } finally {
         hideLoading();
     }
 };
-
-// Eksik fonksiyonları global scope'a ekle
-window.searchPayments = searchPayments;
-window.filterPaymentsByDate = filterPaymentsByDate;
-window.exportPaymentsToCSV = exportPaymentsToCSV;
-
-// payment.js içinde filterPaymentsByDate fonksiyonunu güncelleyin
-function filterPaymentsByDate(dateValue) {
-    if (!dateValue || dateValue === 'all') {
-        // Tüm ödemeleri göster
-        const rows = document.querySelectorAll('#paymentsTable tr');
-        rows.forEach(row => row.style.display = '');
-        return;
-    }
-    
-    const selectedDate = new Date(dateValue);
-    const rows = document.querySelectorAll('#paymentsTable tr');
-    
-    rows.forEach(row => {
-        if (row.cells.length < 8) return; // Header veya boş row
-        
-        const dateCell = row.cells[0];
-        if (dateCell) {
-            const dateText = dateCell.querySelector('.text-sm.text-gray-500')?.textContent.trim();
-            if (dateText) {
-                const paymentDate = parseDate(dateText);
-                const isSameDay = paymentDate.toDateString() === selectedDate.toDateString();
-                row.style.display = isSameDay ? '' : 'none';
-            }
-        }
-    });
-}
-
-
-// Global fonksiyon tanımları
-window.syncAllPayments = syncEtsyPayments;
-window.processAllPayouts = processAllPayouts;
 window.searchPayments = searchPayments;
 window.filterPaymentsByDate = filterPaymentsByDate;
 window.exportPaymentsToCSV = exportPaymentsToCSV;
