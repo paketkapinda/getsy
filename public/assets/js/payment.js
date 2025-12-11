@@ -76,6 +76,8 @@ async function savePaymentSettings() {
   }
 }
 
+
+
 // ===== PAYMENT MANAGEMENT FUNCTIONS =====
 window.syncAllPayments = async function() {
   try {
@@ -197,6 +199,91 @@ window.viewPaymentDetails = async function(paymentId) {
   }
 };
 
+// payments.js - Düzeltilmiş versiyon
+async function fetchEtsyPayments() {
+    try {
+        const { data: etsyShop, error: shopError } = await supabase
+            .from('etsy_shops')
+            .select('api_key, shared_secret, shop_id')
+            .eq('user_id', (await supabase.auth.getUser()).data.user.id)
+            .single();
+
+        if (shopError || !etsyShop) {
+            showNotification('Etsy mağaza bilgileriniz bulunamadı.', 'error');
+            return;
+        }
+
+        // Etsy API'den ödeme bilgilerini çek
+        const response = await fetch('/api/etsy/payments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                api_key: etsyShop.api_key,
+                shared_secret: etsyShop.shared_secret,
+                shop_id: etsyShop.shop_id,
+                limit: 50,
+                offset: 0
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Etsy API bağlantı hatası');
+        }
+
+        const paymentsData = await response.json();
+        
+        if (paymentsData.results && paymentsData.results.length > 0) {
+            await processEtsyPayments(paymentsData.results);
+            showNotification('Ödemeler başarıyla senkronize edildi.', 'success');
+        } else {
+            showNotification('Yeni ödeme bulunamadı.', 'info');
+        }
+    } catch (error) {
+        console.error('Ödeme çekme hatası:', error);
+        showNotification(`Ödeme çekme hatası: ${error.message}`, 'error');
+    }
+}
+
+async function processEtsyPayments(etsyPayments) {
+      for (const payment of etsyPayments) {
+        // Ödeme zaten var mı kontrol et
+        const { data: existing } = await supabase
+            .from('payments')
+            .select('id')
+            .eq('etsy_payment_id', payment.payment_id)
+            .single();
+
+        if (!existing) {
+            // Siparişi bul
+            const { data: order } = await supabase
+                .from('orders')
+                .select('id, user_id, producer_id, total_amount')
+                .eq('etsy_order_id', payment.receipt_id)
+                .single();
+
+            if (order) {
+                // Ödemeyi kaydet
+                await supabase.from('payments').insert({
+                    user_id: order.user_id,
+                    order_id: order.id,
+                    producer_id: order.producer_id,
+                    amount: payment.amount_gross.value,
+                    producer_cost: payment.amount_fees.value,
+                    platform_fee: calculatePlatformFee(payment.amount_gross.value),
+                    payment_gateway_fee: payment.amount_fees.value,
+                    net_payout: calculateNetPayout(payment),
+                    status: payment.is_refund ? 'refunded' : 'completed',
+                    settlement_date: new Date(payment.created_timestamp * 1000).toISOString(),
+                    etsy_payment_id: payment.payment_id,
+                    metadata: payment
+                });
+            }
+        }
+    }
+}
+
 // ===== COST CALCULATION FUNCTIONS =====
 export function calculateCost(basePrice, podCost, shipping, platformFeePercent = 0.15, paymentGatewayFeePercent = 0.03) {
   const platformFee = basePrice * platformFeePercent;
@@ -214,6 +301,7 @@ export function calculateCost(basePrice, podCost, shipping, platformFeePercent =
     netPayout,
   };
 }
+
 
 export async function distributePayment(orderId, producerId) {
   try {
