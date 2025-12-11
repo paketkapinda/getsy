@@ -1,4 +1,4 @@
-// Orders CRUD and management - Products style
+// Orders.js CRUD and management - Products style
 import { supabase } from './supabaseClient.js';
 import { api } from './api.js';
 import { showNotification, showModal, hideModal, showLoading } from './ui.js';
@@ -360,3 +360,4 @@ if (document.getElementById('orders-grid')) {
   loadOrders();
   initOrders();
 }
+
