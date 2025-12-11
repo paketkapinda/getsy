@@ -684,6 +684,99 @@ function showNotification(message, type = 'info') {
 }
 // payment.js dosyasının en sonuna ekleyin:
 
+// payment.js dosyasının sonuna ekleyin veya mevcut fonksiyonları güncelleyin
+
+// Global fonksiyonları tanımla
+window.syncAllPayments = syncEtsyPayments; // syncEtsyPayments fonksiyonunu global yap
+
+window.processAllPayouts = async function() {
+    if (!allPayments || allPayments.length === 0) {
+        showNotification('İşlenecek ödeme bulunamadı.', 'warning');
+        return;
+    }
+    
+    try {
+        const pendingPayments = allPayments.filter(p => p.status === 'pending');
+        
+        if (pendingPayments.length === 0) {
+            showNotification('Bekleyen ödeme bulunamadı.', 'info');
+            return;
+        }
+        
+        if (!confirm(`${pendingPayments.length} bekleyen ödemeyi işlemek istediğinize emin misiniz?`)) {
+            return;
+        }
+        
+        showLoading(`${pendingPayments.length} ödeme işleniyor...`);
+        
+        let processedCount = 0;
+        let errorCount = 0;
+        
+        for (const payment of pendingPayments) {
+            try {
+                const { error } = await supabase
+                    .from('payments')
+                    .update({
+                        status: 'completed',
+                        settlement_date: new Date().toISOString()
+                    })
+                    .eq('id', payment.id);
+                
+                if (error) throw error;
+                processedCount++;
+                
+            } catch (error) {
+                console.error(`Ödeme ${payment.id} işlenirken hata:`, error);
+                errorCount++;
+            }
+        }
+        
+        if (processedCount > 0) {
+            showNotification(`${processedCount} ödeme başarıyla işlendi. ${errorCount > 0 ? `${errorCount} ödemede hata oluştu.` : ''}`, 
+                           errorCount > 0 ? 'warning' : 'success');
+            await loadPayments(); // Sayfayı yenile
+        }
+        
+    } catch (error) {
+        showNotification('Toplu ödeme işleme sırasında hata oluştu: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+};
+
+// Eksik fonksiyonları global scope'a ekle
+window.searchPayments = searchPayments;
+window.filterPaymentsByDate = filterPaymentsByDate;
+window.exportPaymentsToCSV = exportPaymentsToCSV;
+
+// payment.js içinde filterPaymentsByDate fonksiyonunu güncelleyin
+function filterPaymentsByDate(dateValue) {
+    if (!dateValue || dateValue === 'all') {
+        // Tüm ödemeleri göster
+        const rows = document.querySelectorAll('#paymentsTable tr');
+        rows.forEach(row => row.style.display = '');
+        return;
+    }
+    
+    const selectedDate = new Date(dateValue);
+    const rows = document.querySelectorAll('#paymentsTable tr');
+    
+    rows.forEach(row => {
+        if (row.cells.length < 8) return; // Header veya boş row
+        
+        const dateCell = row.cells[0];
+        if (dateCell) {
+            const dateText = dateCell.querySelector('.text-sm.text-gray-500')?.textContent.trim();
+            if (dateText) {
+                const paymentDate = parseDate(dateText);
+                const isSameDay = paymentDate.toDateString() === selectedDate.toDateString();
+                row.style.display = isSameDay ? '' : 'none';
+            }
+        }
+    });
+}
+
+
 // Global fonksiyon tanımları
 window.syncAllPayments = syncEtsyPayments;
 window.processAllPayouts = processAllPayouts;
