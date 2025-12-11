@@ -48,6 +48,33 @@
   flex-wrap: wrap;
 }
 
+.header-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-box input,
+.date-filter input {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.search-box input:focus,
+.date-filter input:focus {
+  outline: none;
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+}
+
+.search-box input {
+  min-width: 200px;
+}
+
 /* Stats Grid */
 .payments-stats-grid {
   display: grid;
@@ -350,12 +377,22 @@
   }
   
   .header-actions {
-    justify-content: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .header-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .search-box input,
+  .date-filter input {
+    width: 100%;
   }
   
   .header-actions .btn {
-    flex: 1;
-    min-width: auto;
+    width: 100%;
   }
   
   .payments-stats-grid {
@@ -378,10 +415,6 @@
 @media (max-width: 480px) {
   .payments-title h1 {
     font-size: 24px;
-  }
-  
-  .header-actions {
-    flex-direction: column;
   }
   
   .stat-value {
@@ -525,7 +558,31 @@
             <p>Manage your revenue and payouts</p>
           </div>
           <div class="header-actions">
-            <button class="btn btn-outline" id="btn-sync-payments">
+            <!-- Arama ve Filtre Alanları -->
+            <div class="header-filters">
+              <div class="search-box">
+                <input 
+                  type="text" 
+                  id="searchPayments" 
+                  placeholder="Search payments..."
+                />
+              </div>
+              <div class="date-filter">
+                <input 
+                  type="date" 
+                  id="dateFilter" 
+                />
+              </div>
+              <button class="btn btn-outline" id="exportPayments">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Export
+              </button>
+            </div>
+            
+            <!-- Mevcut Butonlar -->
+            <button class="btn btn-outline" id="etsySyncBtn">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
               </svg>
@@ -540,9 +597,64 @@
           </div>
         </header>
 
+        <!-- Stats Grid -->
+        <div class="payments-stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="totalRevenue">$0.00</div>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="totalPayout">$0.00</div>
+            <div class="stat-label">Total Payout</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="pendingPayments">0</div>
+            <div class="stat-label">Pending Payments</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="avgPayout">$0.00</div>
+            <div class="stat-label">Avg. Payout</div>
+          </div>
+        </div>
+
         <!-- Payments Container -->
         <div id="payments-container">
-          <!-- Payments will be loaded here via payment.js -->
+          <!-- Payments Table Container -->
+          <div class="payments-table-container">
+            <table class="payments-table" id="paymentsTable">
+              <thead>
+                <tr>
+                  <th>Payment Date</th>
+                  <th>Order ID</th>
+                  <th>Amount</th>
+                  <th>Fees</th>
+                  <th>Payout</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="paymentsTableBody">
+                <!-- Tablo verileri payment.js tarafından dinamik olarak doldurulacak -->
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Empty State (başlangıçta gösterilebilir) -->
+          <div id="paymentsEmptyState" class="payments-empty hidden">
+            <div class="empty-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+              </svg>
+            </div>
+            <h3 class="empty-title">No payments found</h3>
+            <p class="empty-description">Your payment history will appear here once you start receiving payments.</p>
+            <button class="btn btn-primary" id="btn-initial-sync">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Sync from Etsy
+            </button>
+          </div>
         </div>
       </main>
     </div>
@@ -556,11 +668,15 @@
         console.log('🚀 Payments page loaded');
         
         // Buton event listener'larını başlat
-        const syncBtn = document.getElementById('btn-sync-payments');
+        const etsySyncBtn = document.getElementById('etsySyncBtn');
         const processBtn = document.getElementById('btn-process-payouts');
+        const exportBtn = document.getElementById('exportPayments');
+        const searchInput = document.getElementById('searchPayments');
+        const dateFilter = document.getElementById('dateFilter');
+        const initialSyncBtn = document.getElementById('btn-initial-sync');
         
-        if (syncBtn) {
-          syncBtn.addEventListener('click', function() {
+        if (etsySyncBtn) {
+          etsySyncBtn.addEventListener('click', function() {
             window.syncAllPayments();
           });
         }
@@ -568,6 +684,30 @@
         if (processBtn) {
           processBtn.addEventListener('click', function() {
             window.processAllPayouts();
+          });
+        }
+        
+        if (exportBtn) {
+          exportBtn.addEventListener('click', function() {
+            window.exportPaymentsToCSV();
+          });
+        }
+        
+        if (searchInput) {
+          searchInput.addEventListener('input', function() {
+            window.searchPayments(this.value);
+          });
+        }
+        
+        if (dateFilter) {
+          dateFilter.addEventListener('change', function() {
+            window.filterPaymentsByDate(this.value);
+          });
+        }
+        
+        if (initialSyncBtn) {
+          initialSyncBtn.addEventListener('click', function() {
+            window.syncAllPayments();
           });
         }
         
