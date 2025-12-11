@@ -1,8 +1,3 @@
-// payment.js - Entegre Payment Management (Cost calculation + Payment tracking + Settings)
-import { supabase } from './supabaseClient.js';
-import { showNotification } from './ui.js';
-import { formatCurrency, formatDate } from './helpers.js';
-
 // payment.js - Tam Revize Edilmiş Versiyon
 let currentUser = null;
 let allPayments = [];
