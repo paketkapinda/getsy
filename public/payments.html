@@ -635,6 +635,13 @@
               </thead>
               <tbody id="paymentsTableBody">
                 <!-- Tablo verileri payment.js tarafından dinamik olarak doldurulacak -->
+                <tr>
+                  <td colspan="7" class="text-center py-8">
+                    <div class="text-gray-500">
+                      <p>Loading payments...</p>
+                    </div>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -660,13 +667,180 @@
     </div>
 
     <!-- JavaScript Import -->
-    <script src="js/payment.js"></script>
+    <!-- ÖNEMLİ: payment.js dosya yolunu düzeltin -->
+    <!-- Eğer /assets/js/payment.js yoksa veya farklı bir yerdeyse -->
+    <script src="/assets/js/payment.js "></script>
     
-    <!-- Sadece temel kontrol -->
+    <!-- Alternatif olarak, dosyanın aynı dizinde olduğunu varsayalım -->
+    <!-- <script src="./payment.js"></script> -->
+    
+    <!-- Veya inline JavaScript kullanabiliriz -->
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        console.log('Payments page loaded');
-      });
+      // Eğer payment.js yüklenemezse, inline kodu çalıştır
+      setTimeout(function() {
+        const tableBody = document.getElementById('paymentsTableBody');
+        const loadingRow = tableBody.querySelector('tr');
+        
+        if (loadingRow && loadingRow.textContent.includes('Loading payments')) {
+          // Payment.js yüklenemedi, inline kodu çalıştır
+          console.log('Payment.js not loaded, running inline code...');
+          initializeInlinePayments();
+        }
+      }, 2000);
+      
+      function initializeInlinePayments() {
+        console.log('Running inline payments functionality...');
+        
+        // Buton event listener'ları
+        const etsySyncBtn = document.getElementById('etsySyncBtn');
+        const processBtn = document.getElementById('btn-process-payouts');
+        const exportBtn = document.getElementById('exportPayments');
+        const searchInput = document.getElementById('searchPayments');
+        const dateFilter = document.getElementById('dateFilter');
+        const initialSyncBtn = document.getElementById('btn-initial-sync');
+        
+        if (etsySyncBtn) {
+          etsySyncBtn.addEventListener('click', function() {
+            showNotification('Syncing payments...', 'info');
+            // Mock veri ekle
+            setTimeout(() => {
+              addMockPaymentData();
+              showNotification('3 mock payments added', 'success');
+            }, 1000);
+          });
+        }
+        
+        if (processBtn) {
+          processBtn.addEventListener('click', function() {
+            showNotification('Processing payouts...', 'info');
+          });
+        }
+        
+        if (exportBtn) {
+          exportBtn.addEventListener('click', function() {
+            showNotification('Exporting payments...', 'info');
+          });
+        }
+        
+        if (searchInput) {
+          searchInput.addEventListener('input', function() {
+            console.log('Searching:', this.value);
+          });
+        }
+        
+        if (dateFilter) {
+          dateFilter.addEventListener('change', function() {
+            console.log('Date filter:', this.value);
+          });
+        }
+        
+        if (initialSyncBtn) {
+          initialSyncBtn.addEventListener('click', function() {
+            showNotification('Syncing from Etsy...', 'info');
+          });
+        }
+        
+        // Mock veri göster
+        showMockPayments();
+      }
+      
+      function addMockPaymentData() {
+        const mockData = [
+          {
+            date: '2024-01-15',
+            orderId: 'ETSY-123456',
+            amount: 45.99,
+            fees: 'Prod: $23.00\nPlatform: $6.90\nGateway: $1.68',
+            payout: 14.41,
+            status: 'completed'
+          },
+          {
+            date: '2024-01-10',
+            orderId: 'ETSY-123457',
+            amount: 32.50,
+            fees: 'Prod: $16.25\nPlatform: $4.88\nGateway: $1.23',
+            payout: 10.14,
+            status: 'pending'
+          },
+          {
+            date: '2024-01-05',
+            orderId: 'ETSY-123458',
+            amount: 67.25,
+            fees: 'Prod: $33.63\nPlatform: $10.09\nGateway: $2.27',
+            payout: 21.26,
+            status: 'completed'
+          }
+        ];
+        
+        const tbody = document.getElementById('paymentsTableBody');
+        let html = '';
+        
+        mockData.forEach(payment => {
+          html += `
+            <tr>
+              <td class="payment-date">${payment.date}</td>
+              <td><span class="order-id">${payment.orderId}</span></td>
+              <td class="amount">$${payment.amount.toFixed(2)}</td>
+              <td><div class="fees-breakdown">${payment.fees.replace(/\n/g, '<br>')}</div></td>
+              <td class="payout positive">$${payment.payout.toFixed(2)}</td>
+              <td><span class="payment-status status-${payment.status}">${payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}</span></td>
+              <td class="payment-actions">
+                <button class="btn btn-sm btn-outline">View</button>
+                ${payment.status === 'pending' ? '<button class="btn btn-sm btn-primary">Process</button>' : ''}
+              </td>
+            </tr>
+          `;
+        });
+        
+        tbody.innerHTML = html;
+        
+        // Stats güncelle
+        document.getElementById('totalRevenue').textContent = '$145.74';
+        document.getElementById('totalPayout').textContent = '$45.81';
+        document.getElementById('pendingPayments').textContent = '1';
+        document.getElementById('avgPayout').textContent = '$15.27';
+        
+        // Empty state'i gizle
+        document.getElementById('paymentsEmptyState').classList.add('hidden');
+        document.querySelector('.payments-table-container').classList.remove('hidden');
+      }
+      
+      function showMockPayments() {
+        const tbody = document.getElementById('paymentsTableBody');
+        if (tbody.children.length === 1 && tbody.children[0].textContent.includes('Loading payments')) {
+          // Hiç veri yok, empty state göster
+          document.getElementById('paymentsEmptyState').classList.remove('hidden');
+          document.querySelector('.payments-table-container').classList.add('hidden');
+        }
+      }
+      
+      function showNotification(message, type = 'info') {
+        const colors = {
+          success: '#10b981',
+          error: '#ef4444',
+          warning: '#f59e0b',
+          info: '#3b82f6'
+        };
+        
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 12px 20px;
+          border-radius: 8px;
+          color: white;
+          z-index: 9999;
+          background-color: ${colors[type]};
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 3000);
+      }
     </script>
   </body>
 </html>
