@@ -1,4 +1,5 @@
 // Reusable UI widgets: modals, notifications, loading states
+// ui.js
 
 export function showNotification(message, type = 'info') {
   const notification = document.createElement('div');
