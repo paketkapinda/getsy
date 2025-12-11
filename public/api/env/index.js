@@ -1,5 +1,6 @@
 // Vercel serverless function to expose Supabase env vars to frontend
 // Only exposes anon key, never service role key
+// /public/api/env/index.js
 
 export default function handler(req, res) {
   // CORS headers for browser access
@@ -41,4 +42,5 @@ export default function handler(req, res) {
     SUPABASE_ANON_KEY: supabaseAnonKey
   });
 }
+
 
