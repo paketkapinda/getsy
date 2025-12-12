@@ -1,906 +1,807 @@
-// products.js - GERÇEK SİSTEM: Etsy'den ürün çek → AI ile benzerini oluştur
+// products.js - MULTI-CHANNEL VERSION
+import { supabase } from './supabaseClient.js';
+import { showNotification } from './ui.js';
 
-// ESKİ KODUNUZDAKİ DEĞİŞKENLER
-let currentUser = null;
 let currentProducts = [];
-let etsyService = null;
-let isEtsyConnected = false;
-let topSellersData = [];
+let currentMarketplaces = [];
+let isAnalyzing = false;
 
-// Eski kodunuzda bu global değişkenler vardı:
-window.productsSystem = {
-  currentUser: null,
-  products: [],
-  filteredProducts: [],
-  etsyService: null,
-  podServices: {},
-  etsyShop: null,
-  pagination: {
-    currentPage: 1,
-    pageSize: 12,
-    totalPages: 1
-  },
-  filters: {
-    status: '',
-    category: '',
-    search: '',
-    podProvider: ''
-  },
-  bulkSelection: new Set()
-};
-// Sayfa yüklendiğinde - ESKİ KODUNUZA UYGUN
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🛍️ Products System Initializing...');
-    
-    try {
-        // ESKİ KODUNUZDAKİ AUTH KONTROLÜ
-        if (!window.supabaseClient && !window.supabase) {
-            throw new Error('Database connection not available');
-        }
-        
-        // Hangi supabase client kullanılıyor?
-        const supabaseClient = window.supabaseClient || window.supabase;
-        
-        const { data: { user }, error } = await supabaseClient.auth.getUser();
-        
-        if (error) {
-            throw new Error('Authentication error: ' + error.message);
-        }
-        
-        if (!user) {
-            throw new Error('Please sign in to access products');
-        }
-        
-        currentUser = user;
-        window.productsSystem.currentUser = user;
-        console.log('✅ Authenticated user:', currentUser.email);
-        
-        // Etsy bağlantısını kontrol et
-        await checkEtsyConnection();
-        
-        // Ürünleri yükle
-        await loadUserProducts();
-        
-        // Event listener'ları kur
-        setupEventListeners();
-        
-        // Update UI (eski kodunuzdaki)
-        updateUI();
-        
-        console.log('✅ Products System Ready');
-        showNotification('Products system loaded successfully', 'success');
-        
-    } catch (error) {
-        console.error('❌ System initialization error:', error);
-        showNotification('System error: ' + error.message, 'error');
-        
-        // Even with error, show basic interface
-        loadFallbackProducts();
-    }
+// 📦 SAYFA YÜKLENİNCE
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 Multi-Channel Products.js loaded');
+  
+  // Load marketplaces first, then products
+  loadMarketplaces().then(() => {
+    loadProducts();
+  });
+  
+  // Buton event'lerini kur
+  initProductForm();
+  
+  // Filter event'lerini kur
+  initFilters();
+  
+  console.log('✅ Multi-Channel Products page ready');
 });
 
-// ==================== ETSY BAĞLANTISI ====================
-async function checkEtsyConnection() {
-    try {
-        const { data: etsyShop, error } = await supabase
-            .from('etsy_shops')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .eq('is_active', true)
-            .single();
-        
-        if (error || !etsyShop) {
-            console.log('ℹ️ No Etsy shop connected');
-            document.getElementById('etsy-status').textContent = 'Bağlı Değil';
-            return;
-        }
-        
-        // Etsy servisini başlat
-        etsyService = new window.EtsyAPIService(etsyShop.api_key, etsyShop.shop_id);
-        isEtsyConnected = true;
-        
-        console.log('✅ Etsy connected:', etsyShop.shop_name);
-        document.getElementById('etsy-status').textContent = etsyShop.shop_name;
-        
-    } catch (error) {
-        console.error('Etsy connection error:', error);
-    }
-}
-
-// ==================== ETSY'DEN GERÇEK TREND ÜRÜNLERİ ÇEK ====================
-window.analyzeTopSellers = async function() {
-    try {
-        if (!isEtsyConnected || !etsyService) {
-            alert('Önce Etsy mağazanızı bağlayın! Ayarlar → Etsy Bağlantısı');
-            return;
-        }
-        
-        showLoading('Etsy trend ürünleri aranıyor...');
-        
-        // Kullanıcıdan parametreleri al
-        const keywords = document.getElementById('trend-keywords').value || 'best seller';
-        const category = document.getElementById('trend-category').value;
-        
-        // GERÇEK ETSY API ÇAĞRISI
-        const searchParams = {
-            keywords: keywords,
-            category: category || undefined,
-            sort_on: 'score', // Popülerlik sıralaması
-            limit: 20,
-            min_price: 10,
-            max_price: 100
-        };
-        
-        // Etsy'den listingleri çek
-        const listings = await etsyService.searchListings(searchParams);
-        
-        if (!listings || listings.length === 0) {
-            hideLoading();
-            alert('Bu kriterlerde ürün bulunamadı. Farklı anahtar kelimeler deneyin.');
-            return;
-        }
-        
-        // Listing detaylarını al
-        const detailedListings = await getListingDetails(listings);
-        
-        // Analiz et ve sırala
-        topSellersData = analyzeListings(detailedListings);
-        
-        // Modalda göster
-        showTrendAnalysisModal(topSellersData);
-        
-        hideLoading();
-        
-    } catch (error) {
-        console.error('Trend analysis error:', error);
-        alert('Trend analizi başarısız: ' + error.message);
-        hideLoading();
-    }
-};
-
-// Listing detaylarını al
-async function getListingDetails(listings) {
-    const detailedListings = [];
+// 📊 ÜRÜNLERİ YÜKLE
+export async function loadProducts() {
+  const container = document.getElementById('products-grid');
+  const empty = document.getElementById('products-empty');
+  
+  if (!container) return;
+  
+  try {
+    container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #6b7280;">Loading products...</div>';
     
-    for (const listing of listings.slice(0, 10)) { // İlk 10 listing
-        try {
-            // Listing detayları
-            const details = await etsyService.getListing(listing.listing_id);
-            
-            // Listing görselleri
-            const images = await etsyService.getListingImages(listing.listing_id);
-            
-            // Benzer listingleri bul (kategorideki diğer ürünler)
-            const similarListings = await findSimilarListings(details);
-            
-            detailedListings.push({
-                id: listing.listing_id,
-                title: listing.title,
-                description: details.description || '',
-                price: details.price?.amount || 0,
-                currency: details.price?.currency_code || 'USD',
-                category: details.taxonomy_path?.[0] || 'Uncategorized',
-                tags: details.tags || [],
-                images: images.map(img => img.url_fullxfull),
-                primary_image: images[0]?.url_fullxfull || '',
-                views: details.views || 0,
-                favorites: details.num_favorers || 0,
-                created_date: details.creation_timestamp,
-                similar_count: similarListings.length,
-                etsy_data: details
-            });
-            
-        } catch (e) {
-            console.warn(`Listing ${listing.listing_id} detay alınamadı:`, e);
-        }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      showNotification('Please login first', 'error');
+      return;
     }
     
-    return detailedListings;
-}
-
-// Benzer listingleri bul
-async function findSimilarListings(listingDetails) {
-    try {
-        // Aynı kategorideki listingleri ara
-        const similar = await etsyService.searchListings({
-            keywords: listingDetails.tags?.[0] || '',
-            category: listingDetails.taxonomy_id,
-            limit: 5
-        });
-        
-        return similar || [];
-    } catch (e) {
-        return [];
-    }
-}
-
-// Listingleri analiz et
-function analyzeListings(listings) {
-    return listings.map(listing => {
-        // Trend skoru hesapla
-        const trendScore = calculateTrendScore(listing);
-        
-        // Benzerlik oranını hesapla (düşük benzerlik = daha iyi fırsat)
-        const uniquenessScore = calculateUniquenessScore(listing);
-        
-        // Potansiyel kârı hesapla
-        const profitPotential = calculateProfitPotential(listing);
-        
-        return {
-            ...listing,
-            trend_score: trendScore,
-            uniqueness_score: uniquenessScore,
-            profit_potential: profitPotential,
-            total_score: (trendScore + uniquenessScore + profitPotential) / 3,
-            competition_level: listing.similar_count > 50 ? 'Yüksek' : 
-                              listing.similar_count > 20 ? 'Orta' : 'Düşük'
-        };
-    }).sort((a, b) => b.total_score - a.total_score); // En yüksek skora göre sırala
-}
-
-// ==================== TREND ÜRÜNDEN BENZER ÜRÜN OLUŞTUR ====================
-window.createSimilarProduct = async function(trendIndex) {
-    const trend = topSellersData[trendIndex];
-    if (!trend) {
-        alert('Trend verisi bulunamadı');
-        return;
-    }
-    
-    try {
-        showLoading('Trend üründen benzer ürün oluşturuluyor...');
-        
-        // 1. API_TOOLS tablosundan AI servisini al
-        const aiService = await getAIService();
-        
-        // 2. ORİJİNAL ÜRÜNDEN FARKLI AMA BENZER İÇERİK OLUŞTUR
-        const newContent = await generateSimilarContent(aiService, trend);
-        
-        // 3. ORİJİNALDEN FARKLI AMA BENZER GÖRSEL OLUŞTUR
-        const newImage = await generateSimilarImage(aiService, trend);
-        
-        // 4. YENİ ÜRÜNÜ VERİTABANINA KAYDET
-        const newProduct = await saveNewProduct(newContent, newImage, trend);
-        
-        // 5. MOCKUP OLUŞTUR
-        await generateMockupsForProduct(newProduct.id, newImage);
-        
-        // 6. SONUÇ
-        hideLoading();
-        showSuccess('✅ Benzer ürün başarıyla oluşturuldu!');
-        
-        // Ürünleri yenile
-        await loadUserProducts();
-        
-        // Ürün editörünü aç
-        openProductEditor(newProduct.id);
-        
-    } catch (error) {
-        hideLoading();
-        console.error('Create similar product error:', error);
-        alert('Ürün oluşturma başarısız: ' + error.message);
-    }
-};
-
-// AI servisini al
-async function getAIService() {
-    const { data: aiTools, error } = await supabase
-        .from('api_tools')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .eq('tool_type', 'ai_generation')
-        .eq('is_active', true)
-        .single();
-    
-    if (error || !aiTools) {
-        throw new Error('AI üretim servisi bulunamadı. Lütfen ayarlardan ekleyin.');
-    }
-    
-    return aiTools;
-}
-
-// BENZER İÇERİK OLUŞTUR (orijinalden farklı ama aynı tarzda)
-async function generateSimilarContent(aiService, originalTrend) {
-    const prompt = `
-        ORİJİNAL ETÜRÜN:
-        Başlık: "${originalTrend.title}"
-        Kategori: ${originalTrend.category}
-        Etiketler: ${originalTrend.tags.join(', ')}
-        Açıklama: ${originalTrend.description.substring(0, 200)}...
-        
-        GÖREV:
-        Bu üründen İLHAM ALARAK yeni bir ürün oluştur.
-        Orijinalin KOPYASI DEĞİL, BENZERİ OLSUN.
-        
-        İSTENENLER:
-        1. ORİJİNALDEN FARKLI ama aynı tarzda bir başlık
-        2. ORİJİNALDEN FARKLI ama aynı temada açıklama
-        3. Benzer etiketler (aynıları değil)
-        4. Fiyat önerisi (orijinal: $${originalTrend.price})
-        
-        KRİTERLER:
-        - Orijinalin kopyası olmayacak
-        - Aynı hedef kitleye hitap edecek
-        - Benzer kalitede olacak
-        - Telif hakkı sorunu olmayacak
-    `;
-    
-    // AI servisine gönder
-    const response = await callAIService(aiService.api_key, aiService.endpoint, {
-        prompt: prompt,
-        model: aiService.model || 'gpt-4',
-        max_tokens: 500
-    });
-    
-    // Response'u parse et
-    return parseAIResponse(response);
-}
-
-// BENZER GÖRSEL OLUŞTUR (orijinalden farklı ama aynı tarzda)
-async function generateSimilarImage(aiService, originalTrend) {
-    // Görsel AI servisini al
-    const { data: imageAIService, error } = await supabase
-        .from('api_tools')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .eq('tool_type', 'ai_image')
-        .eq('is_active', true)
-        .single();
-    
-    if (error || !imageAIService) {
-        // Görsel servisi yoksa, orijinal görseli değiştir
-        return await modifyOriginalImage(originalTrend.primary_image);
-    }
-    
-    const imagePrompt = `
-        Create a product image INSPIRED BY but NOT COPYING this Etsy product.
-        
-        ORIGINAL PRODUCT: ${originalTrend.title}
-        CATEGORY: ${originalTrend.category}
-        STYLE: ${extractStyleFromTags(originalTrend.tags)}
-        
-        REQUIREMENTS:
-        - SIMILAR STYLE but DIFFERENT DESIGN
-        - SAME QUALITY LEVEL
-        - NO COPYRIGHT INFRINGEMENT
-        - PROFESSIONAL PRODUCT PHOTOGRAPHY
-        - ETSY-OPTIMIZED
-    `;
-    
-    // AI görsel oluştur
-    const imageUrl = await callImageAIService(
-        imageAIService.api_key,
-        imageAIService.endpoint,
-        imagePrompt,
-        '1024x1024'
-    );
-    
-    return imageUrl;
-}
-
-// Orijinal görseli değiştir (AI yoksa)
-async function modifyOriginalImage(originalImageUrl) {
-    // Basit bir filtre/efekt uygula
-    // Bu kısım canvas ile görsel işleme yapabilir
-    return originalImageUrl; // Geçici
-}
-
-// Yeni ürünü kaydet
-async function saveNewProduct(content, imageUrl, originalTrend) {
-    const newProduct = {
-        user_id: currentUser.id,
-        title: content.title,
-        description: content.description,
-        category: originalTrend.category,
-        price: content.suggested_price || (originalTrend.price * 0.9), // %10 daha ucuz
-        status: 'draft',
-        tags: content.tags,
-        images: [imageUrl],
-        metadata: {
-            generated_from_trend: true,
-            original_trend_id: originalTrend.id,
-            original_title: originalTrend.title,
-            similarity_score: calculateSimilarityScore(content, originalTrend),
-            ai_generated: true,
-            generation_date: new Date().toISOString()
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-    };
-    
-    const { data: product, error } = await supabase
-        .from('products')
-        .insert([newProduct])
-        .select()
-        .single();
+    const { data: products, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
     
     if (error) throw error;
     
-    // AI log kaydı
-    await supabase.from('ai_logs').insert({
-        user_id: currentUser.id,
-        product_id: product.id,
-        operation_type: 'similar_product_generation',
-        input_data: { original_trend: originalTrend },
-        output_data: { new_product: newProduct },
-        status: 'completed',
-        created_at: new Date().toISOString()
-    });
+    currentProducts = products || [];
     
-    return product;
-}
-
-// Mockup oluştur
-async function generateMockupsForProduct(productId, productImage) {
-    try {
-        // Mockup servisini al
-        const { data: mockupService, error } = await supabase
-            .from('api_tools')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .eq('tool_type', 'mockup')
-            .eq('is_active', true)
-            .single();
-        
-        if (error || !mockupService) return;
-        
-        // Mockup oluştur
-        const mockups = await callMockupService(
-            mockupService.api_key,
-            mockupService.endpoint,
-            productImage,
-            'tshirt' // Ürün kategorisine göre değişir
-        );
-        
-        // Mockupları kaydet
-        await saveMockups(productId, mockups);
-        
-    } catch (error) {
-        console.error('Mockup generation error:', error);
-        // Mockup olmadan da devam et
-    }
-}
-
-// ==================== ÇOKLU PLATFORM YAYINLAMA ====================
-window.publishToPlatform = async function(productId, platform) {
-    const product = currentProducts.find(p => p.id === productId);
-    if (!product) {
-        alert('Ürün bulunamadı');
-        return;
+    // Filtreleri uygula
+    const filteredProducts = applyFilters(currentProducts);
+    
+    // Render et
+    renderProducts(filteredProducts);
+    
+    // Empty state kontrolü
+    if (filteredProducts.length === 0) {
+      container.classList.add('hidden');
+      if (empty) empty.classList.remove('hidden');
+    } else {
+      container.classList.remove('hidden');
+      if (empty) empty.classList.add('hidden');
     }
     
-    try {
-        showLoading(`${platform} yayınlanıyor...`);
-        
-        switch(platform) {
-            case 'etsy':
-                await publishToEtsy(product);
-                break;
-            case 'amazon':
-                await publishToAmazon(product);
-                break;
-            case 'shopify':
-                await publishToShopify(product);
-                break;
-            default:
-                throw new Error('Desteklenmeyen platform');
+  } catch (error) {
+    console.error('❌ Error loading products:', error);
+    showNotification('Error loading products', 'error');
+    loadMockProducts(); // Fallback
+  }
+}
+
+// 🎯 ÜRÜNLERİ RENDER ET
+function renderProducts(products) {
+  const container = document.getElementById('products-grid');
+  if (!container) return;
+  
+  container.innerHTML = products.map(product => `
+    <div class="product-card" data-product-id="${product.id}">
+      <div class="product-image">
+        ${product.mockup_urls && product.mockup_urls.length > 0 
+          ? `<img src="${product.mockup_urls[0]}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: cover;" />`
+          : `
+            <div class="product-image-placeholder">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <p>No mockup yet</p>
+            </div>
+          `
         }
+        <div class="product-badge ${product.status}">${getStatusLabel(product.status)}</div>
+      </div>
+      
+      <div class="product-content">
+        <div class="product-header">
+          <h3 class="product-title">${product.title || 'Untitled Product'}</h3>
+          <div class="product-price">$${product.price || '0.00'}</div>
+        </div>
         
-        hideLoading();
-        showSuccess(`✅ Ürün ${platform} yayınlandı!`);
+        <span class="product-category">${getCategoryName(product.category)}</span>
         
-        // Ürünleri yenile
-        await loadUserProducts();
+        <p class="product-description">${product.description || 'No description'}</p>
         
-    } catch (error) {
-        hideLoading();
-        console.error('Publish error:', error);
-        alert(`${platform} yayınlama başarısız: ${error.message}`);
-    }
-};
+        <div class="product-actions">
+          <button class="btn btn-outline btn-sm" onclick="editProduct('${product.id}')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            Edit
+          </button>
+          
+          <button class="btn btn-primary btn-sm" onclick="generateMockup('${product.id}')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            Mockup
+          </button>
+          
+          ${product.status === 'draft' ? `
+            <button class="btn btn-primary btn-sm" onclick="publishToEtsy('${product.id}')">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+              </svg>
+              Publish
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
 
-// Etsy yayınlama
-async function publishToEtsy(product) {
-    if (!isEtsyConnected || !etsyService) {
-        throw new Error('Etsy bağlantısı yok');
-    }
+// 🆕 YENİ ÜRÜN MODALI
+function openProductModal(product = null) {
+  const modal = document.getElementById('modal-product');
+  const form = document.getElementById('form-product');
+  
+  if (!modal || !form) return;
+  
+  if (product) {
+    // Edit mode
+    document.getElementById('modal-product-title').textContent = 'Edit Product';
+    document.getElementById('product-id').value = product.id;
+    document.getElementById('product-title').value = product.title || '';
+    document.getElementById('product-category').value = product.category || '';
+    document.getElementById('product-price').value = product.price || '';
+    document.getElementById('product-status').value = product.status || 'draft';
+    document.getElementById('product-description').value = product.description || '';
+  } else {
+    // New product mode
+    document.getElementById('modal-product-title').textContent = 'New Product';
+    form.reset();
+    document.getElementById('product-id').value = '';
+    document.getElementById('product-status').value = 'draft';
+  }
+  
+  modal.classList.add('active');
+}
+
+// ✅ FORM SUBMIT
+async function handleFormSubmit(e) {
+  e.preventDefault();
+  
+  const id = document.getElementById('product-id').value;
+  const title = document.getElementById('product-title').value.trim();
+  const category = document.getElementById('product-category').value;
+  const price = parseFloat(document.getElementById('product-price').value);
+  const status = document.getElementById('product-status').value;
+  const description = document.getElementById('product-description').value.trim();
+  
+  if (!title || !category || isNaN(price)) {
+    showNotification('Please fill in all required fields', 'error');
+    return;
+  }
+  
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
     
-    // Etsy shop bilgilerini al
-    const { data: etsyShop } = await supabase
-        .from('etsy_shops')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .eq('is_active', true)
-        .single();
-    
-    // Listing oluştur
-    const listingData = {
-        quantity: 1,
-        title: product.title,
-        description: product.description,
-        price: product.price,
-        who_made: 'i_did',
-        when_made: 'made_to_order',
-        taxonomy_id: getEtsyTaxonomyId(product.category),
-        tags: product.tags.slice(0, 13), // Etsy max 13 tag
-        materials: ['premium material'],
-        is_supply: false,
-        shipping_profile_id: etsyShop?.shipping_profile_id || 1
+    const productData = {
+      title,
+      category,
+      price,
+      status,
+      description,
+      user_id: user.id,
+      updated_at: new Date().toISOString()
     };
     
-    const result = await etsyService.createListing(listingData);
+    let result;
     
-    // Ürünü güncelle
-    await supabase
+    if (id) {
+      // Update
+      const { data, error } = await supabase
         .from('products')
-        .update({
-            etsy_listing_id: result.listing_id,
-            status: 'published',
-            published_at: new Date().toISOString()
-        })
-        .eq('id', product.id);
+        .update(productData)
+        .eq('id', id)
+        .select();
+      
+      if (error) throw error;
+      result = data[0];
+      showNotification('Product updated successfully!', 'success');
+      
+    } else {
+      // Create
+      productData.created_at = new Date().toISOString();
+      
+      const { data, error } = await supabase
+        .from('products')
+        .insert([productData])
+        .select();
+      
+      if (error) throw error;
+      result = data[0];
+      showNotification('Product created successfully!', 'success');
+    }
+    
+    // Modal'ı kapat
+    document.getElementById('modal-product').classList.remove('active');
+    
+    // Ürün listesini yenile
+    loadProducts();
+    
+    // Hemen mockup oluşturma modalını aç (yeni ürünse)
+    if (!id) {
+      setTimeout(() => {
+        showMockupGenerator(result.id, result);
+      }, 500);
+    }
+    
+  } catch (error) {
+    console.error('❌ Save error:', error);
+    showNotification('Error saving product: ' + error.message, 'error');
+  }
 }
 
-// Amazon yayınlama
-async function publishToAmazon(product) {
-    // api_tools'dan Amazon servisini al
-    const { data: amazonService, error } = await supabase
-        .from('api_tools')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .eq('tool_type', 'amazon')
-        .eq('is_active', true)
-        .single();
-    
-    if (error) throw new Error('Amazon servisi bulunamadı');
-    
-    // Amazon API çağrısı
-    // ... Amazon listing oluşturma kodu
-}
-
-// ==================== UI FONKSİYONLARI ====================
-function showTrendAnalysisModal(trends) {
-    const modalHtml = `
-        <div class="modal active" id="trends-modal">
-            <div class="modal-content large-modal">
-                <div class="modal-header">
-                    <h2>📈 Etsy Trend Analizi</h2>
-                    <button class="modal-close" onclick="closeModal('trends-modal')">&times;</button>
-                </div>
-                
-                <div class="modal-body">
-                    <div class="trends-grid">
-                        ${trends.map((trend, index) => `
-                            <div class="trend-card">
-                                <div class="trend-image">
-                                    <img src="${trend.primary_image}" alt="${trend.title}">
-                                    <div class="trend-score">Skor: ${trend.total_score.toFixed(1)}</div>
-                                </div>
-                                
-                                <div class="trend-content">
-                                    <h3>${trend.title}</h3>
-                                    <div class="trend-meta">
-                                        <span class="price">$${trend.price}</span>
-                                        <span class="category">${trend.category}</span>
-                                        <span class="competition ${trend.competition_level.toLowerCase()}">
-                                            ${trend.competition_level}
-                                        </span>
-                                    </div>
-                                    
-                                    <div class="trend-stats">
-                                        <div>👁️ ${trend.views} görüntülenme</div>
-                                        <div>❤️ ${trend.favorites} favori</div>
-                                        <div>📅 ${new Date(trend.created_date * 1000).toLocaleDateString()}</div>
-                                    </div>
-                                    
-                                    <div class="trend-tags">
-                                        ${trend.tags.slice(0, 5).map(tag => 
-                                            `<span class="tag">${tag}</span>`
-                                        ).join('')}
-                                    </div>
-                                    
-                                    <div class="trend-actions">
-                                        <button class="btn btn-primary" onclick="createSimilarProduct(${index})">
-                                            BENZERİNİ OLUŞTUR
-                                        </button>
-                                        <button class="btn btn-outline" onclick="analyzeTrendDetails(${index})">
-                                            DETAYLI ANALİZ
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                
-                <div class="modal-footer">
-                    <p>${trends.length} trend ürün bulundu. "BENZERİNİ OLUŞTUR" butonu ile orijinalden farklı ama benzer ürünler oluşturabilirsiniz.</p>
-                </div>
-            </div>
+// 🎨 MOCKUP OLUŞTUR
+function showMockupGenerator(productId, productData) {
+  const modal = document.getElementById('modal-mockup');
+  const container = document.getElementById('mockup-editor-container');
+  
+  if (!modal || !container) return;
+  
+  container.innerHTML = `
+    <div class="mockup-editor">
+      <h3 style="margin-bottom: 1rem;">Generate Mockups for: ${productData.title}</h3>
+      
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+        <div>
+          <h4 style="margin-bottom: 0.5rem;">Design Upload</h4>
+          <div style="border: 2px dashed #d1d5db; border-radius: 8px; padding: 2rem; text-align: center; background: #f9fafb; cursor: pointer;" 
+               id="design-dropzone" onclick="document.getElementById('design-file').click()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 48px; height: 48px; margin-bottom: 1rem; color: #9ca3af;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <p style="color: #6b7280; margin-bottom: 0.5rem;">Click to upload design</p>
+            <p style="font-size: 0.875rem; color: #9ca3af;">PNG, JPG, SVG up to 5MB</p>
+          </div>
+          <input type="file" id="design-file" accept="image/*" style="display: none;">
+          
+          <div id="design-preview" style="display: none; margin-top: 1rem;">
+            <img id="preview-image" style="max-width: 100%; border-radius: 8px; border: 1px solid #e5e7eb;">
+          </div>
         </div>
-    `;
+        
+        <div>
+          <h4 style="margin-bottom: 0.5rem;">Mockup Settings</h4>
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #374151;">Product Type</label>
+            <select id="mockup-type" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+              <option value="tshirt">T-Shirt</option>
+              <option value="mug">Mug</option>
+              <option value="phone_case">Phone Case</option>
+              <option value="hoodie">Hoodie</option>
+              <option value="poster">Poster</option>
+            </select>
+          </div>
+          
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #374151;">Angles</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+              <label style="display: flex; align-items: center; gap: 0.25rem;">
+                <input type="checkbox" value="front" checked> Front
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.25rem;">
+                <input type="checkbox" value="back"> Back
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.25rem;">
+                <input type="checkbox" value="side"> Side
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.25rem;">
+                <input type="checkbox" value="angle"> Angle
+              </label>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #374151;">Background</label>
+            <select id="mockup-background" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;">
+              <option value="white">White</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+              <option value="lifestyle">Lifestyle</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div style="text-align: center;">
+        <button class="btn btn-primary" onclick="startMockupGeneration('${productId}')" style="padding: 0.75rem 2rem;">
+          🎨 Generate Mockups
+        </button>
+      </div>
+    </div>
+  `;
+  
+  // File upload handler
+  const fileInput = document.getElementById('design-file');
+  const dropzone = document.getElementById('design-dropzone');
+  const preview = document.getElementById('design-preview');
+  const previewImg = document.getElementById('preview-image');
+  
+  fileInput.addEventListener('change', handleFileSelect);
+  
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.style.borderColor = '#ea580c';
+    dropzone.style.background = '#fef7f0';
+  });
+  
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.style.borderColor = '#d1d5db';
+    dropzone.style.background = '#f9fafb';
+  });
+  
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.style.borderColor = '#d1d5db';
+    dropzone.style.background = '#f9fafb';
     
-    // Eski modalı temizle
-    const oldModal = document.getElementById('trends-modal');
-    if (oldModal) oldModal.remove();
-    
-    // Yeni modalı ekle
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-}
-
-// ==================== YARDIMCI FONKSİYONLAR ====================
-// AI servis çağrısı
-async function callAIService(apiKey, endpoint, data) {
-    const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    });
-    
-    if (!response.ok) throw new Error('AI servis hatası');
-    return await response.json();
-}
-
-// Görsel AI servis çağrısı
-async function callImageAIService(apiKey, endpoint, prompt, size) {
-    // Stable Diffusion/DALL-E/Midjourney API çağrısı
-    const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            prompt: prompt,
-            size: size,
-            n: 1
-        })
-    });
-    
-    const data = await response.json();
-    return data.data[0].url; // OpenAI/DALL-E formatı
-}
-
-// Mockup servis çağrısı
-async function callMockupService(apiKey, endpoint, imageUrl, productType) {
-    // Placeit/Mediamodifier/MockupWorld API
-    const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            template_id: getMockupTemplateId(productType),
-            image_url: imageUrl,
-            output_format: 'jpg'
-        })
-    });
-    
-    const data = await response.json();
-    return data.mockup_urls;
-}
-
-// ESKİ KODUNUZDAKİ showLoading/hideLoading
-function showLoading(message = 'Loading...') {
-    // Mevcut loading sisteminizi kullanın
-    if (typeof window.showLoadingIndicator === 'function') {
-        window.showLoadingIndicator(message);
-    } else {
-        // Basit loading
-        let loader = document.getElementById('global-loader');
-        if (!loader) {
-            loader = document.createElement('div');
-            loader.id = 'global-loader';
-            loader.innerHTML = `
-                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-                    <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
-                        <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-                        <p style="margin-top: 10px;">${message}</p>
-                    </div>
-                </div>
-                <style>
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                </style>
-            `;
-            document.body.appendChild(loader);
-        }
-        loader.style.display = 'block';
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileSelect({ target: { files } });
     }
-}
-
-function hideLoading() {
-    if (typeof window.hideLoadingIndicator === 'function') {
-        window.hideLoadingIndicator();
-    } else {
-        const loader = document.getElementById('global-loader');
-        if (loader) {
-            loader.style.display = 'none';
-        }
+  });
+  
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        window.currentDesignData = event.target.result;
+        previewImg.src = event.target.result;
+        preview.style.display = 'block';
+        dropzone.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
     }
+  }
+  
+  modal.classList.add('active');
 }
 
-function showSuccess(message) {
-    alert(message); // veya toast notification
-}
-
-// ==================== EVENT LISTENERS ====================
-function setupEventListeners() {
-    // Analyze trends button
-    const analyzeBtn = document.getElementById('analyze-trends-btn');
-    if (analyzeBtn) {
-        analyzeBtn.addEventListener('click', window.analyzeTopSellers);
-    }
+// 🚀 TOP SELLER ANALİZİ
+async function analyzeTopSellers() {
+  if (isAnalyzing) {
+    showNotification('Analysis already in progress', 'warning');
+    return;
+  }
+  
+  isAnalyzing = true;
+  
+  try {
+    // Top seller analizini başlat
+    const result = await analyzeTopSellersWithAnimation('current_shop');
     
-    // Publish buttons
-    document.querySelectorAll('.publish-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = this.dataset.productId;
-            const platform = this.dataset.platform;
-            window.publishToPlatform(productId, platform);
-        });
-    });
-}
-
-// ==================== PRODUCT LOADING ====================
-// loadUserProducts FONKSİYONUNU ESKİ KODUNUZA GÖRE DÜZENLEYİN
-async function loadUserProducts() {
-    try {
-        showLoading('Loading products...');
-        
-        // ESKİ KODUNUZDAKİ DATABASE BAĞLANTISI
-        const supabaseClient = window.supabaseClient || window.supabase;
-        if (!supabaseClient) {
-            throw new Error('Database connection not available');
-        }
-        
-        const { data: products, error } = await supabaseClient
-            .from('products')
-            .select(`
-                *,
-                rating_stats (
-                    average_rating,
-                    total_reviews,
-                    monthly_sales_estimate
-                ),
-                ai_logs (
-                    operation_type,
-                    status
-                )
-            `)
-            .eq('user_id', currentUser.id)
-            .order('created_at', { ascending: false });
-        
-        if (error) {
-            throw new Error('Database error: ' + error.message);
-        }
-        
-        currentProducts = products || [];
-        window.productsSystem.products = currentProducts;
-        window.productsSystem.filteredProducts = [...currentProducts];
-        
-        console.log(`✅ Loaded ${currentProducts.length} products`);
-        
-        renderProducts(currentProducts);
-        
-        // Update stats
-        updateProductStats();
-        
-    } catch (error) {
-        console.error('❌ Load products error:', error);
-        showNotification('Error loading products: ' + error.message, 'error');
-        currentProducts = [];
-        renderProducts([]);
-    } finally {
-        hideLoading();
-    }
-}
-// ESKİ KODUNUZDAKİ showNotification FONKSİYONU
-function showNotification(message, type = 'info') {
-    console.log(`📢 ${type.toUpperCase()}: ${message}`);
-    
-    // Mevcut notification sisteminizi kullanın
-    if (typeof window.showToast === 'function') {
-        window.showToast(message, type);
-    } else {
-        // Basit notification
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            background: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
-            color: white;
-            border-radius: 4px;
-            z-index: 1000;
-            font-size: 14px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        `;
-        
-        document.body.appendChild(notification);
-        
+    if (result && result.trend_scores) {
+      // Analiz sonuçlarını göster
+      showTopSellerResults(result);
+      
+      // Ürün oluşturma butonları ekle
+      result.trend_scores.forEach((product, index) => {
         setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transition = 'opacity 0.5s';
-            setTimeout(() => notification.remove(), 500);
-        }, 3000);
-    }
-}
-// ESKİ KODUNUZDAKİ updateUI FONKSİYONU
-function updateUI() {
-    // Update user info
-    const userEmail = document.getElementById('user-email');
-    if (userEmail && currentUser) {
-        userEmail.textContent = currentUser.email;
+          createProductFromAnalysis(product, result);
+        }, index * 1000); // Her ürün için 1 saniye ara
+      });
     }
     
-    // Update stats
-    updateProductStats();
+  } catch (error) {
+    console.error('❌ Analysis error:', error);
+    showNotification('Analysis failed: ' + error.message, 'error');
+  } finally {
+    isAnalyzing = false;
+  }
 }
 
-// ESKİ KODUNUZDAKİ updateProductStats FONKSİYONU
-function updateProductStats() {
-    const totalProducts = document.getElementById('total-products');
-    const activeProducts = document.getElementById('active-products');
-    const totalRevenue = document.getElementById('total-revenue');
-    
-    if (totalProducts) {
-        totalProducts.textContent = currentProducts.length || 0;
-    }
-    
-    if (activeProducts) {
-        const activeCount = currentProducts.filter(p => p.status === 'active').length;
-        activeProducts.textContent = activeCount;
-    }
-    
-    if (totalRevenue) {
-        const revenue = currentProducts.reduce((sum, product) => {
-            const monthlySales = product.rating_stats?.[0]?.monthly_sales_estimate || 0;
-            return sum + (monthlySales * (product.price || 0));
-        }, 0);
-        totalRevenue.textContent = `$${revenue.toFixed(0)}`;
-    }
-}
-function renderProducts(products) {
-    const grid = document.getElementById('products-grid');
-    if (!grid) return;
-    
-    const html = products.map(product => `
-        <div class="product-card" data-id="${product.id}">
-            <img src="${product.images?.[0] || 'placeholder.jpg'}" alt="${product.title}">
-            <h3>${product.title}</h3>
-            <p>$${product.price} • ${product.category}</p>
-            <div class="product-actions">
-                ${product.etsy_listing_id ? `
-                    <a href="https://etsy.com/listing/${product.etsy_listing_id}" target="_blank" class="btn">
-                        Etsy'de Gör
-                    </a>
-                ` : `
-                    <select onchange="window.publishToPlatform('${product.id}', this.value)" class="publish-select">
-                        <option value="">Yayınla...</option>
-                        <option value="etsy">Etsy</option>
-                        <option value="amazon">Amazon</option>
-                        <option value="shopify">Shopify</option>
-                    </select>
-                `}
+// 📈 TOP SELLER SONUÇLARINI GÖSTER
+function showTopSellerResults(analysis) {
+  const modal = document.createElement('div');
+  modal.className = 'modal active';
+  modal.style.zIndex = '10001';
+  
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 800px;">
+      <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+      
+      <div class="modal-header">
+        <h2 class="modal-title">🎯 Top Seller Analysis Results</h2>
+        <p class="modal-subtitle">${analysis.trend_scores.length} products analyzed</p>
+      </div>
+      
+      <div style="padding: 1.5rem; max-height: 60vh; overflow-y: auto;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+          ${analysis.trend_scores.map((product, index) => `
+            <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem; background: ${index % 2 === 0 ? '#f9fafb' : 'white'};">
+              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                <h4 style="margin: 0; font-size: 1rem; color: #111827;">${index + 1}. ${product.listing_title}</h4>
+                <span style="background: ${product.trend_score >= 80 ? '#10b981' : product.trend_score >= 60 ? '#f59e0b' : '#6b7280'}; 
+                      color: white; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                  ${product.trend_score}%
+                </span>
+              </div>
+              
+              <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">
+                📈 Monthly sales: <strong>${product.monthly_sales_estimate}</strong>
+              </div>
+              
+              <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">
+                🏷️ Category: ${product.category || 'Various'}
+              </div>
+              
+              <button onclick="createProductNow('${product.product_id}', ${JSON.stringify(product).replace(/"/g, '&quot;')})" 
+                      style="width: 100%; padding: 0.5rem; background: linear-gradient(135deg, #ea580c, #c2410c); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                Create This Product
+              </button>
             </div>
+          `).join('')}
         </div>
-    `).join('');
-    
-    grid.innerHTML = html;
+        
+        <div style="text-align: center;">
+          <button onclick="createAllProducts()" class="btn btn-primary" style="padding: 0.75rem 2rem;">
+            🚀 Create All Products
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
 }
 
-// ==================== GLOBAL EXPORTS ====================
-window.createSimilarProduct = createSimilarProduct;
-window.publishToPlatform = publishToPlatform;
-window.analyzeTopSellers = analyzeTopSellers;
+// 🆕 ÜRÜN OLUŞTUR (ANALİZDEN)
+async function createProductFromAnalysis(productData, analysis) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+    
+    // Rastgele price hesapla
+    const basePrice = productData.monthly_sales_estimate > 200 ? 24.99 : 
+                      productData.monthly_sales_estimate > 100 ? 19.99 : 14.99;
+    
+    const newProduct = {
+      user_id: user.id,
+      title: `${productData.listing_title} - Trend ${productData.trend_score}%`,
+      category: productData.category?.toLowerCase() || 'tshirt',
+      price: basePrice,
+      status: 'draft',
+      description: `Trending product with ${productData.trend_score}% score. Estimated monthly sales: ${productData.monthly_sales_estimate}. 
+                    ${productData.competition_level ? `Competition level: ${productData.competition_level}.` : ''}
+                    Perfect for ${productData.audience || 'general audience'}.`,
+      tags: ['trending', 'top-seller', productData.category?.toLowerCase() || 'popular'].filter(Boolean),
+      metadata: {
+        trend_score: productData.trend_score,
+        monthly_sales_estimate: productData.monthly_sales_estimate,
+        source: 'top_seller_analysis',
+        analysis_id: analysis.analysis_id
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    const { data, error } = await supabase
+      .from('products')
+      .insert([newProduct])
+      .select();
+    
+    if (error) throw error;
+    
+    console.log('✅ Created product from analysis:', data[0].id);
+    
+    // Mockup için design oluştur (simülasyon)
+    setTimeout(() => {
+      generateMockupForNewProduct(data[0].id, productData);
+    }, 500);
+    
+    return data[0];
+    
+  } catch (error) {
+    console.error('❌ Error creating product:', error);
+    return null;
+  }
+}
 
-console.log('🎯 Products System: Etsy → AI → Publish pipeline ready');
+// 🎨 YENİ ÜRÜN İÇİN MOCKUP OLUŞTUR
+async function generateMockupForNewProduct(productId, productData) {
+  try {
+    showNotification(`Generating mockup for ${productData.listing_title}...`, 'info');
+    
+    // Burada gerçek mockup API'si çağrılacak
+    // Şimdilik simüle edelim
+    setTimeout(() => {
+      const mockupUrls = [
+        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w-400&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=400&fit=crop'
+      ];
+      
+      // Product'ı güncelle
+      supabase
+        .from('products')
+        .update({ mockup_urls: mockupUrls })
+        .eq('id', productId)
+        .then(() => {
+          showNotification(`Mockup generated for ${productData.listing_title}!`, 'success');
+          loadProducts(); // Listeyi yenile
+        });
+        
+    }, 2000);
+    
+  } catch (error) {
+    console.error('❌ Mockup generation error:', error);
+  }
+}
+
+// 🏷️ HELPER FUNCTIONS
+function getCategoryName(category) {
+  const categories = {
+    'tshirt': 'T-Shirt',
+    'mug': 'Mug',
+    'plate': 'Plate',
+    'phone-case': 'Phone Case',
+    'jewelry': 'Jewelry',
+    'wood': 'Wood Product',
+    'hoodie': 'Hoodie',
+    'poster': 'Poster'
+  };
+  return categories[category] || category;
+}
+
+function getStatusLabel(status) {
+  const labels = {
+    'draft': 'Draft',
+    'published': 'Published',
+    'archived': 'Archived',
+    'listed': 'Listed on Etsy'
+  };
+  return labels[status] || status;
+}
+
+// 🔘 BUTON EVENT'LERİ
+function initProductForm() {
+  // Yeni ürün butonu
+  document.getElementById('btn-new-product')?.addEventListener('click', () => {
+    openProductModal();
+  });
+  
+  // Empty state butonu
+  document.getElementById('btn-empty-new-product')?.addEventListener('click', () => {
+    openProductModal();
+  });
+  
+  // Analyze Top Sellers butonu
+  document.getElementById('btn-analyze-top-sellers')?.addEventListener('click', () => {
+    analyzeTopSellers();
+  });
+  
+  // AI Description butonu
+  document.getElementById('btn-generate-description')?.addEventListener('click', generateAIDescription);
+  
+  // Form submit
+  document.getElementById('form-product')?.addEventListener('submit', handleFormSubmit);
+  
+  // Modal close butonları
+  document.getElementById('modal-product-close')?.addEventListener('click', () => {
+    document.getElementById('modal-product').classList.remove('active');
+  });
+  
+  document.getElementById('btn-cancel-product')?.addEventListener('click', () => {
+    document.getElementById('modal-product').classList.remove('active');
+  });
+  
+  document.getElementById('modal-mockup-close')?.addEventListener('click', () => {
+    document.getElementById('modal-mockup').classList.remove('active');
+  });
+  
+  // Outside click
+  document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('active');
+      }
+    });
+  });
+}
+
+// 🔍 FİLTRELER
+function initFilters() {
+  const statusFilter = document.getElementById('filter-status');
+  const categoryFilter = document.getElementById('filter-category');
+  
+  if (statusFilter) {
+    statusFilter.addEventListener('change', () => {
+      const filtered = applyFilters(currentProducts);
+      renderProducts(filtered);
+    });
+  }
+  
+  if (categoryFilter) {
+    categoryFilter.addEventListener('change', () => {
+      const filtered = applyFilters(currentProducts);
+      renderProducts(filtered);
+    });
+  }
+}
+
+function applyFilters(products) {
+  const status = document.getElementById('filter-status')?.value;
+  const category = document.getElementById('filter-category')?.value;
+  
+  return products.filter(product => {
+    if (status && product.status !== status) return false;
+    if (category && product.category !== category) return false;
+    return true;
+  });
+}
+
+// 🤖 AI DESCRIPTION
+async function generateAIDescription() {
+  const title = document.getElementById('product-title')?.value;
+  const category = document.getElementById('product-category')?.value;
+  const textarea = document.getElementById('product-description');
+  
+  if (!title || !category) {
+    showNotification('Please enter title and select category first', 'warning');
+    return;
+  }
+  
+  try {
+    showNotification('Generating AI description...', 'info');
+    
+    // Simüle edilmiş AI response
+    setTimeout(() => {
+      const descriptions = {
+        tshirt: `Premium quality ${title}. Made from 100% soft cotton for maximum comfort. Perfect for casual wear, gifts, and everyday style. Features unique design that stands out. Machine washable for easy care.`,
+        mug: `High-quality ceramic mug featuring "${title}". Holds 11oz of your favorite hot or cold beverage. Dishwasher and microwave safe for convenience. Great gift idea for coffee lovers.`,
+        'phone-case': `Durable protective case with "${title}" design. Provides excellent protection against drops and scratches while showcasing your personal style. Easy to install and remove.`,
+        jewelry: `Elegant ${title}. Handcrafted with attention to detail using high-quality materials. Perfect for special occasions, gifts, or treating yourself. Hypoallergenic and comfortable to wear.`,
+        hoodie: `Cozy ${title} hoodie. Made from premium cotton blend for warmth and comfort. Features front pocket and adjustable hood. Perfect for casual wear and cooler weather.`,
+        poster: `High-quality print of "${title}". Vibrant colors and sharp details on premium paper. Perfect for home decor, office, or as a gift. Easy to frame and display.`
+      };
+      
+      textarea.value = descriptions[category] || 
+        `Beautiful ${title}. High-quality ${category} perfect for gifts and personal use. Excellent craftsmanship and attention to detail.`;
+      
+      showNotification('Description generated successfully!', 'success');
+    }, 1500);
+    
+  } catch (error) {
+    console.error('AI Description error:', error);
+    showNotification('Error generating description', 'error');
+  }
+}
+
+// 📦 MOCK DATA FALLBACK
+function loadMockProducts() {
+  const mockProducts = [
+    {
+      id: 'mock-1',
+      title: 'Retro Vintage T-Shirt Design',
+      category: 'tshirt',
+      price: 24.99,
+      status: 'published',
+      description: 'Beautiful vintage design with retro colors and patterns.',
+      mockup_urls: ['https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop']
+    },
+    {
+      id: 'mock-2',
+      title: 'Funny Mug for Coffee Lovers',
+      category: 'mug',
+      price: 18.50,
+      status: 'draft',
+      description: 'Morning person? Not really. But coffee helps!',
+      mockup_urls: ['https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=400&fit=crop']
+    }
+  ];
+  
+  currentProducts = mockProducts;
+  renderProducts(currentProducts);
+}
+
+// 🌐 GLOBAL FUNCTIONS
+window.editProduct = function(productId) {
+  const product = currentProducts.find(p => p.id === productId);
+  if (product) {
+    openProductModal(product);
+  }
+};
+
+window.generateMockup = function(productId) {
+  const product = currentProducts.find(p => p.id === productId);
+  if (product) {
+    showMockupGenerator(productId, product);
+  }
+};
+
+window.startMockupGeneration = async function(productId) {
+  const designData = window.currentDesignData;
+  if (!designData) {
+    showNotification('Please upload a design first', 'warning');
+    return;
+  }
+  
+  try {
+    showNotification('Generating professional mockups...', 'info');
+    
+    // Gerçek mockup API çağrısı burada yapılacak
+    // Şimdilik simüle edelim
+    setTimeout(async () => {
+      const mockupUrls = [
+        'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop'
+      ];
+      
+      const { error } = await supabase
+        .from('products')
+        .update({ mockup_urls: mockupUrls })
+        .eq('id', productId);
+      
+      if (error) throw error;
+      
+      showNotification('Mockups generated successfully!', 'success');
+      document.getElementById('modal-mockup').classList.remove('active');
+      loadProducts();
+      
+    }, 3000);
+    
+  } catch (error) {
+    console.error('Mockup error:', error);
+    showNotification('Mockup generation failed', 'error');
+  }
+};
+
+window.publishToEtsy = async function(productId) {
+  if (!confirm('Publish this product to Etsy?')) return;
+  
+  try {
+    showNotification('Publishing to Etsy...', 'info');
+    
+    const { error } = await supabase
+      .from('products')
+      .update({ status: 'listed', published_at: new Date().toISOString() })
+      .eq('id', productId);
+    
+    if (error) throw error;
+    
+    showNotification('Product published to Etsy!', 'success');
+    loadProducts();
+    
+  } catch (error) {
+    console.error('Publish error:', error);
+    showNotification('Publishing failed', 'error');
+  }
+};
+
+window.createProductNow = async function(productId, productData) {
+  const created = await createProductFromAnalysis(productData, { analysis_id: 'manual' });
+  if (created) {
+    showNotification(`Product "${created.title}" created!`, 'success');
+    document.querySelector('.modal')?.remove();
+    loadProducts();
+  }
+};
+
+window.createAllProducts = async function() {
+  const modal = document.querySelector('.modal');
+  if (modal) {
+    const products = Array.from(modal.querySelectorAll('button'))
+      .filter(btn => btn.onclick && btn.onclick.toString().includes('createProductNow'));
+    
+    for (let i = 0; i < products.length; i++) {
+      products[i].click();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    modal.remove();
+  }
+};
+
+// Manual init for compatibility
+if (document.getElementById('products-grid')) {
+  loadProducts();
+  initProductForm();
+}
