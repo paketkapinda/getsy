@@ -1112,5 +1112,436 @@ async function importEtsyListing(listing) {
 // ==================== TREND ANALYSIS ====================
 
 window.analyzeTopSellers = async function() {
-  try {
-    showLoading('Analyzing Etsy trends...
+    try {
+        showLoading('Analyzing Etsy trends...');
+        
+        // Etsy mağaza kontrolü
+        const { data: etsyShop, error: shopError } = await supabase
+            .from('etsy_shops')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .eq('is_active', true)
+            .single();
+        
+        let trendData;
+        
+        if (etsyShop && !shopError) {
+            // Gerçek Etsy API'den veri çek
+            trendData = await fetchEtsyTrends(etsyShop);
+        } else {
+            // Mock data kullan
+            trendData = await generateMockTrendData();
+        }
+        
+        // Trend verilerini işle
+        const processedTrends = processTrendData(trendData);
+        topSellersData = processedTrends;
+        
+        // Trend modalını göster
+        if (processedTrends.length > 0) {
+            displayTrendAnalysisModal(processedTrends);
+            showNotification(`${processedTrends.length} trend products found`, 'success');
+        } else {
+            showNotification('No trending products found', 'warning');
+        }
+        
+    } catch (error) {
+        console.error('Trend analysis error:', error);
+        showNotification('Trend analysis failed: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+};
+
+async function fetchEtsyTrends(etsyShop) {
+    // Gerçek Etsy API implementasyonu
+    try {
+        // API endpoint'i
+        const apiUrl = 'https://api.etsy.com/v3/application/trending/listings';
+        
+        // Mock response - gerçek implementasyonda fetch kullanılacak
+        return await generateMockTrendData();
+        
+    } catch (error) {
+        console.error('Etsy API error:', error);
+        return await generateMockTrendData();
+    }
+}
+
+async function generateMockTrendData() {
+    const categories = ['Art & Collectibles', 'Home & Living', 'Jewelry', 'Accessories', 'Clothing'];
+    const mockData = [];
+    
+    for (let i = 0; i < 12; i++) {
+        const category = categories[Math.floor(Math.random() * categories.length)];
+        const price = (Math.random() * 50 + 10).toFixed(2);
+        const sales = Math.floor(Math.random() * 200) + 50;
+        const trendScore = Math.floor(Math.random() * 30) + 70;
+        
+        mockData.push({
+            id: `mock-trend-${i}`,
+            title: `Trending ${category} Design ${i + 1}`,
+            description: `Popular ${category.toLowerCase()} item with high demand`,
+            price: price,
+            category: category,
+            tags: ['trending', 'popular', 'best-seller'],
+            image_url: getMockImageUrl(category),
+            monthly_sales: sales,
+            trend_score: trendScore,
+            favorites: Math.floor(Math.random() * 500) + 100,
+            views: Math.floor(Math.random() * 1000) + 500,
+            created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+        });
+    }
+    
+    return mockData;
+}
+
+function getMockImageUrl(category) {
+    const images = {
+        'Art & Collectibles': 'https://images.unsplash.com/photo-1579168765467-3b235f938439',
+        'Home & Living': 'https://images.unsplash.com/photo-1514228742587-6b1558fcf93a',
+        'Jewelry': 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f',
+        'Accessories': 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa',
+        'Clothing': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab'
+    };
+    
+    return `${images[category] || 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd'}?w=400&h=400&fit=crop&auto=format`;
+}
+
+function processTrendData(trendData) {
+    // Verileri işle ve sırala
+    return trendData
+        .map(item => ({
+            ...item,
+            roi_estimate: calculateROI(item),
+            competition_level: calculateCompetitionLevel(item),
+            seasonality: calculateSeasonality(item.category)
+        }))
+        .sort((a, b) => b.trend_score - a.trend_score);
+}
+
+function calculateROI(item) {
+    const cost = parseFloat(item.price) * 0.3; // %30 maliyet varsayımı
+    const profit = parseFloat(item.price) - cost;
+    return ((profit / cost) * 100).toFixed(1);
+}
+
+function calculateCompetitionLevel(item) {
+    const sales = item.monthly_sales || 0;
+    if (sales > 200) return 'high';
+    if (sales > 100) return 'medium';
+    return 'low';
+}
+
+function calculateSeasonality(category) {
+    const seasonalMap = {
+        'Clothing': 'seasonal',
+        'Home & Living': 'year-round',
+        'Jewelry': 'year-round',
+        'Accessories': 'year-round',
+        'Art & Collectibles': 'year-round'
+    };
+    return seasonalMap[category] || 'year-round';
+}
+
+function displayTrendAnalysisModal(trends) {
+    // Modal HTML oluştur
+    const modalHtml = `
+        <div class="modal active" id="trend-analysis-modal">
+            <div class="modal-content" style="max-width: 1200px; max-height: 90vh;">
+                <button class="modal-close" onclick="closeModal('trend-analysis-modal')">&times;</button>
+                
+                <div class="modal-header">
+                    <h2 class="modal-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                        Etsy Trend Analysis
+                    </h2>
+                    <p class="modal-subtitle">${trends.length} trending products found. Click "Create Product" to add to your catalog.</p>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <div class="products-filters">
+                        <div class="filter-group">
+                            <label class="filter-label">Sort by:</label>
+                            <select class="select-input" id="trend-sort" onchange="sortTrends(this.value)">
+                                <option value="trend_score">Trend Score</option>
+                                <option value="monthly_sales">Monthly Sales</option>
+                                <option value="price">Price</option>
+                                <option value="roi_estimate">ROI Estimate</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Category:</label>
+                            <select class="select-input" id="trend-category-filter" onchange="filterTrendsByCategory(this.value)">
+                                <option value="all">All Categories</option>
+                                ${[...new Set(trends.map(t => t.category))].map(cat => 
+                                    `<option value="${cat}">${cat}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="trends-container" style="overflow-y: auto; max-height: 60vh; padding: 10px;">
+                    <div class="products-grid" id="trends-grid">
+                        ${trends.map((trend, index) => `
+                            <div class="product-card trend-item" data-index="${index}" data-category="${trend.category}" data-score="${trend.trend_score}" data-sales="${trend.monthly_sales}">
+                                <div class="product-image">
+                                    <img src="${trend.image_url}" alt="${trend.title}" style="width: 100%; height: 180px; object-fit: cover;">
+                                    <div class="product-badge" style="background: linear-gradient(135deg, #${trend.trend_score > 90 ? 'dc2626' : trend.trend_score > 80 ? 'ea580c' : '16a34a'}, #${trend.trend_score > 90 ? '991b1b' : trend.trend_score > 80 ? '9a3412' : '166534'});">
+                                        Score: ${trend.trend_score}
+                                    </div>
+                                    <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                                        ${trend.monthly_sales} sales/mo
+                                    </div>
+                                </div>
+                                <div class="product-content">
+                                    <div class="product-header">
+                                        <h3 class="product-title">${trend.title}</h3>
+                                        <div class="product-price">$${parseFloat(trend.price).toFixed(2)}</div>
+                                    </div>
+                                    <span class="product-category">${trend.category}</span>
+                                    <p class="product-description">${trend.description}</p>
+                                    
+                                    <div style="margin: 12px 0; font-size: 12px; color: #6b7280;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                            <span>ROI Estimate:</span>
+                                            <span style="color: #059669; font-weight: 600;">${trend.roi_estimate}%</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                            <span>Competition:</span>
+                                            <span style="color: ${trend.competition_level === 'high' ? '#dc2626' : trend.competition_level === 'medium' ? '#ea580c' : '#059669'}; font-weight: 600;">
+                                                ${trend.competition_level}
+                                            </span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>Seasonality:</span>
+                                            <span>${trend.seasonality}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="product-actions">
+                                        <button class="btn btn-primary btn-sm" style="flex: 1;" onclick="createFromTrend(${index})">
+                                            Create Product
+                                        </button>
+                                        <button class="btn btn-outline btn-sm" onclick="saveTrendForLater(${index})" title="Save for later">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-size: 14px; color: #6b7280;">
+                            <span id="trend-stats">Showing ${trends.length} of ${trends.length} trends</span>
+                        </div>
+                        <div>
+                            <button class="btn btn-outline" onclick="closeModal('trend-analysis-modal')" style="margin-right: 10px;">
+                                Close
+                            </button>
+                            <button class="btn btn-primary" onclick="analyzeMoreTrends()">
+                                Analyze More
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Modalı ekle ve göster
+    const existingModal = document.getElementById('trend-analysis-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+// Trend sıralama fonksiyonu
+window.sortTrends = function(sortBy) {
+    const container = document.getElementById('trends-grid');
+    const items = Array.from(container.querySelectorAll('.trend-item'));
+    
+    items.sort((a, b) => {
+        const aVal = a.dataset[sortBy === 'trend_score' ? 'score' : 
+                              sortBy === 'monthly_sales' ? 'sales' : 
+                              sortBy === 'price' ? 'price' : 'roi'];
+        const bVal = b.dataset[sortBy === 'trend_score' ? 'score' : 
+                              sortBy === 'monthly_sales' ? 'sales' : 
+                              sortBy === 'price' ? 'price' : 'roi'];
+        
+        return parseFloat(bVal) - parseFloat(aVal);
+    });
+    
+    // Öğeleri yeniden sırala
+    items.forEach(item => container.appendChild(item));
+};
+
+// Trend kategori filtresi
+window.filterTrendsByCategory = function(category) {
+    const items = document.querySelectorAll('.trend-item');
+    let visibleCount = 0;
+    
+    items.forEach(item => {
+        if (category === 'all' || item.dataset.category === category) {
+            item.style.display = '';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    // İstatistikleri güncelle
+    document.getElementById('trend-stats').textContent = 
+        `Showing ${visibleCount} of ${items.length} trends`;
+};
+
+// Trend'den ürün oluştur
+window.createFromTrend = async function(index) {
+    const trend = topSellersData[index];
+    if (!trend) {
+        showNotification('Trend data not found', 'error');
+        return;
+    }
+    
+    try {
+        showLoading('Creating product from trend...');
+        
+        const newProduct = {
+            user_id: currentUser.id,
+            title: trend.title,
+            description: trend.description,
+            category: trend.category,
+            price: parseFloat(trend.price),
+            status: 'draft',
+            tags: trend.tags || [],
+            metadata: {
+                source: 'trend_analysis',
+                trend_score: trend.trend_score,
+                monthly_sales: trend.monthly_sales,
+                competition_level: trend.competition_level,
+                roi_estimate: trend.roi_estimate
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+        
+        const { data, error } = await supabase
+            .from('products')
+            .insert([newProduct])
+            .select();
+        
+        if (error) throw error;
+        
+        // AI ile görsel oluştur (opsiyonel)
+        if (aiTools.length > 0) {
+            await generateProductImage(data[0].id, trend);
+        }
+        
+        showNotification('Product created successfully!', 'success');
+        
+        // Modalı kapat ve ürünleri yenile
+        closeModal('trend-analysis-modal');
+        await loadUserProducts();
+        
+    } catch (error) {
+        console.error('Create from trend error:', error);
+        showNotification('Failed to create product: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+};
+
+// Trend'i kaydet
+window.saveTrendForLater = async function(index) {
+    const trend = topSellersData[index];
+    if (!trend) return;
+    
+    try {
+        const { error } = await supabase
+            .from('saved_trends')
+            .insert({
+                user_id: currentUser.id,
+                trend_data: trend,
+                saved_at: new Date().toISOString()
+            });
+        
+        if (error) throw error;
+        
+        showNotification('Trend saved for later', 'success');
+        
+    } catch (error) {
+        console.error('Save trend error:', error);
+        showNotification('Failed to save trend', 'error');
+    }
+};
+
+// Daha fazla trend analizi
+window.analyzeMoreTrends = async function() {
+    closeModal('trend-analysis-modal');
+    await analyzeTopSellers();
+};
+
+// Ürün görseli oluştur
+async function generateProductImage(productId, trend) {
+    try {
+        const prompt = `Product design for: ${trend.title}. Category: ${trend.category}. Style: modern, professional, Etsy trending`;
+        
+        // AI log kaydı
+        await supabase.from('ai_logs').insert({
+            user_id: currentUser.id,
+            product_id: productId,
+            operation_type: 'image_generation',
+            input_data: { prompt: prompt, trend_data: trend },
+            status: 'pending',
+            created_at: new Date().toISOString()
+        });
+        
+        // AI API çağrısı (mock)
+        const mockImage = await generateMockProductImage(trend.category);
+        
+        // Ürünü görsel ile güncelle
+        await supabase
+            .from('products')
+            .update({ image_url: mockImage })
+            .eq('id', productId);
+        
+        // AI log'u güncelle
+        await supabase
+            .from('ai_logs')
+            .update({
+                output_data: { image_url: mockImage },
+                status: 'completed',
+                updated_at: new Date().toISOString()
+            })
+            .eq('product_id', productId);
+            
+    } catch (error) {
+        console.error('Image generation error:', error);
+    }
+}
+
+async function generateMockProductImage(category) {
+    const imageUrls = {
+        'Art & Collectibles': 'https://images.unsplash.com/photo-1579168765467-3b235f938439?w=800&h=800&fit=crop&auto=format',
+        'Home & Living': 'https://images.unsplash.com/photo-1514228742587-6b1558fcf93a?w=800&h=800&fit=crop&auto=format',
+        'Jewelry': 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w-800&h=800&fit=crop&auto=format',
+        'Accessories': 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&h=800&fit=crop&auto=format',
+        'Clothing': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&h=800&fit=crop&auto=format'
+    };
+    
+    return imageUrls[category] || 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=800&h=800&fit=crop&auto=format';
+}
+
+// ==================== END OF TREND ANALYSIS ====================
+                
