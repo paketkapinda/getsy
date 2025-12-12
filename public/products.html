@@ -1016,10 +1016,50 @@
           </div>
         </div>
 
-        <!-- Products Grid -->
-        <div class="products-grid" id="products-grid">
-          <!-- Products will be loaded here -->
+      <!-- Trend Analiz Formu -->
+<div class="card">
+    <div class="card-header">
+        <h3>🔍 Etsy Trend Analizi & Benzer Ürün Oluşturma</h3>
+    </div>
+    <div class="card-body">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Anahtar Kelimeler</label>
+                <input type="text" id="trend-keywords" class="form-control" 
+                       placeholder="örn: minimalist art, handmade jewelry">
+            </div>
+            <div class="form-group">
+                <label>Kategori</label>
+                <select id="trend-category" class="form-control">
+                    <option value="">Tüm Kategoriler</option>
+                    <option value="art_and_collectibles">Sanat & Koleksiyon</option>
+                    <option value="home_and_living">Ev & Yaşam</option>
+                    <option value="jewelry">Takı</option>
+                    <option value="clothing">Giyim</option>
+                    <option value="accessories">Aksesuar</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <button id="analyze-trends-btn" class="btn btn-primary btn-block">
+                    <i class="fas fa-chart-line"></i> Trendleri Analiz Et
+                </button>
+            </div>
         </div>
+        <p class="text-muted small">
+            Etsy'de popüler ürünleri analiz eder ve size benzer ürünler oluşturur.
+            AI ile orijinalden farklı ama aynı trendde ürünler üretir.
+        </p>
+    </div>
+</div>
+
+<!-- Ürünler -->
+<div class="products-section">
+    <h3>🛍️ Ürünlerim</h3>
+    <div id="products-grid" class="products-grid">
+        <!-- Ürün kartları buraya gelecek -->
+    </div>
+</div>
 
         <!-- Empty State -->
         <div class="products-empty hidden" id="products-empty">
