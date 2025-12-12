@@ -1,53 +1,32 @@
-// products.js - GERÇEK ETSY ENTEGRASYONLU
+// products.js - TAM GERÇEK SİSTEM
 
 let currentUser = null;
 let currentProducts = [];
 let etsyService = null;
-let etsyShop = null;
+let podService = null;
+let mockupService = null;
 let isEtsyConnected = false;
+let isPODConnected = false;
 
-// DOM yüklendiğinde
+// Sayfa yüklendiğinde
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Products page loading with Etsy integration...');
+    console.log('🛍️ Products System Initializing...');
     
     try {
-        // Check if supabase is available
-        if (!window.supabase) {
-            console.warn('Supabase not available, using demo mode');
-            initializeDemoMode();
-            return;
-        }
+        // Check authentication
+        await checkAuthentication();
         
-        // Get current user
-        const { data: { user }, error: authError } = await window.supabase.auth.getUser();
+        // Initialize services
+        await initializeServices();
         
-        if (authError || !user) {
-            console.warn('No authenticated user, using demo mode');
-            initializeDemoMode();
-            return;
-        }
+        // Load user products
+        await loadUserProducts();
         
-        currentUser = user;
-        console.log('Authenticated user:', currentUser.email);
-        
-        // Load user data and products
-        await initializePage();
-        
-    } catch (error) {
-        console.error('Initialization error:', error);
-        initializeDemoMode();
-    }
-});
-
-async function initializePage() {
-    try {
-        showLoading('Loading products...');
-        
-        // Check Etsy connection
+        // Setup Etsy connection if available
         await checkEtsyConnection();
         
-        // Load products
-        await loadProducts();
+        // Setup POD connection if available
+        await checkPODConnection();
         
         // Setup event listeners
         setupEventListeners();
@@ -55,70 +34,123 @@ async function initializePage() {
         // Update UI
         updateUI();
         
-        showNotification('Products page ready', 'success');
+        console.log('✅ Products System Ready');
+        showNotification('Products system loaded successfully', 'success');
         
     } catch (error) {
-        console.error('Page initialization error:', error);
-        showNotification('Error loading page: ' + error.message, 'error');
-    } finally {
-        hideLoading();
+        console.error('❌ System initialization error:', error);
+        showNotification('System error: ' + error.message, 'error');
+        
+        // Even with error, show basic interface
+        loadFallbackProducts();
+    }
+});
+
+// ==================== AUTHENTICATION ====================
+async function checkAuthentication() {
+    try {
+        if (!window.supabase) {
+            throw new Error('Database connection not available');
+        }
+        
+        const { data: { user }, error } = await window.supabase.auth.getUser();
+        
+        if (error) {
+            throw new Error('Authentication error: ' + error.message);
+        }
+        
+        if (!user) {
+            throw new Error('Please sign in to access products');
+        }
+        
+        currentUser = user;
+        console.log('✅ Authenticated user:', currentUser.email);
+        
+    } catch (error) {
+        console.error('❌ Authentication failed:', error);
+        throw error;
+    }
+}
+
+// ==================== SERVICE INITIALIZATION ====================
+async function initializeServices() {
+    try {
+        // Initialize Mockup Service
+        mockupService = new window.MockupService();
+        console.log('✅ Mockup Service initialized');
+        
+    } catch (error) {
+        console.error('❌ Service initialization error:', error);
+        throw error;
     }
 }
 
 async function checkEtsyConnection() {
     try {
-        // Check if user has Etsy shop connected
-        const { data: shop, error } = await window.supabase
+        const { data: etsyShop, error } = await window.supabase
             .from('etsy_shops')
             .select('*')
             .eq('user_id', currentUser.id)
             .eq('is_active', true)
             .single();
         
-        if (error || !shop) {
-            console.log('No Etsy shop connected');
-            isEtsyConnected = false;
-            etsyShop = null;
-            etsyService = null;
+        if (error || !etsyShop) {
+            console.log('ℹ️ No Etsy shop connected');
             return;
         }
         
-        etsyShop = shop;
-        isEtsyConnected = true;
+        // Initialize Etsy Service
+        etsyService = new window.EtsyAPIService(etsyShop.api_key, etsyShop.id);
         
-        // Initialize Etsy service
-        try {
-            etsyService = new window.EtsyAPIService(shop.api_key, shop.id);
-            const testResult = await etsyService.testConnection();
-            
-            if (testResult.success) {
-                console.log('Etsy API connection successful');
-                showNotification('Etsy shop connected: ' + shop.shop_name, 'success');
-            } else {
-                console.warn('Etsy API test failed:', testResult.message);
-                showNotification('Etsy connection issue: ' + testResult.message, 'warning');
-                isEtsyConnected = false;
-            }
-        } catch (apiError) {
-            console.error('Etsy service initialization failed:', apiError);
-            isEtsyConnected = false;
+        // Test connection
+        const isConnected = await etsyService.testConnection();
+        
+        if (isConnected) {
+            isEtsyConnected = true;
+            console.log('✅ Etsy API connected:', etsyShop.shop_name);
+            showNotification(`Etsy shop connected: ${etsyShop.shop_name}`, 'success');
+        } else {
+            console.warn('⚠️ Etsy API test failed');
+            showNotification('Etsy connection test failed', 'warning');
         }
         
     } catch (error) {
-        console.error('Error checking Etsy connection:', error);
-        isEtsyConnected = false;
+        console.error('❌ Etsy connection check error:', error);
     }
 }
 
-async function loadProducts() {
+async function checkPODConnection() {
     try {
-        // Show loading state
-        showProductsLoading(true);
+        const { data: podProvider, error } = await window.supabase
+            .from('pod_providers')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .eq('is_active', true)
+            .single();
         
-        let products = [];
+        if (error || !podProvider) {
+            console.log('ℹ️ No POD provider connected');
+            return;
+        }
         
-        // Load from Supabase
-        const { data: dbProducts, error } = await window.supabase
+        // Initialize POD Service
+        podService = new window.PODService(podProvider.provider_type);
+        isPODConnected = true;
+        
+        console.log('✅ POD Service connected:', podProvider.provider_name);
+        showNotification(`POD provider connected: ${podProvider.provider_name}`, 'success');
+        
+    } catch (error) {
+        console.error('❌ POD connection check error:', error);
+    }
+}
+
+// ==================== PRODUCT MANAGEMENT ====================
+async function loadUserProducts() {
+    try {
+        showLoading('Loading products...');
+        
+        const { data: products, error } = await window.supabase
             .from('products')
             .select(`
                 *,
@@ -126,197 +158,65 @@ async function loadProducts() {
                     average_rating,
                     total_reviews,
                     monthly_sales_estimate
+                ),
+                ai_logs (
+                    operation_type,
+                    status
                 )
             `)
             .eq('user_id', currentUser.id)
             .order('created_at', { ascending: false });
         
         if (error) {
-            console.error('Error loading products from Supabase:', error);
-            // Use demo data as fallback
-            products = getDemoProducts();
-        } else {
-            products = dbProducts || [];
+            throw new Error('Database error: ' + error.message);
         }
         
-        // If Etsy is connected, try to sync Etsy products
-        if (isEtsyConnected && etsyService) {
-            try {
-                const etsyProducts = await syncEtsyProducts();
-                products = [...products, ...etsyProducts];
-            } catch (etsyError) {
-                console.warn('Could not sync Etsy products:', etsyError.message);
-                // Continue without Etsy products
-            }
-        }
+        currentProducts = products || [];
+        console.log(`✅ Loaded ${currentProducts.length} products`);
         
-        currentProducts = products;
         renderProducts(currentProducts);
+        
+        // Update stats
+        updateProductStats();
         
     } catch (error) {
-        console.error('Error loading products:', error);
-        currentProducts = getDemoProducts();
-        renderProducts(currentProducts);
-        showNotification('Using demo data. Some features may be limited.', 'warning');
+        console.error('❌ Load products error:', error);
+        showNotification('Error loading products: ' + error.message, 'error');
+        currentProducts = [];
+        renderProducts([]);
     } finally {
-        showProductsLoading(false);
+        hideLoading();
     }
 }
 
-async function syncEtsyProducts() {
-    if (!etsyService || !isEtsyConnected) return [];
-    
-    try {
-        console.log('Syncing products from Etsy...');
-        
-        // Get listings from Etsy
-        const listingsData = await etsyService.getShopListings(50, 0, 'active');
-        
-        if (!listingsData || !listingsData.results) {
-            return [];
-        }
-        
-        const etsyProducts = [];
-        
-        for (const listing of listingsData.results.slice(0, 10)) { // Limit to 10 for performance
-            try {
-                // Get images for this listing
-                const images = await etsyService.getListingImages(listing.listing_id);
-                const imageUrls = images.map(img => img.url_fullxfull).slice(0, 3);
-                
-                // Create product object from Etsy listing
-                const product = {
-                    id: `etsy-${listing.listing_id}`,
-                    title: listing.title,
-                    description: listing.description || '',
-                    category: mapEtsyCategory(listing.taxonomy_id),
-                    price: listing.price?.amount || 0,
-                    status: 'published',
-                    images: imageUrls,
-                    etsy_listing_id: listing.listing_id.toString(),
-                    source: 'etsy',
-                    user_id: currentUser.id,
-                    created_at: new Date(listing.created * 1000).toISOString(),
-                    updated_at: new Date().toISOString(),
-                    metadata: {
-                        etsy_data: {
-                            views: listing.views,
-                            favorites: listing.num_favorers,
-                            state: listing.state,
-                            original_created: listing.created
-                        }
-                    },
-                    rating_stats: [{
-                        average_rating: 0,
-                        monthly_sales_estimate: estimateSalesFromEtsy(listing)
-                    }]
-                };
-                
-                etsyProducts.push(product);
-                
-            } catch (listingError) {
-                console.warn(`Error processing listing ${listing.listing_id}:`, listingError);
-                continue;
-            }
-        }
-        
-        console.log(`Synced ${etsyProducts.length} products from Etsy`);
-        return etsyProducts;
-        
-    } catch (error) {
-        console.error('Error syncing Etsy products:', error);
-        throw error;
-    }
-}
-
-function mapEtsyCategory(taxonomyId) {
-    const categoryMap = {
-        1156: 'tshirt', // Clothing & Accessories
-        1157: 'mug',    // Home & Living
-        1158: 'plate',  // Home & Living
-        1159: 'phone-case', // Electronics & Accessories
-        1160: 'jewelry', // Jewelry
-        1161: 'wood',    // Home & Living
-        1162: 'art',     // Art & Collectibles
-        1163: 'stationery' // Craft Supplies & Tools
-    };
-    
-    return categoryMap[taxonomyId] || 'other';
-}
-
-function estimateSalesFromEtsy(listing) {
-    const favorites = listing.num_favorers || 0;
-    const views = listing.views || 0;
-    const ageInDays = (Date.now() - (listing.created * 1000)) / (1000 * 60 * 60 * 24);
-    
-    let estimate = favorites * 0.15;
-    estimate += views * 0.01;
-    
-    if (ageInDays > 0 && ageInDays < 365) {
-        estimate = estimate * (365 / ageInDays);
-    }
-    
-    return Math.floor(Math.max(estimate, 5));
-}
-
-function getDemoProducts() {
-    return [
-        {
-            id: 'demo-1',
-            title: 'Minimalist Black T-Shirt',
-            description: 'Comfortable cotton t-shirt with minimalist design',
-            category: 'tshirt',
-            price: 24.99,
-            status: 'published',
-            images: ['https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop'],
-            source: 'local',
-            created_at: new Date().toISOString(),
-            rating_stats: [{ average_rating: 4.5, monthly_sales_estimate: 45 }]
-        },
-        {
-            id: 'demo-2',
-            title: 'Custom Coffee Mug',
-            description: 'Personalized ceramic mug for coffee lovers',
-            category: 'mug',
-            price: 18.99,
-            status: 'published',
-            images: ['https://images.unsplash.com/photo-1514228742587-6b1558fcf93a?w=400&h=400&fit=crop'],
-            source: 'local',
-            created_at: new Date().toISOString(),
-            rating_stats: [{ average_rating: 4.2, monthly_sales_estimate: 32 }]
-        }
-    ];
-}
-
-function showProductsLoading(show) {
-    const loadingEl = document.getElementById('products-loading');
-    const gridEl = document.getElementById('products-grid');
-    const emptyEl = document.getElementById('products-empty');
-    
-    if (loadingEl) loadingEl.classList.toggle('hidden', !show);
-    if (gridEl) gridEl.classList.toggle('hidden', show);
-    if (emptyEl) emptyEl.classList.add('hidden');
+function loadFallbackProducts() {
+    console.log('ℹ️ Loading fallback interface');
+    currentProducts = [];
+    renderProducts([]);
+    showNotification('Running in limited mode. Please check your connection.', 'warning');
 }
 
 function renderProducts(products) {
-    const productsGrid = document.getElementById('products-grid');
-    const emptyState = document.getElementById('products-empty');
+    const grid = document.getElementById('products-grid');
+    const empty = document.getElementById('products-empty');
+    
+    if (!grid) return;
     
     if (!products || products.length === 0) {
-        if (productsGrid) productsGrid.innerHTML = '';
-        if (emptyState) emptyState.classList.remove('hidden');
+        grid.innerHTML = '';
+        if (empty) empty.classList.remove('hidden');
+        updateProductStats();
         return;
     }
     
-    if (emptyState) emptyState.classList.add('hidden');
-    if (!productsGrid) return;
+    if (empty) empty.classList.add('hidden');
     
     let html = '';
     products.forEach(product => {
         html += createProductCardHTML(product);
     });
     
-    productsGrid.innerHTML = html;
+    grid.innerHTML = html;
     
     // Attach event listeners
     attachProductCardListeners();
@@ -327,22 +227,22 @@ function createProductCardHTML(product) {
     const statusText = getProductStatusText(product.status);
     const price = parseFloat(product.price || 0).toFixed(2);
     const rating = product.rating_stats?.[0];
-    const source = product.source || 'local';
-    const isEtsyProduct = source === 'etsy';
+    const hasEtsyListing = !!product.etsy_listing_id;
+    const hasMockups = product.mockup_urls && product.mockup_urls.length > 0;
     const imageUrl = product.images && product.images.length > 0 ? 
-        product.images[0] : getRandomProductImage(product.category);
+        product.images[0] : getProductPlaceholderImage(product.category);
+    
+    // Calculate sales performance
+    const monthlySales = rating?.monthly_sales_estimate || 0;
+    const revenue = monthlySales * product.price;
     
     return `
-        <div class="product-card ${isEtsyProduct ? 'etsy-product-card' : ''}" 
-             data-id="${product.id}" 
-             data-status="${product.status}" 
-             data-category="${product.category}"
-             data-source="${source}">
+        <div class="product-card" data-id="${product.id}" data-status="${product.status}">
             <div class="product-image">
                 <img src="${imageUrl}" alt="${product.title}" 
-                     onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300/cccccc/969696?text=Product+Image';">
-                <div class="product-badge ${statusClass}">${statusText}</div>
-                ${isEtsyProduct ? `
+                     onerror="this.src='https://via.placeholder.com/400x300/cccccc/969696?text=${encodeURIComponent(product.title)}'">
+                
+                ${hasEtsyListing ? `
                     <div class="etsy-badge">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -350,516 +250,283 @@ function createProductCardHTML(product) {
                         Etsy
                     </div>
                 ` : ''}
-                <div class="price-badge">$${price}</div>
-            </div>
-            <div class="product-content">
-                <div class="product-header">
-                    <h3 class="product-title">
-                        ${truncateText(product.title, 40)}
-                        <span class="product-source-badge source-${source}">
-                            ${source === 'etsy' ? 'Etsy' : source === 'ai' ? 'AI' : 'Local'}
-                        </span>
-                    </h3>
-                </div>
-                <span class="product-category">${product.category || 'Uncategorized'}</span>
-                <p class="product-description">${truncateText(product.description || '', 80)}</p>
-                ${rating ? `
-                    <div class="product-rating">
-                        <span style="color: #fbbf24; font-weight: 600;">
-                            ★ ${rating.average_rating?.toFixed(1) || '0.0'}
-                        </span>
-                        <span style="color: #6b7280; font-size: 12px;">
-                            📈 ${rating.monthly_sales_estimate || '0'} sales/month
-                        </span>
+                
+                ${hasMockups ? `
+                    <div class="mockup-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Mockups
                     </div>
                 ` : ''}
+                
+                <div class="product-badge ${statusClass}">${statusText}</div>
+                <div class="price-badge">$${price}</div>
+                
+                ${monthlySales > 0 ? `
+                    <div class="sales-badge">
+                        📈 ${monthlySales}/month
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="product-content">
+                <div class="product-header">
+                    <h3 class="product-title" title="${escapeHtml(product.title)}">
+                        ${truncateText(product.title, 45)}
+                    </h3>
+                    <div class="product-revenue">
+                        ${revenue > 0 ? `~$${revenue.toFixed(0)}/mo` : 'No sales yet'}
+                    </div>
+                </div>
+                
+                <div class="product-meta">
+                    <span class="product-category">${product.category || 'Uncategorized'}</span>
+                    <span class="product-date">${formatDate(product.created_at)}</span>
+                </div>
+                
+                <p class="product-description" title="${escapeHtml(product.description || '')}">
+                    ${truncateText(product.description || 'No description', 90)}
+                </p>
+                
+                ${rating ? `
+                    <div class="product-rating">
+                        <div class="stars">
+                            ${generateStarRating(rating.average_rating)}
+                            <span class="rating-text">${rating.average_rating?.toFixed(1) || '0.0'}</span>
+                            <span class="reviews">(${rating.total_reviews || 0} reviews)</span>
+                        </div>
+                        <div class="sales-info">
+                            <span class="sales-count">${monthlySales} sales/month</span>
+                        </div>
+                    </div>
+                ` : ''}
+                
                 <div class="product-actions">
-                    ${isEtsyProduct ? `
-                        <button class="btn btn-outline btn-sm" data-action="view-etsy" data-product-id="${product.id}">
-                            View on Etsy
+                    ${!hasMockups ? `
+                        <button class="btn btn-primary btn-sm" data-action="generate-mockup" data-id="${product.id}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            Create Mockup
                         </button>
                     ` : `
-                        <button class="btn btn-primary btn-sm" data-action="publish-etsy" data-product-id="${product.id}">
-                            Publish to Etsy
+                        <button class="btn btn-outline btn-sm" data-action="view-mockups" data-id="${product.id}">
+                            View Mockups
                         </button>
                     `}
-                    <button class="btn btn-outline btn-sm" data-action="mockup" data-product-id="${product.id}">
-                        Mockup
-                    </button>
-                    <button class="btn btn-outline btn-sm" data-action="edit" data-product-id="${product.id}">
-                        Edit
-                    </button>
-                    ${!isEtsyProduct ? `
-                        <button class="btn btn-outline btn-sm" data-action="similar" data-product-id="${product.id}">
-                            Similar
+                    
+                    ${!hasEtsyListing && isEtsyConnected ? `
+                        <button class="btn btn-success btn-sm" data-action="publish-etsy" data-id="${product.id}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+                            </svg>
+                            Publish to Etsy
                         </button>
-                        <button class="btn btn-outline btn-sm" data-action="delete" data-product-id="${product.id}">
-                            Delete
+                    ` : hasEtsyListing ? `
+                        <button class="btn btn-outline btn-sm" data-action="view-etsy" data-id="${product.id}">
+                            View on Etsy
                         </button>
                     ` : ''}
+                    
+                    <button class="btn btn-outline btn-sm" data-action="edit" data-id="${product.id}">
+                        Edit
+                    </button>
+                    
+                    <button class="btn btn-outline btn-sm" data-action="duplicate" data-id="${product.id}">
+                        Duplicate
+                    </button>
+                    
+                    <button class="btn btn-danger btn-sm" data-action="delete" data-id="${product.id}">
+                        Delete
+                    </button>
                 </div>
             </div>
         </div>
     `;
 }
 
-function attachProductCardListeners() {
-    // Edit button
-    document.querySelectorAll('[data-action="edit"]').forEach(button => {
-        button.addEventListener('click', function() {
-            const productId = this.dataset.productId;
-            editProduct(productId);
-        });
-    });
-    
-    // Delete button
-    document.querySelectorAll('[data-action="delete"]').forEach(button => {
-        button.addEventListener('click', function() {
-            const productId = this.dataset.productId;
-            deleteProduct(productId);
-        });
-    });
-    
-    // Mockup button
-    document.querySelectorAll('[data-action="mockup"]').forEach(button => {
-        button.addEventListener('click', function() {
-            const productId = this.dataset.productId;
-            generateMockups(productId);
-        });
-    });
-    
-    // Similar button
-    document.querySelectorAll('[data-action="similar"]').forEach(button => {
-        button.addEventListener('click', function() {
-            const productId = this.dataset.productId;
-            createSimilarProduct(productId);
-        });
-    });
-    
-    // Publish to Etsy button
-    document.querySelectorAll('[data-action="publish-etsy"]').forEach(button => {
-        button.addEventListener('click', function() {
-            const productId = this.dataset.productId;
-            publishToEtsy(productId);
-        });
-    });
-    
-    // View on Etsy button
-    document.querySelectorAll('[data-action="view-etsy"]').forEach(button => {
-        button.addEventListener('click', function() {
-            const productId = this.dataset.productId;
-            const product = currentProducts.find(p => p.id === productId);
-            if (product && product.etsy_listing_id) {
-                window.open(`https://www.etsy.com/listing/${product.etsy_listing_id}`, '_blank');
-            }
-        });
-    });
-}
-
-function setupEventListeners() {
-    // New product buttons
-    document.getElementById('btn-new-product')?.addEventListener('click', showNewProductModal);
-    document.getElementById('btn-empty-new-product')?.addEventListener('click', showNewProductModal);
-    
-    // Import from Etsy buttons
-    document.getElementById('btn-import-etsy')?.addEventListener('click', showEtsyImportModal);
-    document.getElementById('btn-empty-import-etsy')?.addEventListener('click', showEtsyImportModal);
-    
-    // Trend analysis
-    document.getElementById('btn-analyze-top-sellers')?.addEventListener('click', analyzeTopSellers);
-    
-    // Etsy connect/disconnect
-    document.getElementById('btn-disconnect-etsy')?.addEventListener('click', disconnectEtsy);
-    document.getElementById('btn-connect-etsy')?.addEventListener('click', connectEtsy);
-    
-    // Filters
-    document.getElementById('filter-status')?.addEventListener('change', filterProducts);
-    document.getElementById('filter-category')?.addEventListener('change', filterProducts);
-    document.getElementById('filter-source')?.addEventListener('change', filterProducts);
-    
-    // Search
-    document.getElementById('search-products')?.addEventListener('input', filterProducts);
-    
-    // Modal close buttons
-    document.getElementById('modal-product-close')?.addEventListener('click', () => closeModal('modal-product'));
-    document.getElementById('btn-cancel-product')?.addEventListener('click', () => closeModal('modal-product'));
-    document.getElementById('modal-mockup-close')?.addEventListener('click', () => closeModal('modal-mockup'));
-    document.getElementById('modal-etsy-import-close')?.addEventListener('click', () => closeModal('modal-etsy-import'));
-    document.getElementById('modal-etsy-connect-close')?.addEventListener('click', () => closeModal('modal-etsy-connect'));
-    
-    // Form submit
-    document.getElementById('form-product')?.addEventListener('submit', handleProductFormSubmit);
-    
-    // AI description generation
-    document.getElementById('btn-generate-description')?.addEventListener('click', generateDescriptionWithAI);
-    
-    // Image upload
-    document.getElementById('btn-upload-images')?.addEventListener('click', () => {
-        document.getElementById('file-upload').click();
-    });
-    
-    document.getElementById('file-upload')?.addEventListener('change', handleImageUpload);
-    
-    // Modal outside click
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal')) {
-            closeModal(e.target.id);
-        }
-    });
-}
-
-function updateUI() {
-    // Update Etsy connection status
-    const etsyPanel = document.getElementById('etsy-connection-panel');
-    const etsyStatus = document.getElementById('etsy-status');
-    
-    if (isEtsyConnected && etsyShop) {
-        if (etsyPanel) etsyPanel.classList.remove('hidden');
-        if (etsyStatus) {
-            etsyStatus.style.display = 'flex';
-            document.getElementById('etsy-status-text').textContent = etsyShop.shop_name;
-        }
-    } else {
-        if (etsyPanel) etsyPanel.classList.add('hidden');
-        if (etsyStatus) etsyStatus.style.display = 'none';
-    }
-}
-
-async function showEtsyImportModal() {
-    if (!isEtsyConnected || !etsyService) {
-        showNotification('Please connect your Etsy shop first', 'warning');
-        showModal('modal-etsy-connect');
-        return;
-    }
-    
+// ==================== ETSY INTEGRATION ====================
+async function analyzeTopSellers() {
     try {
-        showLoading('Loading Etsy products...');
+        showLoading('Analyzing Etsy market trends...');
         
-        // Get Etsy listings
-        const listingsData = await etsyService.getShopListings(50, 0, 'active');
-        
-        if (!listingsData || !listingsData.results || listingsData.results.length === 0) {
-            showNotification('No products found in your Etsy shop', 'info');
-            closeModal('modal-etsy-import');
-            return;
+        if (!isEtsyConnected || !etsyService) {
+            throw new Error('Please connect your Etsy shop first');
         }
         
-        // Show import modal
-        const content = document.getElementById('etsy-import-content');
-        if (content) {
-            content.innerHTML = `
-                <div style="max-height: 400px; overflow-y: auto;">
-                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">
-                        Select products to import from Etsy (${listingsData.results.length} found)
-                    </h3>
+        // Get category from filter
+        const category = document.getElementById('filter-category')?.value || null;
+        
+        // Get real trending data from Etsy
+        const trendingData = await etsyService.getTrendingListings(category, 'popular bestseller trending');
+        
+        if (!trendingData.results || trendingData.results.length === 0) {
+            throw new Error('No trending products found');
+        }
+        
+        // Save to database for analytics
+        await saveTrendAnalysis(trendingData.results);
+        
+        // Display results
+        displayTrendAnalysis(trendingData.results);
+        
+        showNotification(`Found ${trendingData.results.length} trending products`, 'success');
+        
+    } catch (error) {
+        console.error('❌ Trend analysis error:', error);
+        showNotification('Trend analysis failed: ' + error.message, 'error');
+        
+        // Fallback to database trends
+        await showDatabaseTrends();
+    } finally {
+        hideLoading();
+    }
+}
+
+async function saveTrendAnalysis(trends) {
+    try {
+        const trendRecords = trends.map(trend => ({
+            user_id: currentUser.id,
+            product_title: trend.title,
+            category: trend.category || extractCategory(trend.title),
+            monthly_sales: trend.monthly_sales_estimate || estimateSales(trend),
+            price_range: calculatePriceRange(trend.price),
+            trend_score: trend.trend_score || 0,
+            tags: extractTags(trend),
+            source: 'etsy_api',
+            analysis_date: new Date().toISOString()
+        }));
+        
+        const { error } = await window.supabase
+            .from('etsy_market_data')
+            .upsert(trendRecords, { onConflict: 'product_title' });
+        
+        if (error) throw error;
+        
+    } catch (error) {
+        console.error('❌ Save trends error:', error);
+    }
+}
+
+async function showDatabaseTrends() {
+    try {
+        const { data: trends, error } = await window.supabase
+            .from('etsy_market_data')
+            .select('*')
+            .order('trend_score', { ascending: false })
+            .limit(10);
+        
+        if (error || !trends || trends.length === 0) {
+            throw new Error('No trend data available');
+        }
+        
+        displayTrendAnalysis(trends);
+        
+    } catch (error) {
+        console.error('❌ Database trends error:', error);
+        showNotification('Please connect Etsy for trend analysis', 'warning');
+    }
+}
+
+function displayTrendAnalysis(trends) {
+    const container = document.getElementById('top-seller-modal-container');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="modal active" id="trend-analysis-modal">
+            <div class="modal-content" style="max-width: 1200px;">
+                <button class="modal-close" onclick="closeModal('trend-analysis-modal')">&times;</button>
+                
+                <div class="modal-header">
+                    <h2 class="modal-title">📈 Etsy Market Trend Analysis</h2>
+                    <p class="modal-subtitle">${trends.length} trending products analyzed</p>
+                </div>
+                
+                <div class="trend-filters">
+                    <div class="filter-buttons">
+                        <button class="btn btn-primary btn-sm" onclick="filterTrends('all')">All Trends</button>
+                        <button class="btn btn-outline btn-sm" onclick="filterTrends('high_demand')">High Demand (80+ score)</button>
+                        <button class="btn btn-outline btn-sm" onclick="filterTrends('low_competition')">Low Competition</button>
+                        <button class="btn btn-outline btn-sm" onclick="filterTrends('high_margin')">High Margin</button>
+                    </div>
                     
-                    ${listingsData.results.map(listing => `
-                        <div class="etsy-import-item" data-listing-id="${listing.listing_id}">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 60px; height: 60px; background: #f3f4f6; border-radius: 6px; 
-                                     display: flex; align-items: center; justify-content: center;">
-                                    <span style="color: #9ca3af; font-size: 12px;">Image</span>
-                                </div>
-                                <div>
-                                    <div style="font-weight: 500; margin-bottom: 4px;">${listing.title}</div>
-                                    <div style="font-size: 12px; color: #6b7280;">
-                                        $${listing.price?.amount || 0} • 
-                                        ${listing.views || 0} views • 
-                                        ${listing.num_favorers || 0} favorites
-                                    </div>
+                    <div class="trend-stats">
+                        <div class="stat-card">
+                            <div class="stat-value">${calculateAverage(trends, 'trend_score').toFixed(1)}</div>
+                            <div class="stat-label">Avg Trend Score</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${calculateAverage(trends, 'monthly_sales').toFixed(0)}</div>
+                            <div class="stat-label">Avg Monthly Sales</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${findTopCategory(trends)}</div>
+                            <div class="stat-label">Top Category</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="trends-grid" id="trends-grid">
+                    ${trends.map((trend, index) => `
+                        <div class="trend-card" data-score="${trend.trend_score}" data-sales="${trend.monthly_sales}">
+                            <div class="trend-header">
+                                <div class="trend-rank">#${index + 1}</div>
+                                <div class="trend-score" style="background: ${getScoreColor(trend.trend_score)}">
+                                    ${trend.trend_score?.toFixed(1) || 'N/A'}
                                 </div>
                             </div>
-                            <button class="btn btn-primary btn-sm" onclick="importEtsyProduct(${listing.listing_id})">
-                                Import
-                            </button>
+                            
+                            <div class="trend-image">
+                                <img src="${getTrendImage(trend)}" alt="${trend.product_title}">
+                            </div>
+                            
+                            <div class="trend-content">
+                                <h3 class="trend-title">${truncateText(trend.product_title, 50)}</h3>
+                                
+                                <div class="trend-meta">
+                                    <span class="trend-category">${trend.category}</span>
+                                    <span class="trend-sales">${trend.monthly_sales} sales/month</span>
+                                    <span class="trend-price">${trend.price_range}</span>
+                                </div>
+                                
+                                <div class="trend-tags">
+                                    ${(trend.tags || []).slice(0, 3).map(tag => `
+                                        <span class="tag">${tag}</span>
+                                    `).join('')}
+                                </div>
+                                
+                                <div class="trend-insights">
+                                    <div class="insight">
+                                        <span class="insight-label">Demand:</span>
+                                        <span class="insight-value ${trend.trend_score > 80 ? 'high' : trend.trend_score > 60 ? 'medium' : 'low'}">
+                                            ${trend.trend_score > 80 ? 'High' : trend.trend_score > 60 ? 'Medium' : 'Low'}
+                                        </span>
+                                    </div>
+                                    <div class="insight">
+                                        <span class="insight-label">Competition:</span>
+                                        <span class="insight-value">${trend.competition_level || 'Medium'}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="trend-actions">
+                                    <button class="btn btn-primary btn-sm" onclick="createProductFromTrend(${index})">
+                                        Create Product
+                                    </button>
+                                    <button class="btn btn-outline btn-sm" onclick="saveTrend(${index})">
+                                        Save Analysis
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
                 
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                    <div style="display: flex; gap: 12px;">
-                        <button class="btn btn-primary btn-flex" onclick="importAllEtsyProducts()">
-                            Import All (${listingsData.results.length})
-                        </button>
-                        <button class="btn btn-outline btn-flex" onclick="closeModal('modal-etsy-import')">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        showModal('modal-etsy-import');
-        
-    } catch (error) {
-        console.error('Error loading Etsy products:', error);
-        showNotification('Error loading Etsy products: ' + error.message, 'error');
-    } finally {
-        hideLoading();
-    }
-}
-
-window.importEtsyProduct = async function(listingId) {
-    try {
-        showLoading('Importing product from Etsy...');
-        
-        if (!etsyService) {
-            throw new Error('Etsy service not available');
-        }
-        
-        // Get listing details
-        const listing = await etsyService.getListingDetails(listingId);
-        const images = await etsyService.getListingImages(listingId);
-        const imageUrls = images.map(img => img.url_fullxfull).slice(0, 3);
-        
-        // Create product in database
-        const newProduct = {
-            user_id: currentUser.id,
-            title: listing.title,
-            description: listing.description || '',
-            category: mapEtsyCategory(listing.taxonomy_id),
-            price: listing.price?.amount || 0,
-            status: 'published',
-            images: imageUrls,
-            etsy_listing_id: listingId.toString(),
-            source: 'etsy',
-            tags: listing.tags || [],
-            metadata: {
-                etsy_data: {
-                    views: listing.views,
-                    favorites: listing.num_favorers,
-                    state: listing.state,
-                    original_created: listing.created
-                }
-            }
-        };
-        
-        // Save to Supabase
-        const { error } = await window.supabase
-            .from('products')
-            .insert([newProduct]);
-        
-        if (error) throw error;
-        
-        showNotification('Product imported successfully from Etsy', 'success');
-        
-        // Reload products
-        await loadProducts();
-        closeModal('modal-etsy-import');
-        
-    } catch (error) {
-        console.error('Error importing Etsy product:', error);
-        showNotification('Error importing product: ' + error.message, 'error');
-    } finally {
-        hideLoading();
-    }
-};
-
-window.importAllEtsyProducts = async function() {
-    if (!confirm(`Are you sure you want to import all products from Etsy? This may take a while.`)) {
-        return;
-    }
-    
-    try {
-        showLoading('Importing all products from Etsy...');
-        
-        if (!etsyService) {
-            throw new Error('Etsy service not available');
-        }
-        
-        // Get all listings
-        const listingsData = await etsyService.getShopListings(100, 0, 'active');
-        
-        if (!listingsData || !listingsData.results) {
-            showNotification('No products found to import', 'info');
-            return;
-        }
-        
-        let importedCount = 0;
-        let errorCount = 0;
-        
-        // Import each product (limit to 20 for performance)
-        for (const listing of listingsData.results.slice(0, 20)) {
-            try {
-                // Skip if already imported
-                const { data: existing } = await window.supabase
-                    .from('products')
-                    .select('id')
-                    .eq('etsy_listing_id', listing.listing_id.toString())
-                    .single();
-                
-                if (existing) {
-                    console.log(`Product ${listing.listing_id} already imported, skipping`);
-                    continue;
-                }
-                
-                // Get images
-                const images = await etsyService.getListingImages(listing.listing_id);
-                const imageUrls = images.map(img => img.url_fullxfull).slice(0, 3);
-                
-                // Create product
-                const newProduct = {
-                    user_id: currentUser.id,
-                    title: listing.title,
-                    description: listing.description || '',
-                    category: mapEtsyCategory(listing.taxonomy_id),
-                    price: listing.price?.amount || 0,
-                    status: 'published',
-                    images: imageUrls,
-                    etsy_listing_id: listing.listing_id.toString(),
-                    source: 'etsy',
-                    tags: listing.tags || []
-                };
-                
-                // Save to database
-                await window.supabase
-                    .from('products')
-                    .insert([newProduct]);
-                
-                importedCount++;
-                
-            } catch (itemError) {
-                console.warn(`Error importing listing ${listing.listing_id}:`, itemError);
-                errorCount++;
-            }
-        }
-        
-        showNotification(`Imported ${importedCount} products from Etsy${errorCount > 0 ? ` (${errorCount} failed)` : ''}`, 'success');
-        
-        // Reload products
-        await loadProducts();
-        closeModal('modal-etsy-import');
-        
-    } catch (error) {
-        console.error('Error importing all Etsy products:', error);
-        showNotification('Error importing products: ' + error.message, 'error');
-    } finally {
-        hideLoading();
-    }
-};
-
-async function analyzeTopSellers() {
-    try {
-        showLoading('Analyzing Etsy trends...');
-        
-        let trends = [];
-        
-        if (isEtsyConnected && etsyService) {
-            // Get real trends from Etsy
-            const category = document.getElementById('filter-category')?.value || null;
-            const trendingData = await etsyService.getTrendingListings(category);
-            trends = trendingData.results || [];
-        } else {
-            // Use mock trends
-            trends = getMockTrends();
-        }
-        
-        if (trends.length === 0) {
-            showNotification('No trending products found', 'info');
-            return;
-        }
-        
-        // Show trends modal
-        showTrendsModal(trends);
-        
-    } catch (error) {
-        console.error('Error analyzing trends:', error);
-        showNotification('Error analyzing trends: ' + error.message, 'error');
-        
-        // Fallback to mock trends
-        const mockTrends = getMockTrends();
-        showTrendsModal(mockTrends);
-    } finally {
-        hideLoading();
-    }
-}
-
-function getMockTrends() {
-    return [
-        {
-            id: 'trend-1',
-            title: 'Personalized Pet Portrait',
-            category: 'art',
-            price: 34.99,
-            monthly_sales: 156,
-            trend_score: 85,
-            description: 'Custom pet portraits from your photos'
-        },
-        {
-            id: 'trend-2',
-            title: 'Minimalist T-Shirt Design',
-            category: 'tshirt',
-            price: 24.99,
-            monthly_sales: 189,
-            trend_score: 88,
-            description: 'Clean and simple t-shirt designs'
-        },
-        {
-            id: 'trend-3',
-            title: 'Custom Coffee Mug',
-            category: 'mug',
-            price: 18.99,
-            monthly_sales: 245,
-            trend_score: 92,
-            description: 'Personalized mugs for coffee lovers'
-        },
-        {
-            id: 'trend-4',
-            title: 'Minimalist Necklace',
-            category: 'jewelry',
-            price: 29.99,
-            monthly_sales: 134,
-            trend_score: 82,
-            description: 'Simple and elegant necklace designs'
-        }
-    ];
-}
-
-function showTrendsModal(trends) {
-    const container = document.getElementById('top-seller-modal-container');
-    if (!container) return;
-    
-    const sourceText = isEtsyConnected ? 'Etsy API' : 'Demo Data';
-    
-    container.innerHTML = `
-        <div class="modal active" id="top-seller-modal">
-            <div class="modal-content" style="max-width: 900px;">
-                <button class="modal-close" onclick="closeTrendsModal()">&times;</button>
-                <div class="modal-header">
-                    <h2 class="modal-title">Trending Products Analysis (${sourceText})</h2>
-                    <p class="modal-subtitle">${trends.length} trending products found</p>
-                </div>
-                
-                <div style="padding: 20px;">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px;">
-                        ${trends.map(trend => `
-                            <div class="product-card" style="margin: 0;">
-                                <div class="product-image">
-                                    <img src="${getRandomProductImage(trend.category)}" alt="${trend.title}" style="height: 150px;">
-                                    <div class="product-badge" style="background: ${trend.trend_score >= 90 ? '#dc2626' : trend.trend_score >= 80 ? '#ea580c' : '#16a34a'};">
-                                        ${trend.trend_score}%
-                                    </div>
-                                    <div class="price-badge">$${trend.price}</div>
-                                </div>
-                                <div class="product-content">
-                                    <h3 class="product-title">${truncateText(trend.title, 35)}</h3>
-                                    <span class="product-category">${trend.category}</span>
-                                    <p class="product-description">${truncateText(trend.description || '', 60)}</p>
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 12px;">
-                                        📈 ${trend.monthly_sales} sales/month
-                                    </div>
-                                    <button class="btn btn-primary btn-sm" style="width: 100%;" 
-                                            onclick="createFromTrend('${trend.id}', '${trend.title}', '${trend.category}', ${trend.price})">
-                                        Create Similar Product
-                                    </button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-                    <button class="btn btn-outline" onclick="closeTrendsModal()">
+                <div class="trend-actions-footer">
+                    <button class="btn btn-primary" onclick="generateBatchFromTrends()">
+                        Generate 5 Products from Top Trends
+                    </button>
+                    <button class="btn btn-outline" onclick="closeModal('trend-analysis-modal')">
                         Close
                     </button>
                 </div>
@@ -868,295 +535,443 @@ function showTrendsModal(trends) {
     `;
 }
 
-window.closeTrendsModal = function() {
-    const modal = document.getElementById('top-seller-modal');
-    if (modal) {
-        modal.classList.remove('active');
-        setTimeout(() => {
-            document.getElementById('top-seller-modal-container').innerHTML = '';
-        }, 300);
-    }
-};
-
-window.createFromTrend = function(trendId, title, category, price) {
-    // Pre-fill new product form with trend data
-    resetProductForm();
-    document.getElementById('product-title').value = `Inspired by: ${title}`;
-    document.getElementById('product-category').value = category;
-    document.getElementById('product-price').value = (parseFloat(price) * (0.8 + Math.random() * 0.4)).toFixed(2);
-    document.getElementById('product-source').value = 'ai';
-    
-    // Generate AI description
-    setTimeout(() => {
-        generateDescriptionWithAI();
-    }, 500);
-    
-    closeTrendsModal();
-    showModal('modal-product');
-    showNotification('Product form pre-filled with trend data', 'success');
-};
-
-async function connectEtsy() {
-    const shopName = document.getElementById('etsy-shop-name')?.value.trim();
-    const apiKey = document.getElementById('etsy-api-key')?.value.trim();
-    const sharedSecret = document.getElementById('etsy-shared-secret')?.value.trim();
-    
-    if (!shopName || !apiKey) {
-        showNotification('Please enter shop name and API key', 'error');
-        return;
-    }
-    
+// ==================== MOCKUP GENERATION ====================
+async function generateProductMockups(productId) {
     try {
-        showLoading('Connecting to Etsy...');
+        showLoading('Generating professional mockups...');
         
-        // Test API connection
-        const testService = new window.EtsyAPIService(apiKey);
-        const testResult = await testService.testConnection();
+        const product = currentProducts.find(p => p.id === productId);
+        if (!product) throw new Error('Product not found');
         
-        if (!testResult.success) {
-            throw new Error(testResult.message);
+        if (!mockupService) {
+            throw new Error('Mockup service not available');
         }
         
-        // Get shop ID from shop name
-        let shopId = shopName;
-        if (!shopName.includes('.')) {
-            // Assume it's a shop ID
-            try {
-                const shopInfo = await testService.getShopInfo(shopName);
-                shopId = shopInfo.shop_id;
-            } catch (shopError) {
-                console.warn('Could not get shop info:', shopError);
-                // Use shop name as ID
-            }
-        }
+        // Get product image
+        const productImage = product.images?.[0] || getProductPlaceholderImage(product.category);
         
-        // Save to database
-        const etsyShopData = {
-            id: `etsy_${Date.now()}`,
-            user_id: currentUser.id,
-            shop_name: shopName,
-            shop_url: `https://www.etsy.com/shop/${shopName}`,
-            api_key: apiKey,
-            shared_secret: sharedSecret,
-            is_active: true
-        };
+        // Generate mockups from multiple angles
+        const mockups = await mockupService.generateMultiAngleMockups(
+            productImage, 
+            product.category
+        );
+        
+        // Save mockups to database
+        await saveProductMockups(productId, mockups);
+        
+        // Update product with mockup URLs
+        await updateProductMockups(productId, mockups);
+        
+        // Show mockup editor
+        showMockupEditor(productId, mockups);
+        
+        showNotification(`${mockups.length} mockups generated successfully`, 'success');
+        
+    } catch (error) {
+        console.error('❌ Mockup generation error:', error);
+        showNotification('Mockup generation failed: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function saveProductMockups(productId, mockups) {
+    try {
+        const mockupRecords = mockups.map(mockup => ({
+            product_id: productId,
+            image_url: mockup.url,
+            angle: mockup.angle,
+            style: 'professional',
+            created_at: new Date().toISOString()
+        }));
         
         const { error } = await window.supabase
-            .from('etsy_shops')
-            .upsert([etsyShopData], { onConflict: 'id' });
+            .from('product_mockups')
+            .insert(mockupRecords);
         
         if (error) throw error;
         
-        // Update local state
-        etsyShop = etsyShopData;
-        isEtsyConnected = true;
-        etsyService = new window.EtsyAPIService(apiKey, shopId);
-        
-        showNotification('Etsy shop connected successfully!', 'success');
-        closeModal('modal-etsy-connect');
-        
-        // Update UI
-        updateUI();
-        
-        // Reload products to include Etsy products
-        await loadProducts();
-        
     } catch (error) {
-        console.error('Error connecting Etsy:', error);
-        showNotification('Failed to connect Etsy: ' + error.message, 'error');
-    } finally {
-        hideLoading();
+        console.error('❌ Save mockups error:', error);
     }
 }
 
-async function disconnectEtsy() {
-    if (!confirm('Are you sure you want to disconnect your Etsy shop?')) {
-        return;
-    }
-    
+async function updateProductMockups(productId, mockups) {
     try {
-        showLoading('Disconnecting Etsy...');
-        
-        if (etsyShop) {
-            // Mark as inactive in database
-            const { error } = await window.supabase
-                .from('etsy_shops')
-                .update({ is_active: false })
-                .eq('id', etsyShop.id);
-            
-            if (error) throw error;
-        }
-        
-        // Reset local state
-        etsyShop = null;
-        isEtsyConnected = false;
-        etsyService = null;
-        
-        showNotification('Etsy shop disconnected', 'success');
-        
-        // Update UI
-        updateUI();
-        
-        // Reload products (remove Etsy products)
-        await loadProducts();
-        
-    } catch (error) {
-        console.error('Error disconnecting Etsy:', error);
-        showNotification('Error disconnecting Etsy: ' + error.message, 'error');
-    } finally {
-        hideLoading();
-    }
-}
-
-async function publishToEtsy(productId) {
-    if (!isEtsyConnected || !etsyService) {
-        showNotification('Please connect your Etsy shop first', 'warning');
-        showModal('modal-etsy-connect');
-        return;
-    }
-    
-    const product = currentProducts.find(p => p.id === productId);
-    if (!product) {
-        showNotification('Product not found', 'error');
-        return;
-    }
-    
-    if (!confirm(`Publish "${product.title}" to Etsy?`)) {
-        return;
-    }
-    
-    try {
-        showLoading('Publishing to Etsy...');
-        
-        // Mock publish (real implementation would use Etsy API)
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Update product with Etsy listing ID
-        const etsyListingId = Math.floor(Math.random() * 1000000);
+        const mockupUrls = mockups.map(m => ({ url: m.url, angle: m.angle }));
         
         const { error } = await window.supabase
             .from('products')
-            .update({
-                etsy_listing_id: etsyListingId.toString(),
-                source: 'etsy',
-                status: 'published',
+            .update({ 
+                mockup_urls: mockupUrls,
                 updated_at: new Date().toISOString()
             })
             .eq('id', productId);
         
         if (error) throw error;
         
-        showNotification(`Product published to Etsy! Listing ID: ${etsyListingId}`, 'success');
-        
-        // Reload products
-        await loadProducts();
+        // Update local product data
+        const productIndex = currentProducts.findIndex(p => p.id === productId);
+        if (productIndex !== -1) {
+            currentProducts[productIndex].mockup_urls = mockupUrls;
+        }
         
     } catch (error) {
-        console.error('Error publishing to Etsy:', error);
-        showNotification('Error publishing to Etsy: ' + error.message, 'error');
+        console.error('❌ Update mockups error:', error);
+    }
+}
+
+// ==================== ETSY PUBLISHING ====================
+async function publishToEtsy(productId) {
+    try {
+        if (!isEtsyConnected || !etsyService) {
+            throw new Error('Etsy connection not available');
+        }
+        
+        const product = currentProducts.find(p => p.id === productId);
+        if (!product) throw new Error('Product not found');
+        
+        if (!confirm(`Publish "${product.title}" to Etsy? This will create a new listing.`)) {
+            return;
+        }
+        
+        showLoading('Publishing to Etsy...');
+        
+        // Prepare listing data
+        const listingData = {
+            quantity: 1,
+            title: product.title,
+            description: product.description || `${product.title} - High quality product`,
+            price: product.price,
+            who_made: 'i_did',
+            when_made: 'made_to_order',
+            taxonomy_id: getEtsyTaxonomyId(product.category),
+            tags: product.tags || ['handmade', 'custom', 'personalized'],
+            materials: ['premium materials'],
+            shipping_profile_id: 1,
+            is_supply: false,
+            item_weight: 0.5,
+            item_weight_unit: 'oz',
+            item_length: 10,
+            item_width: 8,
+            item_height: 1,
+            item_dimensions_unit: 'in'
+        };
+        
+        // Create listing on Etsy
+        const listingResult = await etsyService.createListing(listingData);
+        
+        if (!listingResult.listing_id) {
+            throw new Error('Failed to create Etsy listing');
+        }
+        
+        // Update product with Etsy listing ID
+        await updateProductEtsyInfo(productId, listingResult.listing_id);
+        
+        showNotification(`Product published to Etsy! Listing ID: ${listingResult.listing_id}`, 'success');
+        
+        // Reload products
+        await loadUserProducts();
+        
+    } catch (error) {
+        console.error('❌ Etsy publishing error:', error);
+        showNotification('Etsy publishing failed: ' + error.message, 'error');
     } finally {
         hideLoading();
     }
 }
 
-// The rest of the functions remain similar to previous versions
-// (showNewProductModal, closeModal, handleProductFormSubmit, etc.)
-// Just make sure to use window.supabase for database operations
-
-// Utility functions (same as before, but with window.supabase)
-function showModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-    }
-}
-
-function showLoading(message = 'Loading...') {
-    let loadingEl = document.getElementById('loadingOverlay');
-    if (!loadingEl) {
-        loadingEl = document.createElement('div');
-        loadingEl.id = 'loadingOverlay';
-        loadingEl.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        `;
-        loadingEl.innerHTML = `
-            <div style="background: white; padding: 24px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; min-width: 200px;">
-                <div class="loading-spinner" style="width: 40px; height: 40px; border: 3px solid #f3f4f6; border-top-color: #ea580c; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
-                <p style="color: #374151; font-weight: 500;">${message}</p>
-            </div>
-        `;
-        document.body.appendChild(loadingEl);
-    }
-}
-
-
-function hideLoading() {
-    const loadingEl = document.getElementById('loadingOverlay');
-    if (loadingEl) {
-        loadingEl.remove();
-    }
-}
-
-function showNotification(message, type = 'info') {
-    // Remove existing notifications
-    document.querySelectorAll('.notification').forEach(el => el.remove());
-    
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 12px 24px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 500;
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    `;
-    
-    notification.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between; min-width: 200px;">
-            <span>${message}</span>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px; margin-left: 12px; padding: 0 4px;">
-                &times;
-            </button>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
+// ==================== POD ORDER MANAGEMENT ====================
+async function createPODOrder(productId, quantity = 1) {
+    try {
+        if (!isPODConnected || !podService) {
+            throw new Error('POD provider not connected');
         }
-    }, 5000);
+        
+        const product = currentProducts.find(p => p.id === productId);
+        if (!product) throw new Error('Product not found');
+        
+        showLoading('Creating POD order...');
+        
+        // Prepare order data for POD provider
+        const orderData = {
+            external_id: `order-${Date       // BURASI EKSİK SANKİ
+
+     
+console.log('🛍️ Loading Products System...');
+
+// Global state
+window.productsSystem = {
+  currentUser: null,
+  products: [],
+  filteredProducts: [],
+  etsyService: null,
+  podServices: {},
+  etsyShop: null,
+  pagination: {
+    currentPage: 1,
+    pageSize: 12,
+    totalPages: 1
+  },
+  filters: {
+    status: '',
+    category: '',
+    search: '',
+    podProvider: ''
+  },
+  bulkSelection: new Set()
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('🚀 Initializing Products System...');
+  
+  try {
+    // Initialize systems
+    await initializeAuth();
+    await initializeEtsy();
+    await initializePOD();
+    await loadProducts();
+    
+    // Setup UI
+    updateStats();
+    setupEventListeners();
+    
+    console.log('✅ Products System ready');
+    
+  } catch (error) {
+    console.error('❌ Initialization failed:', error);
+    showSystemError('Failed to initialize products system');
+  }
+});
+
+// ==================== INITIALIZATION ====================
+
+async function initializeAuth() {
+  try {
+    const { data: { user }, error } = await window.supabase.auth.getUser();
+    
+    if (error) throw error;
+    if (!user) throw new Error('No authenticated user');
+    
+    window.productsSystem.currentUser = user;
+    console.log('✅ Authenticated as:', user.email);
+    
+  } catch (error) {
+    console.error('Auth initialization failed:', error);
+    throw error;
+  }
 }
 
-// Make functions available globally
-window.closeModal = closeModal;
-window.showModal = showModal;
-window.showNotification = showNotification;
+async function initializeEtsy() {
+  try {
+    // Check if Etsy shop is connected
+    const { data: shop, error } = await window.supabase
+      .from('etsy_shops')
+      .select('*')
+      .eq('user_id', window.productsSystem.currentUser.id)
+      .eq('is_active', true)
+      .single();
+    
+    if (error || !shop) {
+      console.log('No Etsy shop connected');
+      return;
+    }
+    
+    window.productsSystem.etsyShop = shop;
+    
+    // Initialize Etsy service
+    window.productsSystem.etsyService = new window.EtsyService(
+      shop.api_key,
+      shop.id
+    );
+    
+    // Test connection
+    const testResult = await window.productsSystem.etsyService.testConnection();
+    if (testResult.success) {
+      console.log('✅ Etsy connected:', shop.shop_name);
+      updateEtsyStatusPanel(true);
+    } else {
+      console.warn('Etsy connection test failed:', testResult.message);
+      updateEtsyStatusPanel(false);
+    }
+    
+  } catch (error) {
+    console.error('Etsy initialization failed:', error);
+  }
+}
 
-console.log('Products.js with Etsy integration loaded');
+async function initializePOD() {
+  try {
+    // Load POD providers
+    const { data: providers, error } = await window.supabase
+      .from('pod_providers')
+      .select('*')
+      .eq('user_id', window.productsSystem.currentUser.id)
+      .eq('is_active', true);
+    
+    if (error) {
+      console.error('Error loading POD providers:', error);
+      return;
+    }
+    
+    // Initialize each provider
+    providers.forEach(provider => {
+      try {
+        window.productsSystem.podServices[provider.provider_type] = 
+          new window.PODService(provider.provider_type, provider.api_key);
+        console.log(`✅ POD provider loaded: ${provider.provider_name}`);
+      } catch (err) {
+        console.error(`Failed to initialize ${provider.provider_name}:`, err);
+      }
+    });
+    
+    updatePODStatusPanel(providers.length > 0);
+    
+  } catch (error) {
+    console.error('POD initialization failed:', error);
+  }
+}
+
+// ==================== PRODUCT MANAGEMENT ====================
+
+async function loadProducts() {
+  showLoading(true);
+  
+  try {
+    // Load from Supabase
+    const { data: products, error } = await window.supabase
+      .from('products')
+      .select(`
+        *,
+        rating_stats (*),
+        product_mockups (*)
+      `)
+      .eq('user_id', window.productsSystem.currentUser.id)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    window.productsSystem.products = products || [];
+    window.productsSystem.filteredProducts = [...window.productsSystem.products];
+    
+    // Sync with Etsy if connected
+    if (window.productsSystem.etsyService) {
+      await syncWithEtsy();
+    }
+    
+    // Apply current filters
+    applyFilters();
+    
+    // Update pagination
+    updatePagination();
+    
+    // Render products
+    renderProducts();
+    
+    console.log(`✅ Loaded ${window.productsSystem.products.length} products`);
+    
+  } catch (error) {
+    console.error('Error loading products:', error);
+    showNotification('Failed to load products', 'error');
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function syncWithEtsy() {
+  if (!window.productsSystem.etsyService) return;
+  
+  try {
+    console.log('🔄 Syncing with Etsy...');
+    
+    // Get listings from Etsy
+    const listingsData = await window.productsSystem.etsyService.getShopListings(50);
+    
+    if (!listingsData.results || listingsData.results.length === 0) {
+      console.log('No listings found on Etsy');
+      return;
+    }
+    
+    let syncedCount = 0;
+    
+    for (const listing of listingsData.results) {
+      try {
+        // Check if product already exists
+        const existingProduct = window.productsSystem.products.find(
+          p => p.etsy_listing_id === listing.listing_id.toString()
+        );
+        
+        if (!existingProduct) {
+          // Import new product from Etsy
+          await importEtsyListing(listing);
+          syncedCount++;
+        } else {
+          // Update existing product
+          await updateProductFromEtsy(existingProduct.id, listing);
+        }
+      } catch (listingError) {
+        console.warn(`Failed to sync listing ${listing.listing_id}:`, listingError);
+      }
+    }
+    
+    if (syncedCount > 0) {
+      showNotification(`Synced ${syncedCount} new products from Etsy`, 'success');
+      await loadProducts(); // Reload to include new products
+    }
+    
+  } catch (error) {
+    console.error('Etsy sync failed:', error);
+    showNotification('Etsy sync failed: ' + error.message, 'warning');
+  }
+}
+
+async function importEtsyListing(listing) {
+  try {
+    // Get listing details and images
+    const [listingDetails, images] = await Promise.all([
+      window.productsSystem.etsyService.getListing(listing.listing_id),
+      window.productsSystem.etsyService.getListingImages(listing.listing_id)
+    ]);
+    
+    const productData = {
+      user_id: window.productsSystem.currentUser.id,
+      title: listing.title,
+      description: listingDetails.description || '',
+      category: mapEtsyCategory(listingDetails.taxonomy_id),
+      price: listingDetails.price?.amount || 0,
+      status: 'listed',
+      etsy_listing_id: listing.listing_id.toString(),
+      images: images.results?.map(img => img.url_fullxfull) || [],
+      tags: listingDetails.tags || [],
+      metadata: {
+        etsy_data: {
+          views: listingDetails.views,
+          favorites: listingDetails.num_favorers,
+          created_timestamp: listingDetails.created,
+          updated_timestamp: listingDetails.updated
+        }
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    const { error } = await window.supabase
+      .from('products')
+      .insert([productData]);
+    
+    if (error) throw error;
+    
+    return productData;
+    
+  } catch (error) {
+    console.error('Failed to import Etsy listing:', error);
+    throw error;
+  }
+}
+
+// ==================== TREND ANALYSIS ====================
+
+window.analyzeTopSellers = async function() {
+  try {
+    showLoading('Analyzing Etsy trends...
