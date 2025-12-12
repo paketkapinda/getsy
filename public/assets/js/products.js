@@ -1,20 +1,59 @@
 // products.js - GERÇEK SİSTEM: Etsy'den ürün çek → AI ile benzerini oluştur
 
+// ESKİ KODUNUZDAKİ DEĞİŞKENLER
 let currentUser = null;
 let currentProducts = [];
 let etsyService = null;
 let isEtsyConnected = false;
 let topSellersData = [];
 
-// Sayfa yüklendiğinde
+// Eski kodunuzda bu global değişkenler vardı:
+window.productsSystem = {
+  currentUser: null,
+  products: [],
+  filteredProducts: [],
+  etsyService: null,
+  podServices: {},
+  etsyShop: null,
+  pagination: {
+    currentPage: 1,
+    pageSize: 12,
+    totalPages: 1
+  },
+  filters: {
+    status: '',
+    category: '',
+    search: '',
+    podProvider: ''
+  },
+  bulkSelection: new Set()
+};
+// Sayfa yüklendiğinde - ESKİ KODUNUZA UYGUN
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🛍️ Products System Initializing...');
     
     try {
-        // Check authentication - DÜZELTME: supabase → supabase
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error || !user) throw new Error('Lütfen giriş yapın');
+        // ESKİ KODUNUZDAKİ AUTH KONTROLÜ
+        if (!window.supabaseClient && !window.supabase) {
+            throw new Error('Database connection not available');
+        }
+        
+        // Hangi supabase client kullanılıyor?
+        const supabaseClient = window.supabaseClient || window.supabase;
+        
+        const { data: { user }, error } = await supabaseClient.auth.getUser();
+        
+        if (error) {
+            throw new Error('Authentication error: ' + error.message);
+        }
+        
+        if (!user) {
+            throw new Error('Please sign in to access products');
+        }
+        
         currentUser = user;
+        window.productsSystem.currentUser = user;
+        console.log('✅ Authenticated user:', currentUser.email);
         
         // Etsy bağlantısını kontrol et
         await checkEtsyConnection();
@@ -25,14 +64,21 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Event listener'ları kur
         setupEventListeners();
         
+        // Update UI (eski kodunuzdaki)
+        updateUI();
+        
         console.log('✅ Products System Ready');
+        showNotification('Products system loaded successfully', 'success');
         
     } catch (error) {
         console.error('❌ System initialization error:', error);
-        alert('Sisteme giriş yapmalısınız.');
-        window.location.href = '/login.html';
+        showNotification('System error: ' + error.message, 'error');
+        
+        // Even with error, show basic interface
+        loadFallbackProducts();
     }
 });
+
 // ==================== ETSY BAĞLANTISI ====================
 async function checkEtsyConnection() {
     try {
@@ -637,13 +683,46 @@ async function callMockupService(apiKey, endpoint, imageUrl, productType) {
     return data.mockup_urls;
 }
 
-// Loading göster/gizle
-function showLoading(message) {
-    // Mevcut loading fonksiyonunuzu kullanın
+// ESKİ KODUNUZDAKİ showLoading/hideLoading
+function showLoading(message = 'Loading...') {
+    // Mevcut loading sisteminizi kullanın
+    if (typeof window.showLoadingIndicator === 'function') {
+        window.showLoadingIndicator(message);
+    } else {
+        // Basit loading
+        let loader = document.getElementById('global-loader');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.id = 'global-loader';
+            loader.innerHTML = `
+                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+                    <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
+                        <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                        <p style="margin-top: 10px;">${message}</p>
+                    </div>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+            document.body.appendChild(loader);
+        }
+        loader.style.display = 'block';
+    }
 }
 
 function hideLoading() {
-    // Mevcut hide loading fonksiyonunuzu kullanın
+    if (typeof window.hideLoadingIndicator === 'function') {
+        window.hideLoadingIndicator();
+    } else {
+        const loader = document.getElementById('global-loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    }
 }
 
 function showSuccess(message) {
@@ -669,24 +748,127 @@ function setupEventListeners() {
 }
 
 // ==================== PRODUCT LOADING ====================
+// loadUserProducts FONKSİYONUNU ESKİ KODUNUZA GÖRE DÜZENLEYİN
 async function loadUserProducts() {
     try {
-        const { data: products, error } = await supabase
+        showLoading('Loading products...');
+        
+        // ESKİ KODUNUZDAKİ DATABASE BAĞLANTISI
+        const supabaseClient = window.supabaseClient || window.supabase;
+        if (!supabaseClient) {
+            throw new Error('Database connection not available');
+        }
+        
+        const { data: products, error } = await supabaseClient
             .from('products')
-            .select('*')
+            .select(`
+                *,
+                rating_stats (
+                    average_rating,
+                    total_reviews,
+                    monthly_sales_estimate
+                ),
+                ai_logs (
+                    operation_type,
+                    status
+                )
+            `)
             .eq('user_id', currentUser.id)
             .order('created_at', { ascending: false });
         
-        if (error) throw error;
+        if (error) {
+            throw new Error('Database error: ' + error.message);
+        }
         
         currentProducts = products || [];
+        window.productsSystem.products = currentProducts;
+        window.productsSystem.filteredProducts = [...currentProducts];
+        
+        console.log(`✅ Loaded ${currentProducts.length} products`);
+        
         renderProducts(currentProducts);
         
+        // Update stats
+        updateProductStats();
+        
     } catch (error) {
-        console.error('Load products error:', error);
+        console.error('❌ Load products error:', error);
+        showNotification('Error loading products: ' + error.message, 'error');
+        currentProducts = [];
+        renderProducts([]);
+    } finally {
+        hideLoading();
     }
 }
+// ESKİ KODUNUZDAKİ showNotification FONKSİYONU
+function showNotification(message, type = 'info') {
+    console.log(`📢 ${type.toUpperCase()}: ${message}`);
+    
+    // Mevcut notification sisteminizi kullanın
+    if (typeof window.showToast === 'function') {
+        window.showToast(message, type);
+    } else {
+        // Basit notification
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
+            color: white;
+            border-radius: 4px;
+            z-index: 1000;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s';
+            setTimeout(() => notification.remove(), 500);
+        }, 3000);
+    }
+}
+// ESKİ KODUNUZDAKİ updateUI FONKSİYONU
+function updateUI() {
+    // Update user info
+    const userEmail = document.getElementById('user-email');
+    if (userEmail && currentUser) {
+        userEmail.textContent = currentUser.email;
+    }
+    
+    // Update stats
+    updateProductStats();
+}
 
+// ESKİ KODUNUZDAKİ updateProductStats FONKSİYONU
+function updateProductStats() {
+    const totalProducts = document.getElementById('total-products');
+    const activeProducts = document.getElementById('active-products');
+    const totalRevenue = document.getElementById('total-revenue');
+    
+    if (totalProducts) {
+        totalProducts.textContent = currentProducts.length || 0;
+    }
+    
+    if (activeProducts) {
+        const activeCount = currentProducts.filter(p => p.status === 'active').length;
+        activeProducts.textContent = activeCount;
+    }
+    
+    if (totalRevenue) {
+        const revenue = currentProducts.reduce((sum, product) => {
+            const monthlySales = product.rating_stats?.[0]?.monthly_sales_estimate || 0;
+            return sum + (monthlySales * (product.price || 0));
+        }, 0);
+        totalRevenue.textContent = `$${revenue.toFixed(0)}`;
+    }
+}
 function renderProducts(products) {
     const grid = document.getElementById('products-grid');
     if (!grid) return;
