@@ -615,6 +615,107 @@
             </button>
           </div>
 
+<!-- Marketplace Integrations Section -->
+<div class="settings-card">
+  <div class="settings-card-header">
+    <div class="settings-card-icon">
+      <svg>...</svg>
+    </div>
+    <div>
+      <h3 class="settings-card-title">Marketplace Integrations</h3>
+      <p class="settings-card-subtitle">Connect your sales channels</p>
+    </div>
+  </div>
+  
+  <div class="integrations-grid">
+    <!-- Etsy Integration -->
+    <div class="integration-card" data-marketplace="etsy">
+      <div class="integration-header">
+        <img src="/assets/icons/etsy.svg" alt="Etsy" class="integration-logo">
+        <div class="integration-status">
+          <span class="status-badge connected">Connected</span>
+          <span class="last-synced">Last synced: 5 min ago</span>
+        </div>
+      </div>
+      <div class="integration-details">
+        <div class="detail-item">
+          <span class="label">Shop:</span>
+          <span class="value" id="etsy-shop-name">MyEtsyShop</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Listings:</span>
+          <span class="value" id="etsy-listing-count">42 Active</span>
+        </div>
+      </div>
+      <div class="integration-actions">
+        <button class="btn btn-sm btn-outline" onclick="syncEtsyData()">Sync Now</button>
+        <button class="btn btn-sm btn-danger" onclick="disconnectIntegration('etsy')">Disconnect</button>
+      </div>
+    </div>
+
+    <!-- Amazon Integration -->
+    <div class="integration-card" data-marketplace="amazon">
+      <div class="integration-header">
+        <img src="/assets/icons/amazon.svg" alt="Amazon" class="integration-logo">
+        <div class="integration-status">
+          <span class="status-badge disconnected">Not Connected</span>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="connectAmazon()">
+        Connect Amazon Seller Central
+      </button>
+    </div>
+
+    <!-- Shopify Integration -->
+    <div class="integration-card" data-marketplace="shopify">
+      <div class="integration-header">
+        <img src="/assets/icons/shopify.svg" alt="Shopify" class="integration-logo">
+        <div class="integration-status">
+          <span class="status-badge disconnected">Not Connected</span>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="connectShopify()">
+        Connect Shopify Store
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- POD Providers Section -->
+<div class="settings-card">
+  <div class="settings-card-header">
+    <div class="settings-card-icon">
+      <svg>...</svg>
+    </div>
+    <div>
+      <h3 class="settings-card-title">POD Providers</h3>
+      <p class="settings-card-subtitle">Configure your print-on-demand services</p>
+    </div>
+  </div>
+  
+  <div class="providers-grid">
+    <div class="provider-card" data-provider="printful">
+      <div class="provider-header">
+        <img src="/assets/icons/printful.svg" alt="Printful" class="provider-logo">
+        <label class="toggle-switch">
+          <input type="checkbox" id="printful-active" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="provider-config">
+        <div class="form-group">
+          <label>API Key</label>
+          <input type="password" id="printful-api-key" placeholder="Enter Printful API key">
+        </div>
+        <div class="form-group">
+          <label>Default Markup</label>
+          <input type="number" id="printful-markup" value="30" step="5" min="0">
+          <span class="hint">% markup on production cost</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
           <!-- AI Design Tools - Modal Version -->
           <div class="settings-card">
             <div class="settings-card-header">
@@ -681,7 +782,8 @@
                 <p class="settings-card-subtitle">Manage your team members</p>
               </div>
             </div>
-            
+          
+  
             <div class="settings-list" id="team-members-list">
               <div class="settings-empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
