@@ -1,19 +1,17 @@
-// products.js - MULTI-CHANNEL VERSION
+// products.js - TAM ÇALIŞAN VERSİYON
 import { supabase } from './supabaseClient.js';
 import { showNotification } from './ui.js';
+import { analyzeTopSellersWithAnimation } from './ai-top-seller-enhanced.js';
 
 let currentProducts = [];
-let currentMarketplaces = [];
 let isAnalyzing = false;
 
 // 📦 SAYFA YÜKLENİNCE
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Multi-Channel Products.js loaded');
+  console.log('🚀 Products.js loaded');
   
-  // Load marketplaces first, then products
-  loadMarketplaces().then(() => {
-    loadProducts();
-  });
+  // Ürünleri yükle
+  loadProducts();
   
   // Buton event'lerini kur
   initProductForm();
@@ -21,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Filter event'lerini kur
   initFilters();
   
-  console.log('✅ Multi-Channel Products page ready');
+  console.log('✅ Products page ready');
 });
 
 // 📊 ÜRÜNLERİ YÜKLE
@@ -784,7 +782,7 @@ window.createProductNow = async function(productId, productData) {
     loadProducts();
   }
 };
-  
+
 window.createAllProducts = async function() {
   const modal = document.querySelector('.modal');
   if (modal) {
@@ -799,6 +797,7 @@ window.createAllProducts = async function() {
     modal.remove();
   }
 };
+
 // ÖNCEKİ (Problemli) KOD:
 async function publishToMarketplace(productId, marketplace = 'etsy') {
   // Mock data kullanıyor
