@@ -784,7 +784,7 @@ window.createProductNow = async function(productId, productData) {
     loadProducts();
   }
 };
-
+  
 window.createAllProducts = async function() {
   const modal = document.querySelector('.modal');
   if (modal) {
@@ -799,6 +799,168 @@ window.createAllProducts = async function() {
     modal.remove();
   }
 };
+// ÖNCEKİ (Problemli) KOD:
+async function publishToMarketplace(productId, marketplace = 'etsy') {
+  // Mock data kullanıyor
+  const mockData = etsy_market.listings[0];
+  // ...
+}
+
+// SONRAKİ (Düzeltilmiş) KOD:
+async function publishToMarketplace(productId, marketplaceIds = []) {
+  try {
+    const { data: product } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', productId)
+      .single();
+
+    if (!product) throw new Error('Product not found');
+
+    const results = [];
+    
+    for (const integrationId of marketplaceIds) {
+      const { data: integration } = await supabase
+        .from('integrations')
+        .select('*')
+        .eq('id', integrationId)
+        .eq('is_active', true)
+        .single();
+
+      if (!integration) continue;
+
+      let result;
+      switch (integration.marketplace_type) {
+        case 'etsy':
+          result = await publishToEtsy(product, integration);
+          break;
+        case 'amazon':
+          result = await publishToAmazon(product, integration);
+          break;
+        case 'shopify':
+          result = await publishToShopify(product, integration);
+          break;
+        default:
+          console.warn(`Unsupported marketplace: ${integration.marketplace_type}`);
+          continue;
+      }
+
+      // Save listing mapping
+      await supabase.from('listings').upsert({
+        user_id: userId,
+        product_id: productId,
+        integration_id: integrationId,
+        marketplace_type: integration.marketplace_type,
+        listing_id: result.listing_id,
+        sku: result.sku,
+        asin: result.asin,
+        status: 'published',
+        url: result.url,
+        price: result.price,
+        metadata: result.metadata,
+        published_at: new Date().toISOString()
+      });
+
+      results.push(result);
+    }
+
+    return results;
+  } catch (error) {
+    console.error('Publish error:', error);
+    throw error;
+  }
+}
+
+// Gerçek Etsy API Entegrasyonu
+async function publishToEtsy(product, integration) {
+  const etsyApi = new EtsyAPI({
+    apiKey: integration.api_key,
+    accessToken: integration.access_token,
+    shopId: integration.shop_name
+  });
+
+  // 1. Upload image to Etsy
+  const imageResults = [];
+  for (const imageUrl of product.images) {
+    const imageUpload = await etsyApi.uploadListingImage({
+      listing_id: null, // Will be set after creation
+      image_url: imageUrl,
+      rank: imageResults.length + 1
+    });
+    imageResults.push(imageUpload);
+  }
+
+  // 2. Create listing
+  const listing = await etsyApi.createListing({
+    quantity: product.inventory || 1,
+    title: product.title,
+    description: product.description,
+    price: parseFloat(product.price),
+    who_made: 'i_did',
+    when_made: '2020_2024',
+    taxonomy_id: getEtsyTaxonomyId(product.category),
+    tags: product.tags || [],
+    materials: product.materials || [],
+    shipping_profile_id: integration.settings?.shipping_profile_id,
+    return_policy_id: integration.settings?.return_policy_id
+  });
+
+  // 3. Associate images with listing
+  for (const image of imageResults) {
+    await etsyApi.associateImageWithListing(listing.listing_id, image.upload_id);
+  }
+
+  return {
+    listing_id: listing.listing_id,
+    sku: `ETSY_${listing.listing_id}`,
+    url: `https://www.etsy.com/listing/${listing.listing_id}`,
+    price: listing.price,
+    metadata: listing
+  };
+}
+
+// Amazon SP-API Entegrasyonu
+async function publishToAmazon(product, integration) {
+  const amazonApi = new AmazonSPAPI({
+    credentials: {
+      refresh_token: integration.refresh_token,
+      client_id: integration.api_key,
+      client_secret: integration.api_secret
+    },
+    region: integration.settings?.region || 'na'
+  });
+
+  // 1. Create product in Amazon catalog
+  const catalogResponse = await amazonApi.createProduct({
+    productType: getAmazonProductType(product.category),
+    sku: generateAmazonSku(product),
+    attributes: {
+      item_name: product.title,
+      brand: integration.shop_name || 'My Brand',
+      external_product_id: product.id,
+      manufacturer: integration.shop_name || 'My Brand',
+      item_type: getAmazonItemType(product.category),
+      bullet_point: generateBulletPoints(product.description),
+      product_description: product.description,
+      standard_price: {
+        currency_code: 'USD',
+        amount: product.price
+      },
+      quantity: product.inventory || 1
+    }
+  });
+
+  // 2. Upload images
+  await amazonApi.uploadProductImages(catalogResponse.sku, product.images);
+
+  return {
+    sku: catalogResponse.sku,
+    asin: catalogResponse.asin,
+    url: `https://www.amazon.com/dp/${catalogResponse.asin}`,
+    price: product.price,
+    metadata: catalogResponse
+  };
+}
 
 // Manual init for compatibility
 if (document.getElementById('products-grid')) {
