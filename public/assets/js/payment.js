@@ -101,6 +101,41 @@ async function savePayments(integration, payments) {
   }
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+
+  // Payments sayfası değilse çık
+  const paymentsContainer = document.getElementById('payments-container');
+  if (!paymentsContainer) return;
+
+  // Sync Payments
+  const syncBtn = document.getElementById('btn-sync-payments');
+  if (syncBtn) {
+    syncBtn.addEventListener('click', async () => {
+      syncBtn.disabled = true;
+      syncBtn.innerText = 'Syncing...';
+
+      try {
+        await window.syncAllPayments();
+      } finally {
+        syncBtn.disabled = false;
+        syncBtn.innerText = 'Sync Payments';
+      }
+    });
+  }
+
+  // Process Payouts
+  const processBtn = document.getElementById('btn-process-payouts');
+  if (processBtn) {
+    processBtn.addEventListener('click', () => {
+      window.processAllPayouts();
+    });
+  }
+
+  // İlk yüklemede tabloyu getir
+  window.loadPayments();
+});
+
+
 /* ======================================================
    GLOBAL FUNCTIONS (HTML TARAFINDAN ÇAĞRILIR)
 ====================================================== */
@@ -180,6 +215,7 @@ window.loadPayments = async function () {
 window.processAllPayouts = function () {
   alert('Payout processing will be implemented next');
 };
+
 
 /* ======================================================
    AUTO LOAD (SADECE UYGUN SAYFADA)
