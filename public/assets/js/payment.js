@@ -1,811 +1,180 @@
-// payment.js - Entegre Payment Management (Cost calculation + Payment tracking + Settings)
 import { supabase } from './supabaseClient.js';
-import { showNotification } from './ui.js';
-import { formatCurrency, formatDate } from './helpers.js';
 
-// ===== PAYMENT SETTINGS FUNCTIONS =====
-export async function loadPaymentSettings() {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+/* ======================================================
+   PROVIDER HANDLERS (TEK NOKTA)
+====================================================== */
 
-    const { data, error } = await supabase
-      .from('payment_settings')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+const PAYMENT_PROVIDERS = {
+  etsy: fetchEtsyPayments,
+  amazon: fetchAmazonPayments,
+  shopify: fetchShopifyPayments
+  // yeni kanal = buraya 1 satır
+};
 
-    if (error && error.code !== 'PGRST116') throw error;
+/* ======================================================
+   TOKEN HELPERS (ETSY ÖRNEĞİ)
+====================================================== */
 
-    if (data) {
-      document.getElementById('wise-api-key').value = data.wise_api_key_encrypted || '';
-      document.getElementById('payoneer-api-key').value = data.payoneer_api_key_encrypted || '';
-      document.getElementById('bank-name').value = data.bank_name || '';
-      document.getElementById('iban').value = data.iban || '';
-      document.getElementById('swift-code').value = data.swift_code || '';
-      document.getElementById('account-holder').value = data.account_holder_name || '';
-    }
-  } catch (error) {
-    console.error('Error loading payment settings:', error);
-    showNotification('Error loading payment settings', 'error');
+async function refreshEtsyTokenIfNeeded(integration) {
+  if (new Date(integration.expires_at) > new Date()) {
+    return integration.access_token;
   }
-}
 
-export function initPaymentSettings() {
-  const form = document.getElementById('form-payment');
-  if (!form) return;
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    await savePaymentSettings();
+  const res = await fetch('https://api.etsy.com/v3/public/oauth/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      grant_type: 'refresh_token',
+      client_id: integration.client_id,
+      refresh_token: integration.refresh_token
+    })
   });
+
+  if (!res.ok) throw new Error('ETSY_TOKEN_REFRESH_FAILED');
+
+  const data = await res.json();
+
+  await supabase.from('integrations')
+    .update({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_at: new Date(Date.now() + data.expires_in * 1000)
+    })
+    .eq('id', integration.id);
+
+  return data.access_token;
 }
 
-async function savePaymentSettings() {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+/* ======================================================
+   PROVIDER IMPLEMENTATIONS
+====================================================== */
 
-    const wiseApiKey = document.getElementById('wise-api-key').value;
-    const payoneerApiKey = document.getElementById('payoneer-api-key').value;
-    const bankName = document.getElementById('bank-name').value;
-    const iban = document.getElementById('iban').value;
-    const swiftCode = document.getElementById('swift-code').value;
-    const accountHolder = document.getElementById('account-holder').value;
+async function fetchEtsyPayments(integration) {
+  const token = await refreshEtsyTokenIfNeeded(integration);
+  let all = [];
+  let offset = 0;
+  const limit = 50;
 
-    const { data, error } = await supabase
-      .from('payment_settings')
-      .upsert({
-        user_id: user.id,
-        wise_api_key_encrypted: wiseApiKey,
-        payoneer_api_key_encrypted: payoneerApiKey,
-        bank_name: bankName,
-        iban: iban,
-        swift_code: swiftCode,
-        account_holder_name: accountHolder,
-        updated_at: new Date().toISOString()
-      })
-      .select();
-
-    if (error) throw error;
-
-    showNotification('Payment settings saved successfully', 'success');
-  } catch (error) {
-    console.error('Error saving payment settings:', error);
-    showNotification('Error saving payment settings', 'error');
-  }
-}
-
-// ===== PAYMENT MANAGEMENT FUNCTIONS =====
-window.syncAllPayments = async function() {
-  try {
-    showNotification('Syncing payments from Etsy...', 'info');
-    
-    const { data: { session } } = await supabase.auth.getSession();
-    const response = await fetch('/api/sync-etsy-payments', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) throw new Error('Sync failed');
-    
-    const result = await response.json();
-    showNotification(`Synced ${result.synced} payments from Etsy`, 'success');
-    loadPayments();
-    
-  } catch (error) {
-    console.error('Error syncing payments:', error);
-    showNotification('Error syncing payments', 'error');
-  }
-};
-
-window.processAllPayouts = async function() {
-  try {
-    showNotification('Processing all pending payouts...', 'info');
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    const { data: pendingPayments, error } = await supabase
-      .from('payments')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('status', 'pending');
-
-    if (error) throw error;
-
-    if (!pendingPayments || pendingPayments.length === 0) {
-      showNotification('No pending payouts to process', 'info');
-      return;
-    }
-
-    for (const payment of pendingPayments) {
-      await processPayout(payment.id);
-    }
-
-    showNotification(`Processed ${pendingPayments.length} payouts`, 'success');
-    
-  } catch (error) {
-    console.error('Error processing payouts:', error);
-    showNotification('Error processing payouts', 'error');
-  }
-};
-
-window.processPayout = async function(paymentId) {
-  try {
-    showNotification('Processing payout...', 'info');
-    
-    const { error } = await supabase
-      .from('payments')
-      .update({ 
-        status: 'processing',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', paymentId);
-
-    if (error) throw error;
-
-    // Gerçek payout işlemi burada yapılacak
-    setTimeout(async () => {
-      await supabase
-        .from('payments')
-        .update({ 
-          status: 'completed',
-          settlement_date: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', paymentId);
-      
-      showNotification('Payout completed successfully', 'success');
-      loadPayments();
-    }, 2000);
-
-  } catch (error) {
-    console.error('Error processing payout:', error);
-    showNotification('Error processing payout', 'error');
-  }
-};
-
-window.viewPaymentDetails = async function(paymentId) {
-  try {
-    const { data: payment, error } = await supabase
-      .from('payments')
-      .select(`
-        *,
-        orders (
-          etsy_order_id,
-          customer_name,
-          customer_email,
-          total_amount,
-          items
-        ),
-        producers (
-          name,
-          provider_type
-        )
-      `)
-      .eq('id', paymentId)
-      .single();
-
-    if (error) throw error;
-
-    showPaymentDetailsModal(payment);
-  } catch (error) {
-    console.error('Error loading payment details:', error);
-    showNotification('Error loading payment details', 'error');
-  }
-};
-
-// ===== COST CALCULATION FUNCTIONS =====
-export function calculateCost(basePrice, podCost, shipping, platformFeePercent = 0.15, paymentGatewayFeePercent = 0.03) {
-  const platformFee = basePrice * platformFeePercent;
-  const paymentFee = basePrice * paymentGatewayFeePercent;
-  const totalCost = podCost + shipping + platformFee + paymentFee;
-  const netPayout = basePrice - totalCost;
-  
-  return {
-    basePrice,
-    podCost,
-    shipping,
-    platformFee,
-    paymentFee,
-    totalCost,
-    netPayout,
-  };
-}
-
-export async function distributePayment(orderId, producerId) {
-  try {
-    showNotification('Calculating payment distribution...', 'info');
-    
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .select('total_amount, shipping_cost')
-      .eq('id', orderId)
-      .single();
-
-    const { data: producer, error: producerError } = await supabase
-      .from('producers')
-      .select('base_cost, shipping_cost')
-      .eq('id', producerId)
-      .single();
-
-    if (orderError || producerError) throw new Error('Order or producer not found');
-
-    const costData = calculateCost(
-      order.total_amount,
-      producer.base_cost,
-      producer.shipping_cost || order.shipping_cost
+  while (true) {
+    const res = await fetch(
+      `https://api.etsy.com/v3/application/shops/${integration.shop_id}/payments?limit=${limit}&offset=${offset}`,
+      { headers: { Authorization: `Bearer ${token}` } }
     );
 
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const { data: payment, error: paymentError } = await supabase
-      .from('payments')
-      .insert({
-        order_id: orderId,
-        user_id: user.id,
-        producer_id: producerId,
-        amount: costData.basePrice,
-        producer_cost: costData.podCost,
-        platform_fee: costData.platformFee,
-        payment_gateway_fee: costData.paymentFee,
-        net_payout: costData.netPayout,
-        status: 'pending'
-      })
-      .select()
-      .single();
+    if (!res.ok) break;
 
-    if (paymentError) throw paymentError;
+    const json = await res.json();
+    if (!json.results?.length) break;
 
-    showNotification('Payment distributed successfully', 'success');
-    return payment;
-  } catch (error) {
-    console.error('Error distributing payment:', error);
-    showNotification('Failed to distribute payment', 'error');
-    return null;
+    all.push(...json.results);
+
+    if (json.results.length < limit) break;
+    offset += limit;
+  }
+
+  return all;
+}
+
+/* ---------- PLACEHOLDERS (NO CRASH) ---------- */
+
+async function fetchAmazonPayments(integration) {
+  console.warn('Amazon Payments not implemented yet');
+  return [];
+}
+
+async function fetchShopifyPayments(integration) {
+  console.warn('Shopify Payments not implemented yet');
+  return [];
+}
+
+/* ======================================================
+   SAVE PAYMENTS
+====================================================== */
+
+async function savePayments(integration, payments) {
+  for (const p of payments) {
+    await supabase.from('payments_raw').upsert({
+      integration_id: integration.id,
+      external_payment_id: p.payment_id || p.id,
+      raw: p
+    });
+
+    await supabase.from('payments').upsert({
+      integration_id: integration.id,
+      external_payment_id: p.payment_id || p.id,
+      order_id: p.order_id || p.order?.id,
+      amount: p.amount?.value || p.amount || 0,
+      currency: p.amount?.currency || p.currency || 'USD',
+      status: p.status || 'paid',
+      payment_date: p.create_date || p.created_at,
+      provider: integration.provider
+    });
   }
 }
 
-// ===== PAYMENT DISPLAY FUNCTIONS =====
-export async function loadPayments() {
-  const container = document.getElementById('payments-container');
-  if (!container) return;
+/* ======================================================
+   MAIN SYNC (AUTO SCAN ACTIVE CHANNELS)
+====================================================== */
 
-  try {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 40px;">
-        <div class="spinner" style="width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top: 3px solid #ea580c; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-        <p style="color: #6b7280; margin-top: 16px;">Loading payments...</p>
-      </div>
-    `;
+async function syncPayments() {
+  const { data: integrations } = await supabase
+    .from('integrations')
+    .select('*')
+    .eq('is_active', true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      container.innerHTML = '<p style="color: #ef4444; text-align: center;">Please log in to view payments</p>';
-      return;
+  for (const integration of integrations) {
+    const handler = PAYMENT_PROVIDERS[integration.provider];
+
+    if (!handler) {
+      console.warn(`No payment handler for ${integration.provider}`);
+      continue;
     }
 
-    const { data: payments, error } = await supabase
-      .from('payments')
-      .select(`
-        *,
-        orders (
-          etsy_order_id,
-          customer_name,
-          total_amount,
-          items
-        ),
-        producers (
-          name,
-          provider_type
-        )
-      `)
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (error) throw error;
-
-    if (!payments || payments.length === 0) {
-      container.innerHTML = `
-        <div style="text-align: center; padding: 3rem;">
-          <div style="width: 64px; height: 64px; background: #f3f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="32" height="32">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-            </svg>
-          </div>
-          <h3 style="font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">No Payments Yet</h3>
-          <p style="color: #6b7280; margin-bottom: 1.5rem;">Your payment records will appear here after orders are processed</p>
-          <button class="settings-btn settings-btn-primary" onclick="syncAllPayments()">
-            Sync Payments
-          </button>
-        </div>
-      `;
-      return;
+    try {
+      const payments = await handler(integration);
+      await savePayments(integration, payments);
+    } catch (err) {
+      console.error(
+        `Payment sync failed: ${integration.provider}`,
+        err
+      );
     }
-
-    container.innerHTML = `
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; text-align: center;">
-          <div style="font-size: 1.5rem; font-weight: 700; color: #111827;">${formatCurrency(calculateTotalRevenue(payments))}</div>
-          <div style="font-size: 0.875rem; color: #6b7280;">Total Revenue</div>
-        </div>
-        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; text-align: center;">
-          <div style="font-size: 1.5rem; font-weight: 700; color: #ea580c;">${formatCurrency(calculatePendingPayouts(payments))}</div>
-          <div style="font-size: 0.875rem; color: #6b7280;">Pending Payouts</div>
-        </div>
-        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; text-align: center;">
-          <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;">${formatCurrency(calculateCompletedPayouts(payments))}</div>
-          <div style="font-size: 0.875rem; color: #6b7280;">Completed Payouts</div>
-        </div>
-        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; text-align: center;">
-          <div style="font-size: 1.5rem; font-weight: 700; color: #8b5cf6;">${calculateAverageMargin(payments)}%</div>
-          <div style="font-size: 0.875rem; color: #6b7280;">Profit Margin</div>
-        </div>
-      </div>
-
-      <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-        <table style="width: 100%; border-collapse: collapse;">
-          <thead style="background: #f9fafb;">
-            <tr>
-              <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Order ID</th>
-              <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Customer</th>
-              <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Amount</th>
-              <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Net Payout</th>
-              <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Status</th>
-              <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Date</th>
-              <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${payments.map(payment => `
-              <tr style="border-bottom: 1px solid #f3f4f6;">
-                <td style="padding: 0.75rem 1rem;">
-                  <div style="font-size: 0.875rem; font-weight: 500; color: #111827;">${payment.orders?.etsy_order_id || 'N/A'}</div>
-                </td>
-                <td style="padding: 0.75rem 1rem;">
-                  <div style="font-size: 0.875rem; color: #374151;">${payment.orders?.customer_name || 'Unknown'}</div>
-                </td>
-                <td style="padding: 0.75rem 1rem;">
-                  <div style="font-size: 0.875rem; font-weight: 600; color: #111827;">${formatCurrency(payment.amount)}</div>
-                </td>
-                <td style="padding: 0.75rem 1rem;">
-                  <div style="font-size: 0.875rem; font-weight: 600; color: ${payment.net_payout > 0 ? '#10b981' : '#ef4444'};">${formatCurrency(payment.net_payout || 0)}</div>
-                </td>
-                <td style="padding: 0.75rem 1rem;">
-                  <span style="display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; 
-                    ${payment.status === 'completed' ? 'background: #dcfce7; color: #166534;' : ''}
-                    ${payment.status === 'pending' ? 'background: #fef3c7; color: #92400e;' : ''}
-                    ${payment.status === 'processing' ? 'background: #dbeafe; color: #1e40af;' : ''}
-                    ${payment.status === 'failed' ? 'background: #fee2e2; color: #991b1b;' : ''}">
-                    ${payment.status}
-                  </span>
-                </td>
-                <td style="padding: 0.75rem 1rem;">
-                  <div style="font-size: 0.75rem; color: #6b7280;">${formatDate(payment.created_at)}</div>
-                </td>
-                <td style="padding: 0.75rem 1rem;">
-                  <div style="display: flex; gap: 0.5rem;">
-                    ${payment.status === 'pending' ? `
-                      <button class="settings-btn settings-btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="processPayout('${payment.id}')">
-                        Process
-                      </button>
-                    ` : ''}
-                    <button class="settings-btn settings-btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="viewPaymentDetails('${payment.id}')">
-                      Details
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  } catch (error) {
-    console.error('Error loading payments:', error);
-    container.innerHTML = `
-      <div style="text-align: center; padding: 3rem;">
-        <div style="width: 64px; height: 64px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="32" height="32">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-          </svg>
-        </div>
-        <h3 style="font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">Error Loading Payments</h3>
-        <p style="color: #6b7280; margin-bottom: 1.5rem;">There was an error loading your payment data. Please try again.</p>
-        <button class="settings-btn settings-btn-primary" onclick="loadPayments()">
-          Retry
-        </button>
-      </div>
-    `;
   }
+
+  await renderPayments();
 }
 
-// ===== HELPER FUNCTIONS =====
-function calculateTotalRevenue(payments) {
-  return payments.reduce((total, payment) => total + parseFloat(payment.amount || 0), 0);
-}
+/* ======================================================
+   UI RENDER
+====================================================== */
 
-function calculatePendingPayouts(payments) {
-  return payments
-    .filter(p => p.status === 'pending')
-    .reduce((total, payment) => total + parseFloat(payment.net_payout || 0), 0);
-}
+async function renderPayments() {
+  const { data } = await supabase
+    .from('payments')
+    .select('*')
+    .order('payment_date', { ascending: false });
 
-function calculateCompletedPayouts(payments) {
-  return payments
-    .filter(p => p.status === 'completed')
-    .reduce((total, payment) => total + parseFloat(payment.net_payout || 0), 0);
-}
+  const tbody = document.getElementById('paymentsTable');
+  tbody.innerHTML = '';
 
-function calculateAverageMargin(payments) {
-  const completedPayments = payments.filter(p => p.status === 'completed' && p.amount && p.producer_cost);
-  if (completedPayments.length === 0) return 0;
-  
-  const totalMargin = completedPayments.reduce((total, payment) => {
-    const margin = ((payment.amount - payment.producer_cost) / payment.amount) * 100;
-    return total + margin;
-  }, 0);
-  
-  return (totalMargin / completedPayments.length).toFixed(1);
-}
-
-function showPaymentDetailsModal(payment) {
-  const modalHTML = `
-    <div class="modal-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-      <div class="modal-content" style="background: white; border-radius: 12px; padding: 0; min-width: 500px; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
-        <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: between; align-items: center;">
-          <h3 class="modal-title" style="font-size: 1.25rem; font-weight: 600; color: #111827; margin: 0;">Payment Details</h3>
-          <button class="modal-close" onclick="closePaymentModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280;">&times;</button>
-        </div>
-        <div class="modal-body" style="padding: 1.5rem;">
-          <div style="display: grid; gap: 1.5rem;">
-            <div>
-              <h4 style="font-size: 1rem; font-weight: 600; color: #111827; margin-bottom: 0.75rem;">Order Information</h4>
-              <div style="display: grid; gap: 0.5rem;">
-                <div style="display: flex; justify-content: space-between;">
-                  <span style="font-size: 0.875rem; color: #6b7280;">Order ID:</span>
-                  <span style="font-size: 0.875rem; font-weight: 500;">${payment.orders?.etsy_order_id || 'N/A'}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                  <span style="font-size: 0.875rem; color: #6b7280;">Customer:</span>
-                  <span style="font-size: 0.875rem; font-weight: 500;">${payment.orders?.customer_name || 'Unknown'}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                  <span style="font-size: 0.875rem; color: #6b7280;">Total Amount:</span>
-                  <span style="font-size: 0.875rem; font-weight: 500;">${formatCurrency(payment.amount)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 style="font-size: 1rem; font-weight: 600; color: #111827; margin-bottom: 0.75rem;">Cost Breakdown</h4>
-              <div style="display: grid; gap: 0.5rem;">
-                <div style="display: flex; justify-content: space-between;">
-                  <span style="font-size: 0.875rem; color: #6b7280;">Producer Cost:</span>
-                  <span style="font-size: 0.875rem; font-weight: 500;">${formatCurrency(payment.producer_cost || 0)}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                  <span style="font-size: 0.875rem; color: #6b7280;">Platform Fee:</span>
-                  <span style="font-size: 0.875rem; font-weight: 500;">${formatCurrency(payment.platform_fee || 0)}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                  <span style="font-size: 0.875rem; color: #6b7280;">Gateway Fee:</span>
-                  <span style="font-size: 0.875rem; font-weight: 500;">${formatCurrency(payment.payment_gateway_fee || 0)}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid #e5e7eb;">
-                  <span style="font-size: 0.875rem; font-weight: 600; color: #111827;">Net Payout:</span>
-                  <span style="font-size: 0.875rem; font-weight: 700; color: #10b981;">${formatCurrency(payment.net_payout || 0)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 style="font-size: 1rem; font-weight: 600; color: #111827; margin-bottom: 0.75rem;">Payment Status</h4>
-              <div style="display: grid; gap: 0.5rem;">
-                <div style="display: flex; justify-content: space-between;">
-                  <span style="font-size: 0.875rem; color: #6b7280;">Status:</span>
-                  <span style="display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; 
-                    ${payment.status === 'completed' ? 'background: #dcfce7; color: #166534;' : ''}
-                    ${payment.status === 'pending' ? 'background: #fef3c7; color: #92400e;' : ''}
-                    ${payment.status === 'processing' ? 'background: #dbeafe; color: #1e40af;' : ''}">
-                    ${payment.status}
-                  </span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                  <span style="font-size: 0.875rem; color: #6b7280;">Created:</span>
-                  <span style="font-size: 0.875rem; font-weight: 500;">${formatDate(payment.created_at)}</span>
-                </div>
-                ${payment.settlement_date ? `
-                  <div style="display: flex; justify-content: space-between;">
-                    <span style="font-size: 0.875rem; color: #6b7280;">Settlement Date:</span>
-                    <span style="font-size: 0.875rem; font-weight: 500;">${formatDate(payment.settlement_date)}</span>
-                  </div>
-                ` : ''}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const modalContainer = document.createElement('div');
-  modalContainer.innerHTML = modalHTML;
-  document.body.appendChild(modalContainer);
-
-  window.closePaymentModal = () => {
-    if (document.body.contains(modalContainer)) {
-      document.body.removeChild(modalContainer);
-    }
-  };
-
-  modalContainer.addEventListener('click', (e) => {
-    if (e.target === modalContainer) {
-      closePaymentModal();
-    }
+  data.forEach(p => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${p.provider}</td>
+        <td>${p.order_id || '-'}</td>
+        <td>${p.amount} ${p.currency}</td>
+        <td>${p.status}</td>
+        <td>${new Date(p.payment_date).toLocaleString()}</td>
+      </tr>
+    `;
   });
 }
 
-// ===== INITIALIZATION =====
-// Payment settings initialization
-if (document.getElementById('form-payment')) {
-  loadPaymentSettings();
-  initPaymentSettings();
-}
+/* ======================================================
+   EVENTS
+====================================================== */
 
-// Payment management initialization
-if (document.getElementById('payments-container')) {
-  loadPayments();
-}
+document.getElementById('syncPayments')
+  ?.addEventListener('click', syncPayments);
 
-// ÖNCEKİ (Hatalı kod - payment.js satır ~150):
-async function syncAllPayments() {
-  // Etsy API hatası - mock data'ya düşüyor
-  const mockPayments = etsy_market.payments;
-  // ...
-}
-
-// SONRAKİ (Düzeltilmiş):
-class PaymentSyncManager {
-  constructor() {
-    this.maxRetries = 3;
-    this.retryDelay = 1000;
-  }
-
-  async syncAllMarketplacePayments() {
-    try {
-      // 1. Get all active marketplace integrations
-      const { data: integrations } = await supabase
-        .from('integrations')
-        .select('*')
-        .eq('is_active', true)
-        .in('marketplace_type', ['etsy', 'amazon', 'shopify'])
-        .eq('user_id', userId);
-
-      if (!integrations?.length) {
-        throw new Error('No active marketplace integrations found');
-      }
-
-      const allPayments = [];
-      
-      // 2. Sync payments from each marketplace
-      for (const integration of integrations) {
-        try {
-          const payments = await this.syncMarketplacePayments(integration);
-          allPayments.push(...payments);
-        } catch (error) {
-          console.error(`Failed to sync ${integration.marketplace_type}:`, error);
-          // Continue with other integrations
-        }
-      }
-
-      // 3. Reconcile payments
-      await this.reconcilePayments(allPayments);
-
-      // 4. Update UI
-      await this.updatePaymentDashboard(allPayments);
-
-      return {
-        success: true,
-        payments: allPayments,
-        synced_at: new Date().toISOString()
-      };
-    } catch (error) {
-      console.error('Payment sync failed:', error);
-      throw error;
-    }
-  }
-
-  async syncMarketplacePayments(integration) {
-    switch (integration.marketplace_type) {
-      case 'etsy':
-        return await this.syncEtsyPayments(integration);
-      case 'amazon':
-        return await this.syncAmazonPayments(integration);
-      case 'shopify':
-        return await this.syncShopifyPayments(integration);
-      default:
-        return [];
-    }
-  }
-
-  async syncEtsyPayments(integration, retryCount = 0) {
-    try {
-      const etsyApi = new EtsyAPI({
-        apiKey: integration.api_key,
-        accessToken: integration.access_token,
-        shopId: integration.shop_name
-      });
-
-      // Get payments from last sync or last 30 days
-      const lastSync = await this.getLastSyncDate('etsy', integration.id);
-      const params = {
-        min_created: Math.floor(lastSync.getTime() / 1000),
-        limit: 100
-      };
-
-      const response = await etsyApi.getShopPayments(params);
-      
-      // Transform Etsy payment data
-      const payments = response.results.map(payment => ({
-        id: `etsy_${payment.payment_id}`,
-        marketplace: 'etsy',
-        integration_id: integration.id,
-        order_id: payment.receipt_id,
-        amount: parseFloat(payment.amount_gross.amount) / parseFloat(payment.amount_gross.divisor),
-        currency: payment.amount_gross.currency_code,
-        fees: this.calculateEtsyFees(payment),
-        net_amount: this.calculateNetAmount(payment),
-        status: this.mapEtsyPaymentStatus(payment.status),
-        payment_date: new Date(payment.created_timestamp * 1000).toISOString(),
-        transaction_id: payment.payment_id,
-        metadata: payment
-      }));
-
-      // Save to database
-      await this.savePayments(payments);
-
-      return payments;
-    } catch (error) {
-      if (retryCount < this.maxRetries) {
-        await this.delay(this.retryDelay * Math.pow(2, retryCount));
-        return this.syncEtsyPayments(integration, retryCount + 1);
-      }
-      throw error;
-    }
-  }
-
-  async syncAmazonPayments(integration) {
-    const amazonApi = new AmazonSPAPI({
-      credentials: {
-        refresh_token: integration.refresh_token,
-        client_id: integration.api_key,
-        client_secret: integration.api_secret
-      },
-      region: integration.settings?.region || 'na'
-    });
-
-    // Get settlement reports
-    const settlementReports = await amazonApi.getSettlementReports({
-      reportTypes: ['GET_V2_SETTLEMENT_REPORT_DATA_FLAT_FILE'],
-      createdSince: await this.getLastSyncDate('amazon', integration.id)
-    });
-
-    const payments = [];
-    
-    for (const report of settlementReports.reports) {
-      const reportData = await amazonApi.getReport(report.reportId);
-      
-      // Parse Amazon settlement report
-      const parsedPayments = this.parseAmazonSettlement(reportData);
-      payments.push(...parsedPayments);
-    }
-
-    return payments;
-  }
-
-  async reconcilePayments(payments) {
-    // Match payments with orders in database
-    for (const payment of payments) {
-      const { data: existingOrder } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('marketplace_order_id', payment.order_id)
-        .eq('integration_id', payment.integration_id)
-        .single();
-
-      if (existingOrder) {
-        // Update order payment status
-        await supabase
-          .from('orders')
-          .update({
-            payment_status: payment.status,
-            payment_id: payment.id,
-            paid_at: payment.payment_date,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingOrder.id);
-
-        // Create payment record
-        await supabase.from('payments').upsert({
-          id: payment.id,
-          user_id: userId,
-          order_id: existingOrder.id,
-          amount: payment.amount,
-          net_amount: payment.net_amount,
-          currency: payment.currency,
-          fees: payment.fees,
-          status: payment.status,
-          transaction_id: payment.transaction_id,
-          payment_date: payment.payment_date,
-          metadata: payment.metadata,
-          reconciled: true,
-          reconciled_at: new Date().toISOString()
-        });
-      } else {
-        // Create orphan payment record for manual reconciliation
-        await supabase.from('payments').upsert({
-          id: payment.id,
-          user_id: userId,
-          amount: payment.amount,
-          net_amount: payment.net_amount,
-          currency: payment.currency,
-          status: payment.status,
-          transaction_id: payment.transaction_id,
-          payment_date: payment.payment_date,
-          metadata: payment.metadata,
-          reconciled: false,
-          needs_review: true
-        });
-      }
-    }
-  }
-
-  // Helper methods
-  calculateEtsyFees(payment) {
-    const fees = {
-      listing_fee: 0.20,
-      transaction_fee: payment.amount_gross.amount * 0.065,
-      payment_processing: payment.amount_gross.amount * 0.03 + 0.25,
-      shipping_transaction: payment.shipping_cost ? payment.shipping_cost.amount * 0.065 : 0
-    };
-    
-    return fees;
-  }
-
-  calculateNetAmount(payment) {
-    const gross = parseFloat(payment.amount_gross.amount) / parseFloat(payment.amount_gross.divisor);
-    const fees = this.calculateEtsyFees(payment);
-    const totalFees = Object.values(fees).reduce((a, b) => a + b, 0);
-    
-    return gross - totalFees;
-  }
-
-  mapEtsyPaymentStatus(status) {
-    const statusMap = {
-      'completed': 'completed',
-      'pending': 'pending',
-      'failed': 'failed',
-      'refunded': 'refunded'
-    };
-    
-    return statusMap[status] || 'unknown';
-  }
-}
-
-// Add CSS for animations
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  .spinner {
-    animation: spin 1s linear infinite;
-  }
-`;
-document.head.appendChild(style);
+renderPayments();
