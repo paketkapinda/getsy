@@ -21,27 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ================================
-   SYNC (EDGE)
-================================ */
-async function syncPayments() {
-  try {
-    console.log('🔄 Syncing payments (Edge)...');
-
-    const { error } = await supabase.functions.invoke(
-      'sync-marketplace-payments'
-    );
-
-    if (error) throw error;
-
-    await loadPayments();
-
-  } catch (err) {
-    console.error('❌ Payment sync failed', err);
-    alert('Payment sync failed');
-  }
-}
-
-/* ================================
    LOAD PAYMENTS
 ================================ */
 async function loadPayments() {
@@ -63,13 +42,12 @@ async function loadPayments() {
   }
 
   if (!data || data.length === 0) {
-    container.innerHTML = `<p>No payments found.</p>`;
+    container.innerHTML = `<p>No payments found</p>`;
     return;
   }
 
   container.innerHTML = `
-  <div class="payments-table-container">
-    <table class="payments-table">
+    <table class="table payments-table">
       <thead>
         <tr>
           <th>Provider</th>
@@ -83,24 +61,29 @@ async function loadPayments() {
         ${data.map(p => `
           <tr>
             <td>${p.provider}</td>
-            <td>
-              <span class="order-id">${p.order_id || '-'}</span>
-            </td>
-            <td class="amount">
-              ${Number(p.amount).toFixed(2)} ${p.currency}
-            </td>
-            <td>
-              <span class="payment-status status-${p.status}">
-                ${p.status}
-              </span>
-            </td>
-            <td class="payment-date">
-              ${new Date(p.payment_date).toLocaleString()}
-            </td>
+            <td>${p.order_id || '-'}</td>
+            <td>${Number(p.amount).toFixed(2)} ${p.currency}</td>
+            <td>${p.status}</td>
+            <td>${new Date(p.payment_date).toLocaleString()}</td>
           </tr>
         `).join('')}
       </tbody>
     </table>
-  </div>
-`;
+  `;
+}
 
+/* ================================
+   SYNC
+================================ */
+async function syncPayments() {
+  try {
+    const { error } = await supabase.functions.invoke(
+      'sync-marketplace-payments'
+    );
+    if (error) throw error;
+    await loadPayments();
+  } catch (err) {
+    console.error(err);
+    alert('Payment sync failed');
+  }
+}
