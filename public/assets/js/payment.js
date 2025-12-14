@@ -1,107 +1,91 @@
-import { supabase } from "./supabaseClient.js";
+import { supabase } from './supabaseClient.js';
 
 /* ======================================================
-   SYNC PAYMENTS (EDGE FUNCTION)
+   UI EVENTS
 ====================================================== */
-window.syncPayments = async () => {
-  console.log("🔄 Syncing payments (Edge)...");
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('payments-container');
+  if (!container) return;
 
-  const btn = document.getElementById("btn-sync-payments");
-  if (btn) {
-    btn.disabled = true;
-    btn.innerText = "Syncing...";
-  }
+  document
+    .getElementById('btn-sync-payments')
+    ?.addEventListener('click', syncPayments);
 
-  const { error } = await supabase.functions.invoke(
-    "sync-marketplace-payments"
-  );
+  document
+    .getElementById('btn-process-payouts')
+    ?.addEventListener('click', () => {
+      alert('Payout processing will be handled in Orders module');
+    });
 
-  if (btn) {
-    btn.disabled = false;
-    btn.innerText = "Sync Payments";
-  }
-
-  if (error) {
-    console.error("❌ Payment sync failed", error);
-    alert("Payment sync failed");
-    return;
-  }
-
-  await loadPayments();
-};
+  loadPayments();
+});
 
 /* ======================================================
-   LOAD PAYMENTS (GRID)
+   SYNC (EDGE FUNCTION CALL)
 ====================================================== */
-async function loadPayments() {
-  const { data, error } = await supabase
-    .from("payments")
-    .select("*")
-    .order("payment_date", { ascending: false });
+async function syncPayments() {
+  try {
+    console.log('🔄 Syncing payments (Edge)...');
 
-  if (error) {
-    console.error("Payments load error:", error);
-    return;
+    const { data, error } = await supabase.functions.invoke(
+      'sync-marketplace-payments'
+    );
+
+    if (error) throw error;
+
+    console.log('✅ Payments synced', data);
+    await loadPayments();
+
+  } catch (err) {
+    console.error('❌ Payment sync failed', err);
+    alert('Payment sync failed');
   }
-
-  const el = document.getElementById("payments-container");
-  if (!el) return;
-
-  if (!data || data.length === 0) {
-    el.innerHTML = `
-      <div class="empty-state">
-        No payments found
-      </div>
-    `;
-    return;
-  }
-
-  el.innerHTML = `
-    <div class="payments-grid">
-      <div class="payments-header">
-        <span>Provider</span>
-        <span>Order</span>
-        <span>Amount</span>
-        <span>Status</span>
-        <span>Date</span>
-      </div>
-
-      ${data.map(p => `
-        <div class="payments-row">
-          <span class="provider">${(p.provider || "-").toUpperCase()}</span>
-          <span class="order">${p.order_id || "-"}</span>
-          <span class="amount">$${Number(p.amount || 0).toFixed(2)}</span>
-          <span class="status status-${p.status}">
-            ${p.status}
-          </span>
-          <span class="date">
-            ${new Date(p.payment_date).toLocaleString()}
-          </span>
-        </div>
-      `).join("")}
-    </div>
-  `;
 }
 
 /* ======================================================
-   PROCESS PAYOUTS (PLACEHOLDER)
+   LOAD PAYMENTS (USER BASED)
 ====================================================== */
-window.processAllPayouts = () => {
-  alert("Payout processing will be implemented next");
-};
+async function loadPayments() {
+  const container = document.getElementById('payments-container');
+  if (!container) return;
 
-/* ======================================================
-   EVENTS
-====================================================== */
-document
-  .getElementById("btn-sync-payments")
-  ?.addEventListener("click", window.syncPayments);
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
 
-document
-  .getElementById("btn-process-payouts")
-  ?.addEventListener("click", window.processAllPayouts);
+  const { data, error } = await supabase
+    .from('payments')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('payment_date', { ascending: false });
 
-/* ======================================================
-   INIT
-====================================================== */
-document.addEventListener("DOMContentLoaded", loadPayments);
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  container.innerHTML = `
+    <table class="table payments-table">
+      <thead>
+        <tr>
+          <th>Provider</th>
+          <th>Order</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.map(p => `
+          <tr>
+            <td>${p.provider}</td>
+            <td>${p.order_id || '-'}</td>
+            <td>${p.amount} ${p.currency}</td>
+            <td>${p.status}</td>
+            <td>${new Date(p.payment_date).toLocaleString()}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
