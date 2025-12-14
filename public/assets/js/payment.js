@@ -30,35 +30,25 @@ async function loadPayments() {
   const el = document.getElementById("payments-container");
   if (!el) return;
 
-  if (!data || data.length === 0) {
-    el.innerHTML = `<div class="empty-state">No payments found</div>`;
-    return;
-  }
-
   el.innerHTML = `
-    <div class="payments-grid">
-      <div class="payments-header">
-        <span>Provider</span>
-        <span>Order</span>
-        <span>Amount</span>
-        <span>Status</span>
-        <span>Date</span>
-      </div>
-
+    <table class="table">
+      <tr>
+        <th>Provider</th>
+        <th>Order</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Date</th>
+      </tr>
       ${data.map(p => `
-        <div class="payments-row">
-          <span class="provider">${p.provider.toUpperCase()}</span>
-          <span class="order">${p.order_id || "-"}</span>
-          <span class="amount">$${Number(p.amount).toFixed(2)}</span>
-          <span class="status status-${p.status}">
-            ${p.status}
-          </span>
-          <span class="date">
-            ${new Date(p.payment_date).toLocaleDateString()}
-          </span>
-        </div>
+        <tr>
+          <td>${p.provider}</td>
+          <td>${p.order_id}</td>
+          <td>${p.amount} ${p.currency}</td>
+          <td>${p.status}</td>
+          <td>${new Date(p.payment_date).toLocaleString()}</td>
+        </tr>
       `).join("")}
-    </div>
+    </table>
   `;
 }
 
