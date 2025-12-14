@@ -6,7 +6,7 @@ serve(async (req) => {
 
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    Deno.env.get('SERVICE_ROLE_KEY')!
   )
 
   // 1️⃣ Sipariş
@@ -55,3 +55,4 @@ serve(async (req) => {
 
   return new Response(JSON.stringify({ success: true }))
 })
+
