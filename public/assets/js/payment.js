@@ -1,89 +1,107 @@
-import { supabase } from './supabaseClient.js';
+import { supabase } from "./supabaseClient.js";
 
-/* ================================
-   INIT
-================================ */
-document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('payments-container');
-  if (!container) return;
+/* ======================================================
+   SYNC PAYMENTS (EDGE FUNCTION)
+====================================================== */
+window.syncPayments = async () => {
+  console.log("🔄 Syncing payments (Edge)...");
 
-  document
-    .getElementById('btn-sync-payments')
-    ?.addEventListener('click', syncPayments);
+  const btn = document.getElementById("btn-sync-payments");
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "Syncing...";
+  }
 
-  document
-    .getElementById('btn-process-payouts')
-    ?.addEventListener('click', () => {
-      alert('Payout processing will be handled in Orders module');
-    });
+  const { error } = await supabase.functions.invoke(
+    "sync-marketplace-payments"
+  );
 
-  loadPayments();
-});
-
-/* ================================
-   LOAD PAYMENTS
-================================ */
-async function loadPayments() {
-  const container = document.getElementById('payments-container');
-  if (!container) return;
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-
-  const { data, error } = await supabase
-    .from('payments')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('payment_date', { ascending: false });
+  if (btn) {
+    btn.disabled = false;
+    btn.innerText = "Sync Payments";
+  }
 
   if (error) {
-    console.error('Payments load error:', error);
+    console.error("❌ Payment sync failed", error);
+    alert("Payment sync failed");
     return;
   }
+
+  await loadPayments();
+};
+
+/* ======================================================
+   LOAD PAYMENTS (GRID)
+====================================================== */
+async function loadPayments() {
+  const { data, error } = await supabase
+    .from("payments")
+    .select("*")
+    .order("payment_date", { ascending: false });
+
+  if (error) {
+    console.error("Payments load error:", error);
+    return;
+  }
+
+  const el = document.getElementById("payments-container");
+  if (!el) return;
 
   if (!data || data.length === 0) {
-    container.innerHTML = `<p>No payments found</p>`;
+    el.innerHTML = `
+      <div class="empty-state">
+        No payments found
+      </div>
+    `;
     return;
   }
 
-  container.innerHTML = `
-    <table class="table payments-table">
-      <thead>
-        <tr>
-          <th>Provider</th>
-          <th>Order</th>
-          <th>Amount</th>
-          <th>Status</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${data.map(p => `
-          <tr>
-            <td>${p.provider}</td>
-            <td>${p.order_id || '-'}</td>
-            <td>${Number(p.amount).toFixed(2)} ${p.currency}</td>
-            <td>${p.status}</td>
-            <td>${new Date(p.payment_date).toLocaleString()}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
+  el.innerHTML = `
+    <div class="payments-grid">
+      <div class="payments-header">
+        <span>Provider</span>
+        <span>Order</span>
+        <span>Amount</span>
+        <span>Status</span>
+        <span>Date</span>
+      </div>
+
+      ${data.map(p => `
+        <div class="payments-row">
+          <span class="provider">${(p.provider || "-").toUpperCase()}</span>
+          <span class="order">${p.order_id || "-"}</span>
+          <span class="amount">$${Number(p.amount || 0).toFixed(2)}</span>
+          <span class="status status-${p.status}">
+            ${p.status}
+          </span>
+          <span class="date">
+            ${new Date(p.payment_date).toLocaleString()}
+          </span>
+        </div>
+      `).join("")}
+    </div>
   `;
 }
 
-/* ================================
-   SYNC
-================================ */
-async function syncPayments() {
-  try {
-    const { error } = await supabase.functions.invoke(
-      'sync-marketplace-payments'
-    );
-    if (error) throw error;
-    await loadPayments();
-  } catch (err) {
-    console.error(err);
-    alert('Payment sync failed');
-  }
-}
+/* ======================================================
+   PROCESS PAYOUTS (PLACEHOLDER)
+====================================================== */
+window.processAllPayouts = () => {
+  alert("Payout processing will be implemented next");
+};
+
+/* ======================================================
+   EVENTS
+====================================================== */
+document
+  .getElementById("btn-sync-payments")
+  ?.addEventListener("click", window.syncPayments);
+
+document
+  .getElementById("btn-process-payouts")
+  ?.addEventListener("click", window.processAllPayouts);
+
+/* ======================================================
+   INIT
+====================================================== */
+document.addEventListener("DOMContentLoaded", loadPayments);
