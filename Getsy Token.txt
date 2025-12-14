@@ -1,0 +1,5 @@
+Getsy Token : sbp_3490e105da21138002f23b71511c2a748e8f00b3
+
+Supabase Url: https://pywffpqbbrjfcpzigepa.supabase.co
+
+Supabase_Anon_Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5d2ZmcHFiYnJqZmNwemlnZXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxOTEzNDIsImV4cCI6MjA3OTc2NzM0Mn0.ivqA2wj3nS20i8AcKZSec_paQ99qqcw6YaeTZeVV2vo
