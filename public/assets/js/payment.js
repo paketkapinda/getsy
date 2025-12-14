@@ -1,49 +1,37 @@
-import { supabase } from './supabaseClient.js';
+import { supabase } from "./supabaseClient.js";
 
 /* ======================================================
-   UI EVENTS
+   SYNC PAYMENTS (EDGE FUNCTION)
 ====================================================== */
-document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('payments-container');
-  if (!container) return;
+window.syncPayments = async () => {
+  console.log("🔄 Syncing payments (Edge)...");
 
-  document
-    .getElementById('btn-sync-payments')
-    ?.addEventListener('click', syncPayments);
-
-  document
-    .getElementById('btn-process-payouts')
-    ?.addEventListener('click', () => {
-      alert('Payout processing will be handled in Orders module');
-    });
-
-  loadPayments();
-});
-
-/* ======================================================
-   SYNC (EDGE FUNCTION CALL)
-====================================================== */
-async function syncPayments() {
-  try {
-    console.log('🔄 Syncing payments (Edge)...');
-
-    const { data, error } = await supabase.functions.invoke(
-      'sync-marketplace-payments'
-    );
-
-    if (error) throw error;
-
-    console.log('✅ Payments synced', data);
-    await loadPayments();
-
-  } catch (err) {
-    console.error('❌ Payment sync failed', err);
-    alert('Payment sync failed');
+  const btn = document.getElementById("btn-sync-payments");
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "Syncing...";
   }
-}
+
+  const { error } = await supabase.functions.invoke(
+    "sync-marketplace-payments"
+  );
+
+  if (btn) {
+    btn.disabled = false;
+    btn.innerText = "Sync Payments";
+  }
+
+  if (error) {
+    console.error("❌ Payment sync failed", error);
+    alert("Payment sync failed");
+    return;
+  }
+
+  await loadPayments();
+};
 
 /* ======================================================
-   LOAD PAYMENTS (USER BASED)
+   LOAD PAYMENTS (GRID)
 ====================================================== */
 async function loadPayments() {
   const container = document.getElementById('payments-container');
@@ -53,6 +41,8 @@ async function loadPayments() {
     data: { user }
   } = await supabase.auth.getUser();
 
+  if (!user) return;
+
   const { data, error } = await supabase
     .from('payments')
     .select('*')
@@ -60,7 +50,12 @@ async function loadPayments() {
     .order('payment_date', { ascending: false });
 
   if (error) {
-    console.error(error);
+    console.error('Payments load error:', error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    container.innerHTML = `<p>No payments found</p>`;
     return;
   }
 
@@ -80,7 +75,7 @@ async function loadPayments() {
           <tr>
             <td>${p.provider}</td>
             <td>${p.order_id || '-'}</td>
-            <td>${p.amount} ${p.currency}</td>
+            <td>${Number(p.amount).toFixed(2)} ${p.currency}</td>
             <td>${p.status}</td>
             <td>${new Date(p.payment_date).toLocaleString()}</td>
           </tr>
@@ -89,3 +84,26 @@ async function loadPayments() {
     </table>
   `;
 }
+
+/* ======================================================
+   PROCESS PAYOUTS (PLACEHOLDER)
+====================================================== */
+window.processAllPayouts = () => {
+  alert("Payout processing will be implemented next");
+};
+
+/* ======================================================
+   EVENTS
+====================================================== */
+document
+  .getElementById("btn-sync-payments")
+  ?.addEventListener("click", window.syncPayments);
+
+document
+  .getElementById("btn-process-payouts")
+  ?.addEventListener("click", window.processAllPayouts);
+
+/* ======================================================
+   INIT
+====================================================== */
+document.addEventListener("DOMContentLoaded", loadPayments);
