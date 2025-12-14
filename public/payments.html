@@ -446,6 +446,81 @@
 .mb-4 {
   margin-bottom: 16px;
 }
+
+  .payments-grid {
+  display: grid;
+  gap: 8px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.06);
+}
+
+.payments-header,
+.payments-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 1fr 1.5fr;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 10px;
+}
+
+.payments-header {
+  font-weight: 700;
+  background: #f9fafb;
+  color: #374151;
+}
+
+.payments-row {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  transition: all .2s ease;
+}
+
+.payments-row:hover {
+  background: #f8fafc;
+}
+
+.provider {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.amount {
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.status {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  text-align: center;
+  width: fit-content;
+}
+
+.status-paid {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-failed,
+.status-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+}
+
 </style>
   </head>
   
