@@ -1,5 +1,6 @@
 /* =====================================================
-   PartnerShop – Products Module (CLEAN & SAFE)
+   PRODUCTS – SINGLE SOURCE OF TRUTH
+   Frontend ⇄ Supabase Edge Functions
 ===================================================== */
 
 import { supabase } from './supabaseClient.js';
@@ -7,160 +8,211 @@ import { supabase } from './supabaseClient.js';
 /* -----------------------------
    GLOBAL STATE
 -------------------------------- */
-let currentUser = null;
-let currentProfile = null;
-let isLoading = false;
+let user = null;
+let profile = null;
+let loading = false;
 
 /* -----------------------------
    INIT
 -------------------------------- */
-document.addEventListener('DOMContentLoaded', async () => {
-  await loadUserAndProfile();
-  bindUIEvents();
-});
+document.addEventListener('DOMContentLoaded', init);
+
+async function init() {
+  await loadUser();
+  bindEvents();
+  loadMyProducts();
+}
 
 /* -----------------------------
-   LOAD USER & PROFILE
+   AUTH
 -------------------------------- */
-async function loadUserAndProfile() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    console.warn('User not logged in');
-    return;
-  }
+async function loadUser() {
+  const { data } = await supabase.auth.getUser();
+  if (!data?.user) return;
 
-  currentUser = user;
+  user = data.user;
 
-  const { data, error } = await supabase
+  const { data: p } = await supabase
     .from('profiles')
-    .select('id, subscription_type')
+    .select('id')
     .eq('id', user.id)
     .single();
 
-  if (error) {
-    console.error('Profile load failed', error);
-    return;
-  }
-
-  currentProfile = data;
+  profile = p;
 }
 
 /* -----------------------------
-   UI EVENTS
+   EVENTS
 -------------------------------- */
-function bindUIEvents() {
-  const analyzeBtn = document.getElementById('btn-analyze-top-sellers');
-  if (analyzeBtn) {
-    analyzeBtn.addEventListener('click', analyzeTopSellers);
-  }
+function bindEvents() {
+  document
+    .getElementById('btn-new-product')
+    ?.addEventListener('click', openNewProductModal);
+
+  document
+    .querySelector('[id="analyzeTopSellers()"]')
+    ?.addEventListener('click', analyzeTopSellers);
 }
 
 /* -----------------------------
-   TOP SELLER ANALYSIS
+   LOAD PRODUCTS
+-------------------------------- */
+async function loadMyProducts() {
+  const { data } = await supabase
+    .from('products')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  renderProducts(data || []);
+}
+
+/* -----------------------------
+   ETSY TOP SELLERS
 -------------------------------- */
 async function analyzeTopSellers() {
-  if (!currentProfile || isLoading) return;
+  if (loading) return;
+  loading = true;
 
-  isLoading = true;
-  lockUI(true);
+  notify('Top sellers analiz ediliyor...');
 
-  try {
-    notify('Analyzing Etsy top sellers...', 'info');
+  const { data, error } = await supabase.functions.invoke(
+    'etsy-top-sellers',
+    {
+      body: { user_id: profile.id }
+    }
+  );
 
-    const { data, error } = await supabase.functions.invoke(
-      'etsy-top-sellers',
-      {
-        body: {
-          user_id: currentProfile.id
-        }
-      }
-    );
-
-    if (error) throw error;
-
-    renderTopSellerResults(data?.trend_scores || []);
-
-  } catch (err) {
-    console.error(err);
-    notify('Top seller analysis failed', 'error');
-  } finally {
-    isLoading = false;
-    lockUI(false);
-  }
-}
-
-/* -----------------------------
-   RENDER RESULTS
--------------------------------- */
-function renderTopSellerResults(products = []) {
-  const container = document.getElementById('top-seller-results');
-  if (!container) return;
-
-  if (!products.length) {
-    container.innerHTML = `<p>No results found.</p>`;
+  if (error) {
+    notify('Top seller alınamadı', 'error');
+    loading = false;
     return;
   }
 
-  container.innerHTML = products.map(p => `
-    <div class="product-card">
-      <h4>${p.listing_title}</h4>
-      <p>Monthly sales: ${p.monthly_sales_estimate}</p>
-      <p>Trend score: ${p.trend_score}%</p>
-      <button data-id="${p.listing_id}" class="btn-create">
-        Create Product
-      </button>
-    </div>
-  `).join('');
+  renderTopSellerCards(data.trend_scores);
+  loading = false;
+}
 
-  container.querySelectorAll('.btn-create').forEach(btn => {
-    btn.addEventListener('click', () => {
-      createProduct(btn.dataset.id);
-    });
+/* -----------------------------
+   RENDER ETSY RESULTS
+-------------------------------- */
+function renderTopSellerCards(items) {
+  const grid = document.getElementById('products-grid');
+  grid.innerHTML = '';
+
+  items.forEach(item => {
+    const price = Math.max(item.price - 1, 5);
+
+    grid.innerHTML += `
+      <div class="product-card">
+        <div class="product-content">
+          <h3 class="product-title">${item.listing_title}</h3>
+          <p class="product-description">
+            Estimated sales: ${item.monthly_sales_estimate}
+          </p>
+          <div class="product-price">$${price.toFixed(2)}</div>
+
+          <button class="btn btn-primary"
+            data-id="${item.listing_id}">
+            Create Product
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  grid.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => createProductFromEtsy(btn.dataset.id);
   });
 }
 
 /* -----------------------------
    CREATE PRODUCT
 -------------------------------- */
-async function createProduct(listingId) {
-  if (!currentProfile || isLoading) return;
+async function createProductFromEtsy(listingId) {
+  notify('Ürün oluşturuluyor...');
 
-  isLoading = true;
-  lockUI(true);
-
-  try {
-    notify('Creating product...', 'info');
-
-    const { error } = await supabase.functions.invoke(
-      'create-product-from-etsy',
-      {
-        body: {
-          user_id: currentProfile.id,
-          listing_id: listingId
-        }
+  await supabase.functions.invoke(
+    'create-product-from-etsy',
+    {
+      body: {
+        user_id: profile.id,
+        listing_id: listingId
       }
-    );
+    }
+  );
 
-    if (error) throw error;
-
-    notify('Product created successfully', 'success');
-
-  } catch (err) {
-    console.error(err);
-    notify('Product creation failed', 'error');
-  } finally {
-    isLoading = false;
-    lockUI(false);
-  }
+  notify('Ürün oluşturuldu');
+  loadMyProducts();
 }
 
 /* -----------------------------
-   UI HELPERS
+   MOCKUP
 -------------------------------- */
-function lockUI(state) {
-  document.body.classList.toggle('loading', state);
+async function generateMockup(productId) {
+  await supabase.functions.invoke('apply-mockups', {
+    body: { product_id: productId }
+  });
+
+  notify('Mockup oluşturuldu');
 }
 
-function notify(message, type = 'info') {
-  console.log(`[${type.toUpperCase()}]`, message);
+/* -----------------------------
+   PUBLISH
+-------------------------------- */
+async function publishProduct(productId) {
+  await supabase.functions.invoke('publish-to-marketplace', {
+    body: {
+      product_id: productId,
+      user_id: profile.id,
+      marketplaces: ['etsy']
+    }
+  });
+
+  notify('Ürün yayına alındı');
+}
+
+/* -----------------------------
+   UI
+-------------------------------- */
+function renderProducts(products) {
+  const grid = document.getElementById('products-grid');
+  const empty = document.getElementById('products-empty');
+
+  if (!products.length) {
+    empty.classList.remove('hidden');
+    grid.innerHTML = '';
+    return;
+  }
+
+  empty.classList.add('hidden');
+
+  grid.innerHTML = products.map(p => `
+    <div class="product-card">
+      <div class="product-content">
+        <h3 class="product-title">${p.title}</h3>
+        <p class="product-description">${p.description || ''}</p>
+        <div class="product-price">$${p.price}</div>
+
+        <div class="product-actions">
+          <button class="btn btn-outline"
+            onclick="generateMockup('${p.id}')">Mockup</button>
+
+          <button class="btn btn-primary"
+            onclick="publishProduct('${p.id}')">Publish</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* -----------------------------
+   HELPERS
+-------------------------------- */
+function notify(msg, type = 'info') {
+  console.log(`[${type}]`, msg);
+}
+
+function openNewProductModal() {
+  document.getElementById('modal-product').classList.add('active');
 }
