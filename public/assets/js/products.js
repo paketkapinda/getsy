@@ -1,220 +1,172 @@
 /* =====================================================
-   PRODUCTS.JS – EDGE FUNCTION ORCHESTRATOR (FINAL)
-   ===================================================== */
+   PRODUCTS.JS – SINGLE ORCHESTRATOR
+   Supabase Edge Functions (ANON + JWT)
+===================================================== */
 
 import { supabase } from './supabaseClient.js'
 
-/* -----------------------------
-   STATE
--------------------------------- */
 let currentUser = null
-let session = null
-let isLoading = false
+let productsCache = []
 
-/* -----------------------------
+/* =====================================================
    INIT
--------------------------------- */
+===================================================== */
 document.addEventListener('DOMContentLoaded', async () => {
-  await initAuth()
+  await loadUser()
   bindUI()
 })
 
-async function initAuth() {
-  const { data } = await supabase.auth.getSession()
-  session = data.session
-  currentUser = session?.user || null
-
-  if (!currentUser) {
-    console.warn('No active session')
-  }
+async function loadUser() {
+  const { data } = await supabase.auth.getUser()
+  currentUser = data?.user || null
 }
 
-/* -----------------------------
+/* =====================================================
    UI BINDINGS
--------------------------------- */
+===================================================== */
 function bindUI() {
-  const btn = document.getElementById('analyzeTopSellers')
-  if (btn) {
-    btn.addEventListener('click', loadTopSellers)
-  }
+  // Analyze Top Sellers
+  const analyzeBtn = document.getElementById('analyze-top-sellers')
+  analyzeBtn?.addEventListener('click', loadTopSellers)
+
+  // New Product
+  const newProductBtn = document.getElementById('btn-new-product')
+  newProductBtn?.addEventListener('click', createEmptyProductCard)
+
+  // Filters
+  document.getElementById('filter-status')
+    ?.addEventListener('change', applyFilters)
+
+  document.getElementById('filter-category')
+    ?.addEventListener('change', applyFilters)
 }
 
-/* -----------------------------
-   EDGE CALL HELPER
--------------------------------- */
-async function callEdgeFunction(name, body = {}) {
-  if (!session?.access_token) {
-    throw new Error('User not authenticated')
-  }
-
-  const res = await fetch(
-    `https://YOUR_PROJECT_ID.functions.supabase.co/${name}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify(body),
-    }
-  )
-
-  const text = await res.text()
-  let json
-
-  try {
-    json = JSON.parse(text)
-  } catch {
-    throw new Error(`Invalid JSON response: ${text}`)
-  }
-
-  if (!res.ok) {
-    throw new Error(json.error || 'Edge Function failed')
-  }
-
-  return json
-}
-
-/* -----------------------------
+/* =====================================================
    TOP SELLERS
--------------------------------- */
+===================================================== */
 async function loadTopSellers() {
-  if (isLoading) return
-  isLoading = true
-  lockUI(true)
+  if (!currentUser) return alert('Login required')
+
+  setLoading(true)
 
   try {
-    console.log('🔄 Analyzing top sellers...')
+    const session = await supabase.auth.getSession()
+    const token = session.data.session.access_token
 
-    const result = await callEdgeFunction('analyze-top-sellers')
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/analyze-top-sellers`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+    )
 
-    if (!result.success) {
-      throw new Error('Analyze failed')
-    }
+    const json = await res.json()
+    if (!res.ok) throw json
 
-    renderTopSellers(result.trend_scores || [])
+    productsCache = json.trend_scores || []
+    renderProducts(productsCache)
+
   } catch (err) {
-    console.error('Top seller error:', err)
-    alert('Top sellers could not be loaded')
+    console.error(err)
+    alert('Top sellers load failed')
   } finally {
-    isLoading = false
-    lockUI(false)
+    setLoading(false)
   }
 }
 
-/* -----------------------------
-   RENDER CARDS
--------------------------------- */
-function renderTopSellers(items) {
+/* =====================================================
+   RENDER
+===================================================== */
+function renderProducts(list) {
   const container = document.getElementById('products-grid')
   if (!container) return
 
-  if (!items.length) {
-    container.innerHTML = '<p>No results found.</p>'
+  container.innerHTML = ''
+
+  if (!list.length) {
+    container.innerHTML = `<p>No products found</p>`
     return
   }
 
-  container.innerHTML = items.map(item => `
-    <div class="product-card">
-      <h4>${item.title}</h4>
-
-      <p>
-        Trend Score: <b>${item.trend_score}</b><br/>
-        Est. Monthly Sales: ${item.monthly_sales_estimate}
-      </p>
-
-      <div class="actions">
-        <button data-id="${item.listing_id}" class="btn-generate">
-          Generate Design
-        </button>
-        <button data-id="${item.listing_id}" class="btn-publish">
-          Publish
-        </button>
-      </div>
+  container.innerHTML = list.map(p => `
+    <div class="product-card" data-status="draft" data-category="tshirt">
+      <h4>${p.title}</h4>
+      <p>Trend Score: ${p.trend_score}</p>
+      <p>Est. Sales: ${p.monthly_sales_estimate}</p>
+      <button class="btn btn-sm" onclick="publishProduct('${p.listing_id}')">
+        Publish
+      </button>
     </div>
   `).join('')
-
-  bindCardActions()
 }
 
-/* -----------------------------
-   CARD ACTIONS
--------------------------------- */
-function bindCardActions() {
-  document.querySelectorAll('.btn-generate').forEach(btn => {
-    btn.addEventListener('click', () => {
-      generateDesign(btn.dataset.id)
-    })
+/* =====================================================
+   FILTERS
+===================================================== */
+function applyFilters() {
+  const status = document.getElementById('filter-status').value
+  const category = document.getElementById('filter-category').value
+
+  const filtered = productsCache.filter(p => {
+    if (status && p.status !== status) return false
+    if (category && p.category !== category) return false
+    return true
   })
 
-  document.querySelectorAll('.btn-publish').forEach(btn => {
-    btn.addEventListener('click', () => {
-      publishProduct(btn.dataset.id)
-    })
-  })
+  renderProducts(filtered)
 }
 
-/* -----------------------------
-   GENERATE DESIGN
--------------------------------- */
-async function generateDesign(listingId) {
-  if (isLoading) return
-  isLoading = true
-  lockUI(true)
+/* =====================================================
+   NEW PRODUCT
+===================================================== */
+function createEmptyProductCard() {
+  const container = document.getElementById('products-grid')
+  if (!container) return
 
+  container.insertAdjacentHTML('afterbegin', `
+    <div class="product-card manual">
+      <h4 contenteditable="true">New Product</h4>
+      <p contenteditable="true">Description...</p>
+      <button class="btn btn-sm">Save Draft</button>
+    </div>
+  `)
+}
+
+/* =====================================================
+   PUBLISH (EDGE)
+===================================================== */
+window.publishProduct = async function (listingId) {
   try {
-    console.log('🎨 Generating design for', listingId)
+    const session = await supabase.auth.getSession()
+    const token = session.data.session.access_token
 
-    const result = await callEdgeFunction(
-      'generate-design-variations',
+    await fetch(
+      `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/publish-to-marketplace`,
       {
-        listing_id: listingId,
-        variations: 4,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ listing_id: listingId })
       }
     )
 
-    alert(`Designs generated: ${result.count || 0}`)
-  } catch (err) {
-    console.error('Design error:', err)
-    alert('Design generation failed')
-  } finally {
-    isLoading = false
-    lockUI(false)
-  }
-}
+    alert('Product published')
 
-/* -----------------------------
-   PUBLISH PRODUCT
--------------------------------- */
-async function publishProduct(listingId) {
-  if (isLoading) return
-  isLoading = true
-  lockUI(true)
-
-  try {
-    console.log('🚀 Publishing product', listingId)
-
-    const result = await callEdgeFunction(
-      'publish-to-marketplace',
-      {
-        listing_id: listingId,
-        price_strategy: '1-dollar-under',
-      }
-    )
-
-    alert('Product published successfully')
-  } catch (err) {
-    console.error('Publish error:', err)
+  } catch (e) {
+    console.error(e)
     alert('Publish failed')
-  } finally {
-    isLoading = false
-    lockUI(false)
   }
 }
 
-/* -----------------------------
-   UI HELPERS
--------------------------------- */
-function lockUI(state) {
+/* =====================================================
+   UI
+===================================================== */
+function setLoading(state) {
   document.body.classList.toggle('loading', state)
 }
