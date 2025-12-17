@@ -155,16 +155,17 @@ async function saveProduct(e) {
 async function analyzeTopSellers() {
   try {
     const res = await fetch(
-      `${window.ENV.SUPABASE_FUNCTIONS_URL}/analyze-top-sellers`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session.access_token}`
-        }
-      }
-    );
-
+  `${window.ENV.SUPABASE_FUNCTIONS_URL}/analyze-top-sellers`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${
+        (await supabase.auth.getSession()).data.session.access_token
+      }`
+    }
+  }
+);
     const data = await res.json();
     console.log('Top sellers:', data);
 
