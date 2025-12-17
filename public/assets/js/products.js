@@ -152,29 +152,25 @@ async function saveProduct(e) {
    ANALYZE TOP SELLERS (EDGE)
 -------------------------------- */
 async function analyzeTopSellers() {
-  if (!currentUser) return;
-
-  const session = (await supabase.auth.getSession()).data.session;
-  if (!session) return alert('Not authenticated');
-
-  const res = await fetch(
-    `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/analyze-top-sellers`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
+  try {
+    const res = await fetch(
+      `${window.ENV.SUPABASE_FUNCTIONS_URL}/analyze-top-sellers`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session.access_token}`
+        }
       }
-    }
-  );
+    );
 
-  const json = await res.json();
-  if (!res.ok) {
-    console.error(json);
-    return alert('Top seller analysis failed');
+    const data = await res.json();
+    console.log('Top sellers:', data);
+
+  } catch (err) {
+    console.error(err);
+    alert('Analyze failed');
   }
-
-  renderTopSellers(json.trend_scores || []);
 }
 
 /* -----------------------------
